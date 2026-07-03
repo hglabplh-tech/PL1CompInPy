@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from ..ast import (
+from ..core.ast import (
     Assignment,
     BinaryExpression,
     Call,
@@ -34,6 +34,8 @@ class AssemblyTarget:
 
 TARGETS = {
     "python": None,
+    "python-source": None,
+    "jvm-bytecode": None,
     "x586-windows": AssemblyTarget("x586-windows", "x586", "windows", "_", "_main", "_printf"),
     "x586-macos": AssemblyTarget("x586-macos", "x586", "macos", "_", "_main", "_printf"),
     "arm64-macos": AssemblyTarget("arm64-macos", "arm64", "macos", "_", "_main", "_printf"),

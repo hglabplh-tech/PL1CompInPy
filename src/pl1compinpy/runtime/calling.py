@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import replace
 
-from ..ast import Call, DoGroup, IfStatement, LabelledStatement, Procedure, Program, Statement
+from ..core.ast import Call, DoGroup, IfStatement, LabelledStatement, Procedure, Program, Statement
 
 
 class RuntimeError(ValueError):

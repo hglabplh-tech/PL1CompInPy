@@ -5,6 +5,7 @@
 - Python package structure using `pyproject.toml`.
 - Command-line compiler entry point via `python -m pl1compinpy`.
 - Layered package organization:
+  - `core` for AST and compiler orchestration
   - `frontend` for keywords, lexing, and parsing
   - `runtime` for calling-convention normalization
   - `codegen` for assembly text, executable lowering, and binary containers
@@ -12,6 +13,8 @@
 - PL/1 parser producing an AST for assignments, declarations, calls, procedures, labels, `DO` groups, and `IF/THEN/ELSE`.
 - Keyword catalog covering PL/1 statements, declaration attributes, storage attributes, I/O words, conditions, and preprocessor/listing words.
 - Python-like text emitter for early compiler validation.
+- Python source output backend.
+- JVM bytecode-style output backend.
 - Assembly text emitters for:
   - `x586-windows`
   - `x586-macos`
@@ -46,6 +49,9 @@
 - Procedure calls.
 - Basic output through `CALL DISPLAY(...)`, `CALL PRINT(...)`, and basic `PUT LIST(...)`.
 - Procedure calls with by-reference and by-name normalization.
+- `PROC OPTIONS(MAIN)` program entry point.
+- `PROC RECURSIVE` metadata and ordinary recursive-call continuation semantics.
+- `PROC RETURNS(...)` function return metadata.
 - `IF/THEN/ELSE` comparisons using `=`, `^=`, `<>`, `<`, `<=`, `>`, and `>=`.
 - Labels and simple procedure bodies.
 - Simple `DO` groups.

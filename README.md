@@ -52,6 +52,8 @@ python -m pl1compinpy examples/hello.pl1
 Emit assembly instead of the default Python-like output:
 
 ```bash
+python -m pl1compinpy examples/hello.pl1 --target python-source
+python -m pl1compinpy examples/hello.pl1 --target jvm-bytecode
 python -m pl1compinpy examples/hello.pl1 --target x586-windows
 python -m pl1compinpy examples/hello.pl1 --target x586-macos
 python -m pl1compinpy examples/hello.pl1 --target arm64-macos
@@ -76,8 +78,10 @@ python -m unittest discover -s tests
 
 ## Assembly Back Ends
 
-The project includes first-pass assembly emitters for:
+The project includes backend emitters for:
 
+- `python-source`: Python source code
+- `jvm-bytecode`: JVM bytecode-style textual output
 - `x586-windows`: 32-bit x86-style assembly for Windows toolchains using C `printf`
 - `x586-macos`: 32-bit x86-style assembly with macOS symbol naming
 - `arm64-macos`: Apple Silicon/M2-style ARM64 assembly using macOS symbol naming
@@ -90,6 +94,9 @@ Currently supported compiler features:
 - `IF/THEN/ELSE` comparisons with `=`, `^=`, `<>`, `<`, `<=`, `>`, and `>=`
 - simple `DO` groups as loops
 - labels and procedure bodies
+- `PROC OPTIONS(MAIN)` as a program entry point
+- `PROC RECURSIVE` metadata, with recursive calls lowered as ordinary calls that continue at the next statement after return
+- `PROC RETURNS(...)` metadata for function return type
 - console output through `CALL DISPLAY(...)`, `CALL PRINT(...)`, and basic `PUT LIST(...)`
 
 The emitters generate readable assembler text. They are intentionally small and direct so the
@@ -141,13 +148,17 @@ The executable pipeline includes a first runtime calling convention:
 PL1CompInPy/
   pyproject.toml
   src/pl1compinpy/
-    ast.py
     cli.py
     codegen/
       backends.py
       binary_formats.py
       executable_pipeline.py
+      jvm_bytecode.py
+      python_source.py
     compiler.py
+    core/
+      ast.py
+      compiler.py
     frontend/
       keywords.py
       lexer.py

@@ -28,7 +28,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--target",
         choices=available_targets(),
-        default="python",
+        default="python-source",
         help="Compiler output target",
     )
     return parser

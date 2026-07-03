@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import struct
 
-from ..ast import Program
+from ..core.ast import Program
 from .executable_pipeline import assemble_executable
 
 

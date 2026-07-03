@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from ..ast import (
+from ..core.ast import (
     Assignment,
     BinaryExpression,
     Call,
@@ -94,12 +94,22 @@ class Parser:
     def _procedure(self, name: str | None) -> Procedure:
         parameters: list[str] = []
         options: list[str] = []
+        returns: str | None = None
+        recursive = False
 
         if self._match(TokenType.LPAREN):
             parameters = self._identifier_list_until(TokenType.RPAREN)
-        if self._match_keyword("OPTIONS"):
-            self._consume(TokenType.LPAREN, "Expected '(' after OPTIONS")
-            options = self._identifier_list_until(TokenType.RPAREN)
+        while not self._check(TokenType.SEMICOLON):
+            if self._match_keyword("OPTIONS"):
+                self._consume(TokenType.LPAREN, "Expected '(' after OPTIONS")
+                options = self._identifier_list_until(TokenType.RPAREN)
+            elif self._match_keyword("RETURNS"):
+                self._consume(TokenType.LPAREN, "Expected '(' after RETURNS")
+                returns = self._type_text(self._collect_until_balanced_rparen())
+            elif self._match_keyword("RECURSIVE"):
+                recursive = True
+            else:
+                raise self._error(self._peek(), "Expected PROCEDURE option")
         self._consume(TokenType.SEMICOLON, "Expected ';' after PROCEDURE header")
 
         body: list[Statement] = []
@@ -113,7 +123,24 @@ class Parser:
         if self._check(TokenType.IDENTIFIER):
             self._advance()
         self._consume(TokenType.SEMICOLON, "Expected ';' after END")
-        return Procedure(name, parameters, options, body)
+        return Procedure(name, parameters, options, body, returns, recursive)
+
+    def _collect_until_balanced_rparen(self) -> list[Token]:
+        tokens: list[Token] = []
+        depth = 0
+        while not self._check(TokenType.EOF):
+            if self._check(TokenType.LPAREN):
+                depth += 1
+                tokens.append(self._advance())
+            elif self._check(TokenType.RPAREN):
+                if depth == 0:
+                    self._advance()
+                    return tokens
+                depth -= 1
+                tokens.append(self._advance())
+            else:
+                tokens.append(self._advance())
+        raise self._error(self._peek(), "Expected ')'")
 
     def _do_group(self) -> DoGroup:
         control = [token.lexeme for token in self._collect_until_semicolon()]
@@ -226,6 +253,9 @@ class Parser:
                 self._advance()
         self._consume(end, f"Expected {end.value!r}")
         return values
+
+    def _type_text(self, tokens: list[Token]) -> str:
+        return " ".join(token.lexeme for token in tokens if token.type not in {TokenType.LPAREN, TokenType.RPAREN})
 
     def _collect_until_semicolon(self) -> list[Token]:
         tokens: list[Token] = []

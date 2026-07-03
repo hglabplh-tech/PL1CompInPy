@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 import struct
 
-from ..ast import (
+from ..core.ast import (
     Assignment,
     BinaryExpression,
     Call,
@@ -15,6 +15,7 @@ from ..ast import (
     NumberLiteral,
     Procedure,
     Program,
+    RawStatement,
     Statement,
     StringLiteral,
 )
@@ -91,12 +92,15 @@ def lower_program(program: Program) -> tuple[list[Mnemonic], bytes, dict[str, in
     mnemonics: list[Mnemonic] = []
     procedure_statements = [statement for statement in program.statements if _is_procedure_definition(statement)]
     main_statements = [statement for statement in program.statements if not _is_procedure_definition(statement)]
+    main_procedure = _main_procedure_name(program)
 
     if procedure_statements:
         mnemonics.append(Mnemonic("JMP", ("__main",)))
         for statement in procedure_statements:
             mnemonics.extend(_lower_statement(statement, context))
         mnemonics.append(Mnemonic("LABEL", ("__main",)))
+        if main_procedure:
+            mnemonics.append(Mnemonic("CALL_PROC", (main_procedure, 0)))
         for statement in main_statements:
             mnemonics.extend(_lower_statement(statement, context))
     else:
@@ -163,6 +167,14 @@ def _is_procedure_definition(statement: Statement) -> bool:
     )
 
 
+def _main_procedure_name(program: Program) -> str | None:
+    for statement in program.statements:
+        procedure = statement.statement if isinstance(statement, LabelledStatement) and isinstance(statement.statement, Procedure) else statement
+        if isinstance(procedure, Procedure) and "MAIN" in {option.upper() for option in procedure.options}:
+            return procedure.name or (statement.label if isinstance(statement, LabelledStatement) else None)
+    return None
+
+
 def _lower_statement(statement: Statement, context: LoweringContext) -> list[Mnemonic]:
     if isinstance(statement, Declaration):
         if context.local_scopes:
@@ -178,7 +190,17 @@ def _lower_statement(statement: Statement, context: LoweringContext) -> list[Mne
     if isinstance(statement, LabelledStatement):
         if isinstance(statement.statement, Procedure):
             procedure = statement.statement
-            return _lower_procedure(Procedure(procedure.name or statement.label, procedure.parameters, procedure.options, procedure.body), context)
+            return _lower_procedure(
+                Procedure(
+                    procedure.name or statement.label,
+                    procedure.parameters,
+                    procedure.options,
+                    procedure.body,
+                    procedure.returns,
+                    procedure.recursive,
+                ),
+                context,
+            )
         return [Mnemonic("LABEL", (statement.label,))] + _lower_statement(statement.statement, context)
     if isinstance(statement, Procedure):
         return _lower_procedure(statement, context)
@@ -193,6 +215,12 @@ def _lower_statement(statement: Statement, context: LoweringContext) -> list[Mne
             lines.extend(_lower_statement(statement.else_branch, context))
         lines.append(Mnemonic("LABEL", (end_label,)))
         return lines
+    if isinstance(statement, RawStatement) and statement.keyword.upper() == "RETURN":
+        if statement.tokens:
+            if statement.tokens[0].isdigit():
+                return [Mnemonic("MOV_EAX_IMM", (int(statement.tokens[0]),))]
+            return [_load_name(statement.tokens[0], context)]
+        return [Mnemonic("MOV_EAX_IMM", (0,))]
     return [Mnemonic("COMMENT", (statement.__class__.__name__,))]
 
 

@@ -163,6 +163,53 @@ class CompilerTests(unittest.TestCase):
         self.assertEqual(mnemonics[0], type(mnemonics[0])("JMP", ("__main",)))
         self.assertIn(type(mnemonics[0])("LABEL", ("__main",)), mnemonics)
 
+    def test_runtime_entry_calls_proc_options_main(self):
+        source = "MAIN: PROC OPTIONS(MAIN); END MAIN;"
+        program = normalize_calls(Parser(Lexer(source).tokenize()).parse())
+        mnemonics, _, _ = lower_program(program)
+        main_label = mnemonics.index(type(mnemonics[0])("LABEL", ("__main",)))
+
+        self.assertEqual(mnemonics[main_label + 1], type(mnemonics[0])("CALL_PROC", ("MAIN", 0)))
+
+    def test_parses_proc_main_recursive_returns(self):
+        program = Parser(
+            Lexer("MAIN: PROC OPTIONS(MAIN) RECURSIVE RETURNS(FIXED BIN(31)); RETURN 0; END MAIN;").tokenize()
+        ).parse()
+        procedure = program.statements[0].statement
+
+        self.assertIsInstance(procedure, Procedure)
+        self.assertIn("MAIN", procedure.options)
+        self.assertTrue(procedure.recursive)
+        self.assertEqual(procedure.returns, "FIXED BIN 31")
+
+    def test_python_source_backend_emits_main_entry(self):
+        source = "MAIN: PROC OPTIONS(MAIN) RETURNS(FIXED); RETURN 0; END MAIN;"
+        output = compile_source(source, target="python-source")
+
+        self.assertIn("def MAIN():  # returns FIXED", output)
+        self.assertIn('if __name__ == "__main__":', output)
+        self.assertIn("    MAIN()", output)
+
+    def test_jvm_bytecode_backend_emits_main_and_return_descriptor(self):
+        source = "MAIN: PROC OPTIONS(MAIN) RETURNS(FIXED); RETURN 0; END MAIN;"
+        output = compile_source(source, target="jvm-bytecode")
+
+        self.assertIn(".class public PL1Program", output)
+        self.assertIn(".method public static MAIN()I", output)
+        self.assertIn(".method public static main([Ljava/lang/String;)V", output)
+        self.assertIn("invokestatic PL1Program/MAIN()I", output)
+
+    def test_recursive_call_lowers_as_normal_call_with_continuation(self):
+        source = "FACT: PROC(N) RECURSIVE RETURNS(FIXED); CALL FACT(N); RETURN N; END FACT;"
+        program = normalize_calls(Parser(Lexer(source).tokenize()).parse())
+        mnemonics, _, _ = lower_program(program)
+        ops = [mnemonic.op for mnemonic in mnemonics]
+        call_index = ops.index("CALL_PROC")
+
+        self.assertEqual(mnemonics[call_index].args[0], "FACT")
+        self.assertEqual(ops[call_index + 1], "CLEAN_ARGS")
+        self.assertIn("LEAVE_RET", ops[call_index + 2 :])
+
 
 if __name__ == "__main__":
     unittest.main()
