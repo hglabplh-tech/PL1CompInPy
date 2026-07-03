@@ -188,6 +188,7 @@ The runtime also includes starter storage and I/O services:
 - fixed-record files using `RECFM(F)` and `LRECL(n)`
 - variable-record files using `RECFM(V)`, represented here with a two-byte big-endian length prefix followed by record data
 - binary and text record payloads
+- primitive TCP socket I/O runtime with client/server sockets, SSL client sockets, and TLS client sockets
 - generic function dispatch by argument type, using runtime lambda implementations
 - local VSAM-style datasets with a catalog file plus binary data file for KSDS, ESDS, RRDS, and LDS organizations
 - VSAM runtime descriptors and I/O dispatch for `OPEN`, `WRITE FROM`, KSDS keyed `READ`, ESDS RBA `READ`, RRDS RRN `READ`/`WRITE`, LDS RBA/LENGTH `READ`, and `CLOSE`
@@ -227,6 +228,7 @@ PL1CompInPy/
       heap.py
       io.py
       picture.py
+      socket_io.py
       strings.py
     vsam/
       catalog.py

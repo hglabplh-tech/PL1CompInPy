@@ -24,6 +24,7 @@ These examples cover the compiler features currently implemented in PL1CompInPy.
 - `runtime/file_record_v.pl1`: variable-record file declaration
 - `runtime/file_record_f.pl1`: fixed-record file declaration
 - `runtime/file_read_write.pl1`: `OPEN`, `READ`, `WRITE`, and `CLOSE` file statements
+- `runtime/socket_io.py`: primitive runtime TCP socket send/receive example
 
 ## Builtins
 

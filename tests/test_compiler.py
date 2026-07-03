@@ -3,6 +3,7 @@ from decimal import Decimal
 from pathlib import Path
 import sys
 import struct
+import socket
 import tempfile
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
@@ -28,6 +29,9 @@ from pl1compinpy.runtime import (
     StringRuntime,
     PL1Type,
     PL1Value,
+    SocketDescriptor,
+    SocketRuntime,
+    SocketSecureMode,
     normalize_calls,
 )
 from pl1compinpy.vsam import VSAMCatalog, VSAMFileDescriptor, VSAMRuntime, VSAMType
@@ -514,6 +518,31 @@ class CompilerTests(unittest.TestCase):
         self.assertEqual(float_value.value, 3.5)
         self.assertEqual(text_value.value, "AB")
         self.assertEqual(bit_value.value, False)
+
+    def test_socket_runtime_sends_and_receives_plain_tcp(self):
+        runtime = SocketRuntime()
+        left, right = socket.socketpair()
+        try:
+            left.settimeout(1.0)
+            right.settimeout(1.0)
+            runtime.adopt("LEFT", left)
+            runtime.adopt("RIGHT", right)
+
+            runtime.send("LEFT", "PING")
+            self.assertEqual(runtime.receive("RIGHT", 4), b"PING")
+            runtime.send("RIGHT", b"PONG")
+            self.assertEqual(runtime.receive("LEFT", 4), b"PONG")
+        finally:
+            runtime.close_all()
+
+    def test_socket_runtime_builds_ssl_and_tls_descriptors(self):
+        ssl_descriptor = SocketDescriptor.ssl_client("SSL", "localhost", 443, verify=False)
+        tls_descriptor = SocketDescriptor.tls_client("TLS", "localhost", 443)
+
+        self.assertEqual(ssl_descriptor.secure, SocketSecureMode.SSL)
+        self.assertEqual(tls_descriptor.secure, SocketSecureMode.TLS)
+        self.assertEqual(ssl_descriptor.server_hostname, "localhost")
+        self.assertTrue(tls_descriptor.verify)
 
     def test_based_runtime_binds_records_to_pointer_storage(self):
         runtime = BasedRuntime()
