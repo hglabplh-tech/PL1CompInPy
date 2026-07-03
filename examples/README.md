@@ -42,3 +42,6 @@ These examples cover the compiler features currently implemented in PL1CompInPy.
 - `vsam/rrds.pl1`: relative record data set declaration
 - `vsam/lds.pl1`: linear data set declaration
 - `vsam/io_ksds.pl1`: VSAM `OPEN`, `WRITE`, keyed `READ`, and `CLOSE`
+- `vsam/io_esds.pl1`: VSAM ESDS `OPEN`, `WRITE`, RBA `READ`, and `CLOSE`
+- `vsam/io_rrds.pl1`: VSAM RRDS `OPEN`, RRN `WRITE`, RRN `READ`, and `CLOSE`
+- `vsam/io_lds.pl1`: VSAM LDS `OPEN`, RBA `WRITE`, RBA/LENGTH `READ`, and `CLOSE`

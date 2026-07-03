@@ -580,6 +580,63 @@ class CompilerTests(unittest.TestCase):
 
             self.assertEqual(variables["RECORD"], b"KEY1payload")
 
+    def test_vsam_runtime_executes_esds_io_by_rba(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            declaration = Parser(
+                Lexer("DCL EVENTS FILE RECORD UPDATE ENVIRONMENT(VSAM(ESDS), PATH('events.esds')) BINARY;").tokenize()
+            ).parse().statements[0]
+            descriptor = VSAMFileDescriptor.from_declaration(declaration, Path(tmp))
+            runtime = VSAMRuntime()
+            variables = {"RECORD": b"first-event", "RBA": 0}
+
+            write_program = Parser(Lexer("OPEN FILE(EVENTS); WRITE FILE(EVENTS) FROM(RECORD); CLOSE FILE(EVENTS);").tokenize()).parse()
+            for statement in write_program.statements:
+                runtime.execute(statement, {"EVENTS": descriptor}, variables)
+
+            read_program = Parser(Lexer("OPEN FILE(EVENTS); READ FILE(EVENTS) RBA(RBA) INTO(RECORD); CLOSE FILE(EVENTS);").tokenize()).parse()
+            for statement in read_program.statements:
+                runtime.execute(statement, {"EVENTS": descriptor}, variables)
+
+            self.assertEqual(variables["RECORD"], b"first-event")
+
+    def test_vsam_runtime_executes_rrds_io_by_rrn(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            declaration = Parser(
+                Lexer("DCL SLOTS FILE RECORD UPDATE ENVIRONMENT(VSAM(RRDS), RECORDLENGTH(6), PATH('slots.rrds')) BINARY;").tokenize()
+            ).parse().statements[0]
+            descriptor = VSAMFileDescriptor.from_declaration(declaration, Path(tmp))
+            runtime = VSAMRuntime()
+            variables = {"RECORD": b"ABC", "RRN": 7}
+
+            write_program = Parser(Lexer("OPEN FILE(SLOTS); WRITE FILE(SLOTS) RRN(RRN) FROM(RECORD); CLOSE FILE(SLOTS);").tokenize()).parse()
+            for statement in write_program.statements:
+                runtime.execute(statement, {"SLOTS": descriptor}, variables)
+
+            read_program = Parser(Lexer("OPEN FILE(SLOTS); READ FILE(SLOTS) RRN(RRN) INTO(RECORD); CLOSE FILE(SLOTS);").tokenize()).parse()
+            for statement in read_program.statements:
+                runtime.execute(statement, {"SLOTS": descriptor}, variables)
+
+            self.assertEqual(variables["RECORD"], b"ABC\0\0\0")
+
+    def test_vsam_runtime_executes_lds_io_by_rba_and_length(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            declaration = Parser(
+                Lexer("DCL LINEAR FILE RECORD UPDATE ENVIRONMENT(VSAM(LDS), PATH('linear.lds')) BINARY;").tokenize()
+            ).parse().statements[0]
+            descriptor = VSAMFileDescriptor.from_declaration(declaration, Path(tmp))
+            runtime = VSAMRuntime()
+            variables = {"PAYLOAD": b"0123456789", "RBA": 0, "READ_RBA": 3, "LEN": 4}
+
+            write_program = Parser(Lexer("OPEN FILE(LINEAR); WRITE FILE(LINEAR) RBA(RBA) FROM(PAYLOAD); CLOSE FILE(LINEAR);").tokenize()).parse()
+            for statement in write_program.statements:
+                runtime.execute(statement, {"LINEAR": descriptor}, variables)
+
+            read_program = Parser(Lexer("OPEN FILE(LINEAR); READ FILE(LINEAR) RBA(READ_RBA) LENGTH(LEN) INTO(PAYLOAD); CLOSE FILE(LINEAR);").tokenize()).parse()
+            for statement in read_program.statements:
+                runtime.execute(statement, {"LINEAR": descriptor}, variables)
+
+            self.assertEqual(variables["PAYLOAD"], b"3456")
+
     def test_builtin_loader_reads_substr_pl1_source(self):
         source = BuiltinLibrary().source("SUBSTR")
 

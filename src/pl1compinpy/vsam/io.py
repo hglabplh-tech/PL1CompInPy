@@ -45,7 +45,8 @@ class VSAMRuntime:
         self._open_catalogs: dict[str, VSAMCatalog] = {}
 
     def open(self, descriptor: VSAMFileDescriptor) -> None:
-        if descriptor.mode in {"OUTPUT", "UPDATE"} or not (descriptor.path / "catalog.json").exists():
+        catalog_exists = (descriptor.path / "catalog.json").exists()
+        if descriptor.mode == "OUTPUT" or not catalog_exists:
             catalog = VSAMCatalog.define(
                 descriptor.path,
                 descriptor.name,

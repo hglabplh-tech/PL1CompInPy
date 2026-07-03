@@ -188,7 +188,7 @@ The runtime also includes starter storage and I/O services:
 - binary and text record payloads
 - generic function dispatch by argument type, using runtime lambda implementations
 - local VSAM-style datasets with a catalog file plus binary data file for KSDS, ESDS, RRDS, and LDS organizations
-- VSAM runtime descriptors and I/O dispatch for `OPEN`, `WRITE FROM`, keyed `READ INTO`, and `CLOSE`
+- VSAM runtime descriptors and I/O dispatch for `OPEN`, `WRITE FROM`, KSDS keyed `READ`, ESDS RBA `READ`, RRDS RRN `READ`/`WRITE`, LDS RBA/LENGTH `READ`, and `CLOSE`
 
 ## Project Layout
 
