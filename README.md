@@ -55,6 +55,7 @@ Emit assembly instead of the default Python-like output:
 python -m pl1compinpy examples/hello.pl1 --target python-source
 python -m pl1compinpy examples/hello.pl1 --target jvm-bytecode
 python -m pl1compinpy examples/hello.pl1 --target x586-windows
+python -m pl1compinpy examples/hello.pl1 --target x86_64-windows
 python -m pl1compinpy examples/hello.pl1 --target x586-macos
 python -m pl1compinpy examples/hello.pl1 --target arm64-macos
 python -m pl1compinpy examples/hello.pl1 --target arm64-windows
@@ -70,6 +71,7 @@ Create a binary executable/container artifact:
 
 ```bash
 python -m pl1compinpy examples/hello.pl1 --emit binary --binary-format pe32-x586-windows -o hello.exe
+python -m pl1compinpy examples/hello.pl1 --emit binary --binary-format pe64-x86_64-windows -o hello-x64.exe
 python -m pl1compinpy examples/hello.pl1 --emit binary --binary-format elf64-x86_64 -o hello-x86_64.elf
 python -m pl1compinpy examples/hello.pl1 --emit binary --binary-format elf64-aarch64 -o hello-aarch64.elf
 python -m pl1compinpy examples/hello.pl1 --emit binary --binary-format macho64-x86_64-macos -o hello-intel-macos
@@ -96,6 +98,7 @@ The project includes backend emitters for:
 - `jvm-bytecode`: JVM bytecode-style textual output
 - `--emit class`: binary JVM `.class` output targeting JDK 17 classfile version 61
 - `x586-windows`: 32-bit x86-style assembly for Windows toolchains using C `printf`
+- `x86_64-windows`: 64-bit x86 assembly for Windows x64 toolchains using C `printf`
 - `x586-macos`: 32-bit x86-style assembly with macOS symbol naming
 - `arm64-macos`: Apple Silicon/M2-style ARM64 assembly using macOS symbol naming
 - `arm64-windows`: ARM64-style assembly with Windows symbol naming
@@ -131,6 +134,7 @@ The binary writer currently creates minimal executable/container files with corr
 signatures and source-derived starter code:
 
 - `pe32-x586-windows`: Windows PE32 `.exe` format for 32-bit x86/x586
+- `pe64-x86_64-windows`: Windows PE32+ `.exe` format for x86_64/AMD64
 - `elf64-x86_64`: ELF64 executable container for Intel/AMD 64-bit Unix-style systems
 - `elf64-aarch64`: ELF64 executable container for ARM64/AArch64 Unix-style systems
 - `macho64-x86_64-macos`: Mach-O 64-bit executable container for Intel macOS
@@ -139,10 +143,11 @@ signatures and source-derived starter code:
 macOS uses Mach-O, not ELF. ELF is provided for Unix-style targets; Apple Intel and M2 targets
 use Mach-O containers.
 
-The most complete binary path today is `pe32-x586-windows`, which includes variable storage and
-source-driven x586 instruction encoding. The ELF and Mach-O paths use the same mnemonic pipeline
-and have starter encoders for Intel and ARM64 machine code, ready to be expanded with full runtime
-I/O and platform linker details.
+The binary layer exposes explicit PE, ELF, and Mach-O linker classes in `pl1compinpy.codegen.linkers`.
+The `pe32-x586-windows` and `pe64-x86_64-windows` paths include source-driven instruction encoding
+for starter arithmetic and exit code. The ELF and Mach-O paths use the same mnemonic pipeline and
+have starter encoders for Intel and ARM64 machine code, ready to be expanded with full runtime I/O
+and platform linker details.
 
 ## Runtime Model
 

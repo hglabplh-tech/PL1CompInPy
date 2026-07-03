@@ -1,6 +1,7 @@
 import unittest
 from pathlib import Path
 import sys
+import struct
 import tempfile
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
@@ -10,6 +11,7 @@ from pl1compinpy.builtins import BuiltinLibrary
 from pl1compinpy.compiler import compile_binary, compile_jvm_classes
 from pl1compinpy.codegen.jvm_classfile import JAVA_17_MAJOR_VERSION
 from pl1compinpy.codegen.executable_pipeline import lower_program
+from pl1compinpy.codegen.linkers import ELFLinker, MachOLinker, PELinker
 from pl1compinpy.ast import Call, Declaration, IfStatement, LabelledStatement, Procedure
 from pl1compinpy.frontend.lexer import Lexer, TokenType
 from pl1compinpy.frontend.parser import Parser
@@ -112,11 +114,32 @@ class CompilerTests(unittest.TestCase):
         self.assertIn("cmp w8, w0", assembly)
         self.assertIn("bl _printf", assembly)
 
+    def test_emits_x86_64_windows_assignment_control_and_io(self):
+        source = "DCL TOTAL FIXED BIN(31); TOTAL = 40 + 2; IF TOTAL = 42 THEN CALL DISPLAY(TOTAL);"
+        assembly = compile_source(source, target="x86_64-windows")
+
+        self.assertIn("bits 64", assembly)
+        self.assertIn("global main", assembly)
+        self.assertIn("TOTAL dq 0", assembly)
+        self.assertIn("add rax, rbx", assembly)
+        self.assertIn("cmp rax, rbx", assembly)
+        self.assertIn("call printf", assembly)
+
     def test_creates_windows_x586_exe_container(self):
         binary = compile_binary("pe32-x586-windows")
 
         self.assertEqual(binary[:2], b"MZ")
         self.assertIn(b"PE\0\0", binary[:256])
+
+    def test_creates_windows_x86_64_pe32_plus_container(self):
+        binary = compile_binary("pe64-x86_64-windows", "DCL TOTAL FIXED BIN(31); TOTAL = 40 + 2;")
+        pe_offset = struct.unpack_from("<I", binary, 0x3C)[0]
+
+        self.assertEqual(binary[:2], b"MZ")
+        self.assertEqual(binary[pe_offset : pe_offset + 4], b"PE\0\0")
+        self.assertEqual(struct.unpack_from("<H", binary, pe_offset + 4)[0], 0x8664)
+        self.assertEqual(struct.unpack_from("<H", binary, pe_offset + 24)[0], 0x020B)
+        self.assertIn(b"\xB8\x28\x00\x00\x00", binary[0x200:0x240])
 
     def test_creates_elf_for_intel_and_arm(self):
         self.assertEqual(compile_binary("elf64-x86_64")[:4], b"\x7fELF")
@@ -125,6 +148,18 @@ class CompilerTests(unittest.TestCase):
     def test_creates_macho_for_apple_intel_and_m2(self):
         self.assertEqual(compile_binary("macho64-x86_64-macos")[:4], b"\xcf\xfa\xed\xfe")
         self.assertEqual(compile_binary("macho64-arm64-macos")[:4], b"\xcf\xfa\xed\xfe")
+
+    def test_linkers_expose_pe_elf_and_macho_formats(self):
+        pe64 = PELinker().link_pe64_x86_64_windows()
+        elf = ELFLinker().link_elf64_x86_64()
+        macho = MachOLinker().link_macho64_x86_64_macos()
+
+        pe_offset = struct.unpack_from("<I", pe64, 0x3C)[0]
+        self.assertEqual(struct.unpack_from("<H", pe64, pe_offset + 4)[0], 0x8664)
+        self.assertEqual(elf[:4], b"\x7fELF")
+        self.assertEqual(struct.unpack_from("<H", elf, 18)[0], 0x3E)
+        self.assertEqual(macho[:4], b"\xcf\xfa\xed\xfe")
+        self.assertEqual(struct.unpack_from("<I", macho, 4)[0], 0x01000007)
 
     def test_lowers_ast_to_executable_mnemonics(self):
         program = Parser(Lexer("DCL TOTAL FIXED BIN(31); TOTAL = 40 + 2;").tokenize()).parse()

@@ -19,6 +19,7 @@
 - Assembly text emitters for:
   - `x586-windows`
   - `x586-macos`
+  - `x86_64-windows`
   - `arm64-macos`
   - `arm64-windows`
 - Executable pipeline:
@@ -47,10 +48,12 @@
   - VSAM-style catalog/data components for KSDS, ESDS, RRDS, and LDS
 - Binary/container writers for:
   - `pe32-x586-windows`
+  - `pe64-x86_64-windows`
   - `elf64-x86_64`
   - `elf64-aarch64`
   - `macho64-x86_64-macos`
   - `macho64-arm64-macos`
+- Public linker facade classes for PE, ELF, and Mach-O executable containers.
 - Unit tests for lexer, parser, compiler output, assembly output, and binary signatures.
 - Packaged PL/I builtin source inclusion with a first `SUBSTR` builtin.
 

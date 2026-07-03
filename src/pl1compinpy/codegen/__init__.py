@@ -5,6 +5,7 @@ from .binary_formats import BINARY_FORMATS, BinaryFormatError, emit_binary
 from .executable_pipeline import ExecutableImage, Mnemonic, assemble_executable, lower_program
 from .jvm_bytecode import emit_jvm_bytecode
 from .jvm_classfile import JAVA_17_MAJOR_VERSION, emit_jvm_class, emit_jvm_classes
+from .linkers import ELFLinker, ExecutableLinker, LinkRequest, MachOLinker, PELinker, link_executable
 from .python_source import emit_python_source
 
 
@@ -20,7 +21,12 @@ __all__ = [
     "BackendError",
     "BinaryFormatError",
     "ExecutableImage",
+    "ExecutableLinker",
+    "ELFLinker",
+    "LinkRequest",
+    "MachOLinker",
     "Mnemonic",
+    "PELinker",
     "TARGETS",
     "assemble_executable",
     "emit_assembly",
@@ -31,5 +37,6 @@ __all__ = [
     "emit_jvm_classes",
     "emit_python_source",
     "JAVA_17_MAJOR_VERSION",
+    "link_executable",
     "lower_program",
 ]

@@ -115,13 +115,14 @@ def assemble_executable(program: Program, binary_format: str, *, image_base: int
     if binary_format == "pe32-x586-windows":
         code = X586MnemonicAssembler(image_base=image_base, code_rva=code_rva, data=bytes(data), variables=variables).assemble(mnemonics)
         return ExecutableImage(code=code, data=data)
-    if binary_format in {"elf64-x86_64", "macho64-x86_64-macos"}:
+    if binary_format in {"pe64-x86_64-windows", "elf64-x86_64", "macho64-x86_64-macos"}:
         code = X8664MnemonicAssembler(
-            image_base=0x400000 if binary_format.startswith("elf") else 0x100000000,
+            image_base=image_base if binary_format.startswith("pe") else (0x400000 if binary_format.startswith("elf") else 0x100000000),
             code_rva=code_rva,
             data=bytes(data),
             variables=variables,
             macos=binary_format.startswith("macho"),
+            windows=binary_format.startswith("pe"),
         ).assemble(mnemonics)
         return ExecutableImage(code=code, data=data)
     if binary_format in {"elf64-aarch64", "macho64-arm64-macos"}:
@@ -481,16 +482,17 @@ class X586MnemonicAssembler:
 
 
 class X8664MnemonicAssembler:
-    def __init__(self, image_base: int, code_rva: int, data: bytes, variables: dict[str, int], macos: bool = False) -> None:
+    def __init__(self, image_base: int, code_rva: int, data: bytes, variables: dict[str, int], macos: bool = False, windows: bool = False) -> None:
         self.image_base = image_base
         self.code_rva = code_rva
         self.data = data
         self.variables = variables
         self.macos = macos
+        self.windows = windows
 
     def assemble(self, mnemonics: list[Mnemonic]) -> bytes:
         # Small source-driven encoder: it preserves immediate arithmetic from the AST,
-        # then exits through the platform syscall ABI.
+        # then exits through the platform ABI.
         out = bytearray()
         for mnemonic in mnemonics:
             if mnemonic.op == "MOV_EAX_IMM":
@@ -501,6 +503,9 @@ class X8664MnemonicAssembler:
                 out.extend(b"\x5B")
             elif mnemonic.op == "ADD_EAX_EBX":
                 out.extend(b"\x01\xD8")
+        if self.windows:
+            out.extend(b"\x31\xC0\xC3")
+            return bytes(out)
         syscall = 0x2000001 if self.macos else 60
         out.extend(b"\xB8" + struct.pack("<I", syscall))
         out.extend(b"\x31\xFF\x0F\x05")

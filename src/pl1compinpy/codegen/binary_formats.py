@@ -12,6 +12,7 @@ class BinaryFormatError(ValueError):
 
 BINARY_FORMATS = (
     "pe32-x586-windows",
+    "pe64-x86_64-windows",
     "elf64-x86_64",
     "elf64-aarch64",
     "macho64-x86_64-macos",
@@ -22,6 +23,8 @@ BINARY_FORMATS = (
 def emit_binary(format_name: str, program: Program | None = None) -> bytes:
     if format_name == "pe32-x586-windows":
         return _pe32_x586_windows(program)
+    if format_name == "pe64-x86_64-windows":
+        return _pe64_x86_64_windows(program)
     if format_name == "elf64-x86_64":
         return _elf64_x86_64(program)
     if format_name == "elf64-aarch64":
@@ -89,6 +92,91 @@ def _pe32_x586_windows(program: Program | None = None) -> bytes:
             0,
             0,
             4,
+            0,
+            0,
+            size_of_image,
+            size_of_headers,
+            0,
+            3,  # console subsystem
+            0,
+            0x100000,
+            0x1000,
+            0x100000,
+            0x1000,
+            0,
+            16,
+        )
+    )
+    pe.extend(b"\0" * (16 * 8))
+    section = struct.pack(
+        "<8sIIIIIIHHI",
+        b".text\0\0\0",
+        len(section_payload),
+        text_rva,
+        size_of_code,
+        text_raw,
+        0,
+        0,
+        0,
+        0,
+        0x60000020,  # code, execute, read
+    )
+    headers = bytes(dos_stub) + bytes(pe) + section
+    headers = headers.ljust(text_raw, b"\0")
+    return headers + section_payload.ljust(size_of_code, b"\0")
+
+
+def _pe64_x86_64_windows(program: Program | None = None) -> bytes:
+    image_base = 0x140000000
+    section_alignment = 0x1000
+    file_alignment = 0x200
+    text_rva = 0x1000
+    text_raw = 0x200
+    image = assemble_executable(program, "pe64-x86_64-windows", image_base=image_base, code_rva=text_rva) if program else None
+    code = image.code if image else b"\x31\xc0\xc3"  # xor eax, eax; ret
+    data = image.data if image else b""
+    section_payload = code + data
+    size_of_code = _align(len(section_payload), file_alignment)
+    size_of_headers = text_raw
+    size_of_image = _align(text_rva + len(section_payload), section_alignment)
+
+    dos_stub = bytearray(0x80)
+    dos_stub[0:2] = b"MZ"
+    struct.pack_into("<I", dos_stub, 0x3C, len(dos_stub))
+
+    pe = bytearray()
+    pe.extend(b"PE\0\0")
+    pe.extend(
+        struct.pack(
+            "<HHIIIHH",
+            0x8664,  # IMAGE_FILE_MACHINE_AMD64
+            1,
+            0,
+            0,
+            0,
+            0xF0,
+            0x0022,  # executable, large-address aware
+        )
+    )
+    pe.extend(
+        struct.pack(
+            "<HBBIIIIIQIIHHHHHHIIIIHHQQQQII",
+            0x020B,  # PE32+
+            0,
+            0,
+            size_of_code,
+            0,
+            0,
+            text_rva,
+            text_rva,
+            image_base,
+            section_alignment,
+            file_alignment,
+            6,
+            0,
+            0,
+            0,
+            6,
             0,
             0,
             size_of_image,

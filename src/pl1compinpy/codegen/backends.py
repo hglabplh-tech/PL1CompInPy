@@ -38,6 +38,7 @@ TARGETS = {
     "jvm-bytecode": None,
     "x586-windows": AssemblyTarget("x586-windows", "x586", "windows", "_", "_main", "_printf"),
     "x586-macos": AssemblyTarget("x586-macos", "x586", "macos", "_", "_main", "_printf"),
+    "x86_64-windows": AssemblyTarget("x86_64-windows", "x86_64", "windows", "", "main", "printf"),
     "arm64-macos": AssemblyTarget("arm64-macos", "arm64", "macos", "_", "_main", "_printf"),
     "arm64-windows": AssemblyTarget("arm64-windows", "arm64", "windows", "", "main", "printf"),
 }
@@ -53,6 +54,8 @@ def emit_assembly(program: Program, target_name: str) -> str:
         raise BackendError(f"Unknown assembly target: {target_name}")
     if target.arch == "x586":
         return X586AssemblyEmitter(target).emit(program)
+    if target.arch == "x86_64":
+        return X8664AssemblyEmitter(target).emit(program)
     if target.arch == "arm64":
         return Arm64AssemblyEmitter(target).emit(program)
     raise BackendError(f"Unsupported target architecture: {target.arch}")
@@ -285,6 +288,153 @@ class X586AssemblyEmitter(AssemblyEmitter):
                 raise BackendError(f"Unsupported x586 expression operator: {expression.operator}")
             return lines
         raise BackendError(f"Unsupported x586 expression: {expression!r}")
+
+
+class X8664AssemblyEmitter(AssemblyEmitter):
+    def emit(self, program: Program) -> str:
+        self._collect_symbols(program)
+        lines = [
+            "; PL1CompInPy generated x86_64 assembly",
+            f"; target: {self.target.name}",
+            "bits 64",
+            "default rel",
+            f"extern {self.target.printf_symbol}",
+            f"global {self.target.entry_symbol}",
+            "section .data",
+            "fmt_int db \"%d\", 10, 0",
+            "fmt_str db \"%s\", 10, 0",
+        ]
+        for name in sorted(self.symbols.variables):
+            lines.append(f"{name} dq 0")
+        for value, label in self.symbols.strings.items():
+            lines.append(f"{label} db {self._escaped_bytes(value)}")
+
+        lines.extend(["section .text", f"{self.target.entry_symbol}:"])
+        for statement in program.statements:
+            lines.extend(self._statement(statement))
+        lines.extend(["    xor eax, eax", "    ret"])
+        return "\n".join(lines) + "\n"
+
+    def _statement(self, statement: Statement) -> list[str]:
+        if isinstance(statement, Assignment):
+            lines = self._expression(statement.expression)
+            lines.append(f"    mov [rel {statement.target}], rax")
+            return lines
+        if isinstance(statement, Declaration):
+            return [f"    ; declare {', '.join(statement.names)} {' '.join(statement.attributes)}".rstrip()]
+        if isinstance(statement, Call):
+            return self._call(statement)
+        if isinstance(statement, Procedure):
+            lines = [f"{self._symbol(statement.name or 'anonymous_procedure')}:"]
+            for child in statement.body:
+                lines.extend(self._statement(child))
+            lines.append("    ret")
+            return lines
+        if isinstance(statement, DoGroup):
+            start = self._new_label("do")
+            lines = [f"{start}:"]
+            for child in statement.body:
+                lines.extend(self._statement(child))
+            lines.append(f"    jmp {start}")
+            return lines
+        if isinstance(statement, IfStatement):
+            return self._if(statement)
+        if isinstance(statement, LabelledStatement):
+            return [f"{statement.label}:"] + self._statement(statement.statement)
+        if isinstance(statement, RawStatement):
+            args = self._raw_put_arguments(statement)
+            if args:
+                return self._print_arguments(args)
+            return [f"    ; unsupported statement preserved: {statement.keyword} {' '.join(statement.tokens)}".rstrip()]
+        raise BackendError(f"Unsupported x86_64 backend statement: {statement!r}")
+
+    def _if(self, statement: IfStatement) -> list[str]:
+        else_label = self._new_label("else")
+        end_label = self._new_label("endif")
+        lines = self._comparison(statement.condition, else_label)
+        lines.extend(self._statement(statement.then_branch))
+        lines.append(f"    jmp {end_label}")
+        lines.append(f"{else_label}:")
+        if statement.else_branch:
+            lines.extend(self._statement(statement.else_branch))
+        lines.append(f"{end_label}:")
+        return lines
+
+    def _call(self, statement: Call) -> list[str]:
+        if statement.name.upper() in {"DISPLAY", "PRINT"}:
+            return self._print_arguments(statement.arguments)
+        lines: list[str] = []
+        for argument in reversed(statement.arguments):
+            lines.extend(self._expression(argument))
+            lines.append("    push rax")
+        lines.extend(["    sub rsp, 32", f"    call {self._symbol(statement.name)}", "    add rsp, 32"])
+        if statement.arguments:
+            lines.append(f"    add rsp, {len(statement.arguments) * 8}")
+        return lines
+
+    def _print_arguments(self, arguments: list[Expression]) -> list[str]:
+        lines: list[str] = []
+        for argument in arguments:
+            if isinstance(argument, StringLiteral):
+                label = self.symbols.add_string(argument.value)
+                lines.extend(
+                    [
+                        "    sub rsp, 40",
+                        "    lea rcx, [rel fmt_str]",
+                        f"    lea rdx, [rel {label}]",
+                        f"    call {self.target.printf_symbol}",
+                        "    add rsp, 40",
+                    ]
+                )
+            else:
+                lines.extend(self._expression(argument))
+                lines.extend(
+                    [
+                        "    sub rsp, 40",
+                        "    lea rcx, [rel fmt_int]",
+                        "    mov rdx, rax",
+                        f"    call {self.target.printf_symbol}",
+                        "    add rsp, 40",
+                    ]
+                )
+        return lines
+
+    def _comparison(self, expression: Expression, false_label: str) -> list[str]:
+        if isinstance(expression, BinaryExpression) and expression.operator in {"=", "^=", "<>", "<", "<=", ">", ">="}:
+            lines = self._expression(expression.left)
+            lines.append("    push rax")
+            lines.extend(self._expression(expression.right))
+            lines.extend(["    mov rbx, rax", "    pop rax", "    cmp rax, rbx"])
+            lines.append(f"    {self._condition_jump(expression.operator, if_false=True)} {false_label}")
+            return lines
+        lines = self._expression(expression)
+        lines.extend(["    cmp rax, 0", f"    je {false_label}"])
+        return lines
+
+    def _expression(self, expression: Expression) -> list[str]:
+        if isinstance(expression, NumberLiteral):
+            return [f"    mov rax, {expression.value}"]
+        if isinstance(expression, Identifier):
+            return [f"    mov rax, [rel {expression.name}]"]
+        if isinstance(expression, StringLiteral):
+            return [f"    lea rax, [rel {self.symbols.add_string(expression.value)}]"]
+        if isinstance(expression, BinaryExpression):
+            lines = self._expression(expression.left)
+            lines.append("    push rax")
+            lines.extend(self._expression(expression.right))
+            lines.extend(["    mov rbx, rax", "    pop rax"])
+            if expression.operator == "+":
+                lines.append("    add rax, rbx")
+            elif expression.operator == "-":
+                lines.append("    sub rax, rbx")
+            elif expression.operator == "*":
+                lines.append("    imul rax, rbx")
+            elif expression.operator == "/":
+                lines.extend(["    cqo", "    idiv rbx"])
+            else:
+                raise BackendError(f"Unsupported x86_64 expression operator: {expression.operator}")
+            return lines
+        raise BackendError(f"Unsupported x86_64 expression: {expression!r}")
 
 
 class Arm64AssemblyEmitter(AssemblyEmitter):

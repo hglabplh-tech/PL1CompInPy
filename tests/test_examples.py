@@ -103,16 +103,17 @@ class ExampleTests(unittest.TestCase):
     def test_backend_assembly_examples(self):
         source = self.example_source("language/declarations.pl1")
         self.assertIn("global _main", compile_source(source, target="x586-windows"))
+        self.assertIn("global main", compile_source(self.example_source("backend/x86_64_windows.pl1"), target="x86_64-windows"))
         self.assertIn(".globl _main", compile_source(source, target="arm64-macos"))
 
     def test_backend_binary_entry_example(self):
         source = self.example_source("backend/binary_entry.pl1")
 
         self.assertEqual(compile_binary("pe32-x586-windows", source)[:2], b"MZ")
+        self.assertEqual(compile_binary("pe64-x86_64-windows", source)[:2], b"MZ")
         self.assertEqual(compile_binary("elf64-x86_64", source)[:4], b"\x7fELF")
         self.assertEqual(compile_binary("macho64-arm64-macos", source)[:4], b"\xcf\xfa\xed\xfe")
 
 
 if __name__ == "__main__":
     unittest.main()
-
