@@ -4,6 +4,10 @@
 
 - Python package structure using `pyproject.toml`.
 - Command-line compiler entry point via `python -m pl1compinpy`.
+- Layered package organization:
+  - `frontend` for keywords, lexing, and parsing
+  - `runtime` for calling-convention normalization
+  - `codegen` for assembly text, executable lowering, and binary containers
 - PL/1 lexer with contextual keyword metadata.
 - PL/1 parser producing an AST for assignments, declarations, calls, procedures, labels, `DO` groups, and `IF/THEN/ELSE`.
 - Keyword catalog covering PL/1 statements, declaration attributes, storage attributes, I/O words, conditions, and preprocessor/listing words.

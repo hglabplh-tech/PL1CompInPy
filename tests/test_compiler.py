@@ -6,10 +6,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from pl1compinpy import compile_source
 from pl1compinpy.compiler import compile_binary
-from pl1compinpy.executable_pipeline import lower_program
+from pl1compinpy.codegen.executable_pipeline import lower_program
 from pl1compinpy.ast import Call, Declaration, IfStatement, LabelledStatement, Procedure
-from pl1compinpy.lexer import Lexer, TokenType
-from pl1compinpy.parser import Parser
+from pl1compinpy.frontend.lexer import Lexer, TokenType
+from pl1compinpy.frontend.parser import Parser
 from pl1compinpy.runtime import normalize_calls
 
 

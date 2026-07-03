@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from .ast import (
+from ..ast import (
     Assignment,
     BinaryExpression,
     Call,

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from .ast import (
+from ..ast import (
     Assignment,
     BinaryExpression,
     Call,

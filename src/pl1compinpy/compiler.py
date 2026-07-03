@@ -16,10 +16,8 @@ from .ast import (
     RawStatement,
     StringLiteral,
 )
-from .backends import TARGETS, emit_assembly
-from .binary_formats import BINARY_FORMATS, emit_binary
-from .lexer import Lexer
-from .parser import Parser
+from .codegen import TARGETS, BINARY_FORMATS, emit_assembly, emit_binary
+from .frontend import Lexer, Parser
 from .runtime import normalize_calls
 
 

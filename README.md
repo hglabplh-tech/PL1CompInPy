@@ -141,12 +141,18 @@ The executable pipeline includes a first runtime calling convention:
 PL1CompInPy/
   pyproject.toml
   src/pl1compinpy/
-    binary_formats.py
-    cli.py
-    compiler.py
-    executable_pipeline.py
-    lexer.py
-    parser.py
     ast.py
+    cli.py
+    codegen/
+      backends.py
+      binary_formats.py
+      executable_pipeline.py
+    compiler.py
+    frontend/
+      keywords.py
+      lexer.py
+      parser.py
+    runtime/
+      calling.py
   tests/
 ```
