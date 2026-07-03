@@ -41,3 +41,4 @@ These examples cover the compiler features currently implemented in PL1CompInPy.
 - `vsam/esds.pl1`: entry sequenced data set declaration
 - `vsam/rrds.pl1`: relative record data set declaration
 - `vsam/lds.pl1`: linear data set declaration
+- `vsam/io_ksds.pl1`: VSAM `OPEN`, `WRITE`, keyed `READ`, and `CLOSE`

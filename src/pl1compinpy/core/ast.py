@@ -74,6 +74,7 @@ class IOStatement(Statement):
     file_name: str | None = None
     target: str | None = None
     source: "Expression | None" = None
+    options: dict[str, "Expression"] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)

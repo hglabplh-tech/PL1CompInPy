@@ -27,7 +27,7 @@ from pl1compinpy.runtime import (
     StringRuntime,
     normalize_calls,
 )
-from pl1compinpy.vsam import VSAMCatalog, VSAMType
+from pl1compinpy.vsam import VSAMCatalog, VSAMFileDescriptor, VSAMRuntime, VSAMType
 
 
 class CompilerTests(unittest.TestCase):
@@ -126,12 +126,13 @@ class CompilerTests(unittest.TestCase):
         self.assertIsInstance(program.statements[0], IfStatement)
 
     def test_parses_file_io_statements(self):
-        program = Parser(Lexer("OPEN FILE(F); READ FILE(F) INTO(BUF); WRITE FILE(F) FROM(BUF); CLOSE FILE(F);").tokenize()).parse()
+        program = Parser(Lexer("OPEN FILE(F); READ FILE(F) KEY(KEYVAR) INTO(BUF); WRITE FILE(F) FROM(BUF); CLOSE FILE(F);").tokenize()).parse()
 
         self.assertEqual([statement.operation for statement in program.statements], ["OPEN", "READ", "WRITE", "CLOSE"])
         self.assertTrue(all(isinstance(statement, IOStatement) for statement in program.statements))
         self.assertEqual(program.statements[1].file_name, "F")
         self.assertEqual(program.statements[1].target, "BUF")
+        self.assertEqual(program.statements[1].options["key"].name, "KEYVAR")
         self.assertEqual(program.statements[2].source.name, "BUF")
 
     def test_parses_do_while_and_do_until_groups(self):
@@ -539,6 +540,45 @@ class CompilerTests(unittest.TestCase):
         self.assertEqual(declaration.file_options["vsam"], "KSDS")
         self.assertEqual(declaration.file_options["keyoffset"], "0")
         self.assertEqual(declaration.file_options["keylength"], "4")
+
+    def test_vsam_descriptor_from_pl1_file_declaration(self):
+        source = "DCL CUSTOMER_FILE FILE RECORD UPDATE ENVIRONMENT(VSAM(KSDS), KEYOFFSET(0), KEYLENGTH(4), PATH('customer.ksds')) BINARY;"
+        declaration = Parser(Lexer(source).tokenize()).parse().statements[0]
+        descriptor = VSAMFileDescriptor.from_declaration(declaration, Path("/tmp"))
+
+        self.assertEqual(descriptor.name, "CUSTOMER_FILE")
+        self.assertEqual(descriptor.organization, VSAMType.KSDS)
+        self.assertEqual(descriptor.key_offset, 0)
+        self.assertEqual(descriptor.key_length, 4)
+        self.assertEqual(descriptor.path, Path("/tmp/customer.ksds"))
+
+    def test_vsam_runtime_executes_parsed_open_write_read_close(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            declaration = Parser(
+                Lexer("DCL CUSTOMER FILE RECORD UPDATE ENVIRONMENT(VSAM(KSDS), KEYOFFSET(0), KEYLENGTH(4), PATH('customer.ksds')) BINARY;").tokenize()
+            ).parse().statements[0]
+            output_descriptor = VSAMFileDescriptor.from_declaration(declaration, Path(tmp))
+            write_program = Parser(Lexer("OPEN FILE(CUSTOMER); WRITE FILE(CUSTOMER) FROM(RECORD); CLOSE FILE(CUSTOMER);").tokenize()).parse()
+            runtime = VSAMRuntime()
+            variables = {"RECORD": b"KEY1payload"}
+
+            for statement in write_program.statements:
+                runtime.execute(statement, {"CUSTOMER": output_descriptor}, variables)
+
+            input_descriptor = VSAMFileDescriptor(
+                output_descriptor.name,
+                output_descriptor.path,
+                output_descriptor.organization,
+                mode="INPUT",
+                key_offset=output_descriptor.key_offset,
+                key_length=output_descriptor.key_length,
+            )
+            read_program = Parser(Lexer("OPEN FILE(CUSTOMER); READ FILE(CUSTOMER) KEY(KEY) INTO(RECORD); CLOSE FILE(CUSTOMER);").tokenize()).parse()
+            variables["KEY"] = "KEY1"
+            for statement in read_program.statements:
+                runtime.execute(statement, {"CUSTOMER": input_descriptor}, variables)
+
+            self.assertEqual(variables["RECORD"], b"KEY1payload")
 
     def test_builtin_loader_reads_substr_pl1_source(self):
         source = BuiltinLibrary().source("SUBSTR")

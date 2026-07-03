@@ -160,7 +160,7 @@ class Parser:
                 options["organization"] = upper
             elif upper in {"TEXT", "BINARY"}:
                 options["format"] = upper
-            elif upper in {"RECFM", "LRECL", "PATH", "VSAM", "KEYOFFSET", "KEYLENGTH"} and index + 2 < len(tokens):
+            elif upper in {"RECFM", "LRECL", "PATH", "VSAM", "KEYOFFSET", "KEYLENGTH", "RECORDLENGTH"} and index + 2 < len(tokens):
                 if tokens[index + 1].type == TokenType.LPAREN:
                     value = tokens[index + 2].lexeme
                     options[upper.lower()] = value.upper() if upper != "PATH" else value
@@ -361,7 +361,8 @@ class Parser:
         target = self._option_value(tokens, "INTO")
         source_tokens = self._option_tokens(tokens, "FROM")
         source = self._expression_from_tokens(source_tokens) if source_tokens else None
-        return IOStatement(operation, file_name, target, source)
+        options = self._io_options_from_tokens(tokens)
+        return IOStatement(operation, file_name, target, source, options)
 
     def _select_statement(self) -> SelectStatement:
         header_tokens = self._collect_until_semicolon()
@@ -493,6 +494,14 @@ class Parser:
                     return [tokens[index + 1]]
             index += 1
         return []
+
+    def _io_options_from_tokens(self, tokens: list[Token]) -> dict[str, Expression]:
+        options: dict[str, Expression] = {}
+        for keyword in ("KEY", "RRN", "RBA", "LENGTH", "COUNT"):
+            option_tokens = self._option_tokens(tokens, keyword)
+            if option_tokens:
+                options[keyword.lower()] = self._expression_from_tokens(option_tokens)
+        return options
 
     def _identifier_list_until(self, end: TokenType) -> list[str]:
         values: list[str] = []

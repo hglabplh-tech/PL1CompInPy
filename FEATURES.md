@@ -55,6 +55,7 @@
   - text and binary record payloads
   - generic dispatch by argument type with lambda-backed alternatives
   - VSAM-style catalog/data components for KSDS, ESDS, RRDS, and LDS
+  - VSAM `OPEN`, `WRITE`, keyed `READ`, and `CLOSE` runtime dispatch
 - Binary/container writers for:
   - `pe32-x586-windows`
   - `pe64-x86_64-windows`
@@ -82,6 +83,7 @@
 - File declarations using `FILE`, `RECORD`, `INPUT`, `OUTPUT`, `ENVIRONMENT(RECFM(...), LRECL(...), PATH(...))`, `TEXT`, and `BINARY`.
 - Generic declarations using `GENERIC(... WHEN(...))`.
 - VSAM declarations using `ENVIRONMENT(VSAM(...), KEYOFFSET(...), KEYLENGTH(...))`.
+- VSAM I/O statements using `OPEN FILE(...)`, `WRITE FILE(...) FROM(...)`, `READ FILE(...) KEY(...) INTO(...)`, and `CLOSE FILE(...)`.
 - Runtime `SUBSTR` behavior using one-based positions.
 - `PROC OPTIONS(MAIN)` program entry point.
 - `PROC RECURSIVE` metadata and ordinary recursive-call continuation semantics.

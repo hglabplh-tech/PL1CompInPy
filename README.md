@@ -188,6 +188,7 @@ The runtime also includes starter storage and I/O services:
 - binary and text record payloads
 - generic function dispatch by argument type, using runtime lambda implementations
 - local VSAM-style datasets with a catalog file plus binary data file for KSDS, ESDS, RRDS, and LDS organizations
+- VSAM runtime descriptors and I/O dispatch for `OPEN`, `WRITE FROM`, keyed `READ INTO`, and `CLOSE`
 
 ## Project Layout
 
@@ -224,5 +225,8 @@ PL1CompInPy/
       io.py
       picture.py
       strings.py
+    vsam/
+      catalog.py
+      io.py
   tests/
 ```
