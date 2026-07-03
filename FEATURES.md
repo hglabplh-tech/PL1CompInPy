@@ -15,6 +15,7 @@
 - Python-like text emitter for early compiler validation.
 - Python source output backend.
 - JVM bytecode-style output backend.
+- JVM `.class` file output targeting Java 17 classfile major version 61.
 - Assembly text emitters for:
   - `x586-windows`
   - `x586-macos`

@@ -3,7 +3,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from .compiler import available_binary_formats, available_targets, compile_binary, compile_source
+from .compiler import available_binary_formats, available_targets, compile_binary, compile_jvm_classes, compile_source
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -15,9 +15,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("-o", "--output", type=Path, help="Write compiler output to this file")
     parser.add_argument(
         "--emit",
-        choices=("text", "binary"),
+        choices=("text", "binary", "class"),
         default="text",
-        help="Emit text output or a binary executable/container artifact",
+        help="Emit text output, a binary executable/container artifact, or JVM class file(s)",
     )
     parser.add_argument(
         "--binary-format",
@@ -46,6 +46,17 @@ def main(argv: list[str] | None = None) -> int:
         if not args.output:
             build_parser().error("--emit binary requires -o/--output")
         args.output.write_bytes(compile_binary(args.binary_format, args.source.read_text(encoding="utf-8"), args.builtin))
+        return 0
+    if args.emit == "class":
+        if not args.output:
+            build_parser().error("--emit class requires -o/--output")
+        classes = compile_jvm_classes(args.source.read_text(encoding="utf-8"), args.builtin)
+        if len(classes) == 1 and args.output.suffix == ".class":
+            args.output.write_bytes(next(iter(classes.values())))
+        else:
+            args.output.mkdir(parents=True, exist_ok=True)
+            for filename, content in classes.items():
+                (args.output / filename).write_bytes(content)
         return 0
 
     output = compile_source(args.source.read_text(encoding="utf-8"), target=args.target, builtins=args.builtin)

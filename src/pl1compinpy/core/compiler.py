@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from ..builtins import include_builtins
-from ..codegen import BINARY_FORMATS, TARGETS, emit_binary, emit_code
+from ..codegen import BINARY_FORMATS, TARGETS, emit_binary, emit_code, emit_jvm_classes
 from ..frontend import Lexer, Parser
 from ..runtime import normalize_calls
 
@@ -29,3 +29,9 @@ def compile_binary(format_name: str, source: str | None = None, builtins: list[s
     source = include_builtins(source, builtins) if source is not None else None
     program = normalize_calls(Parser(Lexer(source).tokenize()).parse()) if source is not None else None
     return emit_binary(format_name, program)
+
+
+def compile_jvm_classes(source: str, builtins: list[str] | None = None) -> dict[str, bytes]:
+    source = include_builtins(source, builtins)
+    program = normalize_calls(Parser(Lexer(source).tokenize()).parse())
+    return emit_jvm_classes(program)

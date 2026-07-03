@@ -18,7 +18,7 @@ from .ast import (
     Statement,
     StringLiteral,
 )
-from .compiler import Compiler, available_binary_formats, available_targets, compile_binary, compile_source
+from .compiler import Compiler, available_binary_formats, available_targets, compile_binary, compile_jvm_classes, compile_source
 
 __all__ = [
     "Assignment",
@@ -41,5 +41,6 @@ __all__ = [
     "available_binary_formats",
     "available_targets",
     "compile_binary",
+    "compile_jvm_classes",
     "compile_source",
 ]

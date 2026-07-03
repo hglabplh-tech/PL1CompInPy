@@ -7,7 +7,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from pl1compinpy import compile_source
 from pl1compinpy.builtins import BuiltinLibrary
-from pl1compinpy.compiler import compile_binary
+from pl1compinpy.compiler import compile_binary, compile_jvm_classes
+from pl1compinpy.codegen.jvm_classfile import JAVA_17_MAJOR_VERSION
 from pl1compinpy.codegen.executable_pipeline import lower_program
 from pl1compinpy.ast import Call, Declaration, IfStatement, LabelledStatement, Procedure
 from pl1compinpy.frontend.lexer import Lexer, TokenType
@@ -221,6 +222,18 @@ class CompilerTests(unittest.TestCase):
         self.assertIn(".method public static MAIN()I", output)
         self.assertIn(".method public static main([Ljava/lang/String;)V", output)
         self.assertIn("invokestatic PL1Program/MAIN()I", output)
+
+    def test_jvm_classfile_backend_emits_java_17_class(self):
+        source = "MAIN: PROC OPTIONS(MAIN) RETURNS(FIXED); RETURN 0; END MAIN;"
+        classes = compile_jvm_classes(source)
+        classfile = classes["PL1Program.class"]
+
+        self.assertEqual(classfile[:4], b"\xca\xfe\xba\xbe")
+        self.assertEqual(int.from_bytes(classfile[4:6], "big"), 0)
+        self.assertEqual(int.from_bytes(classfile[6:8], "big"), JAVA_17_MAJOR_VERSION)
+        self.assertIn(b"PL1Program", classfile)
+        self.assertIn(b"MAIN", classfile)
+        self.assertIn(b"main", classfile)
 
     def test_recursive_call_lowers_as_normal_call_with_continuation(self):
         source = "FACT: PROC(N) RECURSIVE RETURNS(FIXED); CALL FACT(N); RETURN N; END FACT;"

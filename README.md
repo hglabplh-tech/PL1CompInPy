@@ -76,6 +76,12 @@ python -m pl1compinpy examples/hello.pl1 --emit binary --binary-format macho64-x
 python -m pl1compinpy examples/hello.pl1 --emit binary --binary-format macho64-arm64-macos -o hello-m2-macos
 ```
 
+Create a JVM `.class` file using Java 17 classfile version 61:
+
+```bash
+python -m pl1compinpy examples/backend/jvm_bytecode.pl1 --emit class -o PL1Program.class
+```
+
 Run tests:
 
 ```bash
@@ -88,6 +94,7 @@ The project includes backend emitters for:
 
 - `python-source`: Python source code
 - `jvm-bytecode`: JVM bytecode-style textual output
+- `--emit class`: binary JVM `.class` output targeting JDK 17 classfile version 61
 - `x586-windows`: 32-bit x86-style assembly for Windows toolchains using C `printf`
 - `x586-macos`: 32-bit x86-style assembly with macOS symbol naming
 - `arm64-macos`: Apple Silicon/M2-style ARM64 assembly using macOS symbol naming

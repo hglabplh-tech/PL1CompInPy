@@ -4,6 +4,7 @@ from .backends import TARGETS, BackendError, emit_assembly
 from .binary_formats import BINARY_FORMATS, BinaryFormatError, emit_binary
 from .executable_pipeline import ExecutableImage, Mnemonic, assemble_executable, lower_program
 from .jvm_bytecode import emit_jvm_bytecode
+from .jvm_classfile import JAVA_17_MAJOR_VERSION, emit_jvm_class, emit_jvm_classes
 from .python_source import emit_python_source
 
 
@@ -26,6 +27,9 @@ __all__ = [
     "emit_binary",
     "emit_code",
     "emit_jvm_bytecode",
+    "emit_jvm_class",
+    "emit_jvm_classes",
     "emit_python_source",
+    "JAVA_17_MAJOR_VERSION",
     "lower_program",
 ]
