@@ -6,12 +6,13 @@ import tempfile
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from pl1compinpy import compile_source
+from pl1compinpy.builtins import BuiltinLibrary
 from pl1compinpy.compiler import compile_binary
 from pl1compinpy.codegen.executable_pipeline import lower_program
 from pl1compinpy.ast import Call, Declaration, IfStatement, LabelledStatement, Procedure
 from pl1compinpy.frontend.lexer import Lexer, TokenType
 from pl1compinpy.frontend.parser import Parser
-from pl1compinpy.runtime import ArrayRuntime, FileDescriptor, StdioRuntime, normalize_calls
+from pl1compinpy.runtime import ArrayRuntime, FileDescriptor, StdioRuntime, StringRuntime, normalize_calls
 
 
 class CompilerTests(unittest.TestCase):
@@ -275,6 +276,34 @@ class CompilerTests(unittest.TestCase):
         self.assertEqual(descriptor.recfm, "F")
         self.assertEqual(descriptor.lrecl, 12)
         self.assertTrue(descriptor.text)
+
+    def test_string_runtime_uses_two_byte_length_prefix(self):
+        runtime = StringRuntime()
+        value = runtime.allocate("HELLO")
+
+        self.assertEqual(value.storage[:2], b"\x00\x05")
+        self.assertEqual(value.payload, b"HELLO")
+        self.assertEqual(value.text(), "HELLO")
+
+    def test_string_runtime_substr_is_one_based(self):
+        runtime = StringRuntime()
+        value = runtime.allocate("HELLO")
+        result = runtime.substr(value, 2, 3)
+
+        self.assertEqual(result.storage[:2], b"\x00\x03")
+        self.assertEqual(result.text(), "ELL")
+
+    def test_builtin_loader_reads_substr_pl1_source(self):
+        source = BuiltinLibrary().source("SUBSTR")
+
+        self.assertIn("SUBSTR: PROC", source)
+        self.assertIn("RETURNS(CHARACTER)", source)
+
+    def test_compiler_can_include_substr_builtin_source(self):
+        output = compile_source("DCL X FIXED BIN(31);", builtins=["SUBSTR"])
+
+        self.assertIn("def SUBSTR", output)
+        self.assertIn("X = 0", output)
 
 
 if __name__ == "__main__":

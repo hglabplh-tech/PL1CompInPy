@@ -31,6 +31,12 @@ def build_parser() -> argparse.ArgumentParser:
         default="python-source",
         help="Compiler output target",
     )
+    parser.add_argument(
+        "--builtin",
+        action="append",
+        default=[],
+        help="Include a packaged PL/I builtin source file, e.g. --builtin SUBSTR",
+    )
     return parser
 
 
@@ -39,10 +45,10 @@ def main(argv: list[str] | None = None) -> int:
     if args.emit == "binary":
         if not args.output:
             build_parser().error("--emit binary requires -o/--output")
-        args.output.write_bytes(compile_binary(args.binary_format, args.source.read_text(encoding="utf-8")))
+        args.output.write_bytes(compile_binary(args.binary_format, args.source.read_text(encoding="utf-8"), args.builtin))
         return 0
 
-    output = compile_source(args.source.read_text(encoding="utf-8"), target=args.target)
+    output = compile_source(args.source.read_text(encoding="utf-8"), target=args.target, builtins=args.builtin)
 
     if args.output:
         args.output.write_text(output, encoding="utf-8")

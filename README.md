@@ -60,6 +60,12 @@ python -m pl1compinpy examples/hello.pl1 --target arm64-macos
 python -m pl1compinpy examples/hello.pl1 --target arm64-windows
 ```
 
+Include packaged PL/I builtin source before compiling:
+
+```bash
+python -m pl1compinpy examples/hello.pl1 --builtin SUBSTR
+```
+
 Create a binary executable/container artifact:
 
 ```bash
@@ -146,6 +152,8 @@ The runtime also includes starter storage and I/O services:
 
 - PL/I-style array declarations such as `DCL A(10) FIXED BIN(31);`
 - heap allocation helpers used by dynamic array storage
+- string storage as two bytes of big-endian length followed by sequential payload bytes
+- a first packaged PL/I builtin source file for `SUBSTR(string, start[, length])`
 - PL/I-style file declarations such as `DCL F FILE RECORD OUTPUT ENVIRONMENT(RECFM(V), LRECL(80), PATH('out.dat')) BINARY;`
 - normal Unix-style stream files
 - fixed-record files using `RECFM(F)` and `LRECL(n)`
@@ -158,6 +166,10 @@ The runtime also includes starter storage and I/O services:
 PL1CompInPy/
   pyproject.toml
   src/pl1compinpy/
+    builtins/
+      loader.py
+      pl1/
+        substr.pl1
     cli.py
     codegen/
       backends.py
@@ -178,5 +190,6 @@ PL1CompInPy/
       calling.py
       heap.py
       io.py
+      strings.py
   tests/
 ```

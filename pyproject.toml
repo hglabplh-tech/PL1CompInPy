@@ -26,3 +26,5 @@ pl1compinpy = "pl1compinpy.cli:main"
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+pl1compinpy = ["builtins/pl1/*.pl1"]

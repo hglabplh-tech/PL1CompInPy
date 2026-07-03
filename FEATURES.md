@@ -36,6 +36,7 @@
 - Runtime storage and I/O:
   - heap allocation blocks
   - heap-backed arrays
+  - strings stored as two-byte length plus payload
   - PL/I-style file declarations
   - Unix-style stream files
   - fixed-length `RECFM(F)` records
@@ -48,6 +49,7 @@
   - `macho64-x86_64-macos`
   - `macho64-arm64-macos`
 - Unit tests for lexer, parser, compiler output, assembly output, and binary signatures.
+- Packaged PL/I builtin source inclusion with a first `SUBSTR` builtin.
 
 ## Supported PL/1 Subset
 
@@ -59,6 +61,7 @@
 - Basic output through `CALL DISPLAY(...)`, `CALL PRINT(...)`, and basic `PUT LIST(...)`.
 - Procedure calls with by-reference and by-name normalization.
 - File declarations using `FILE`, `RECORD`, `INPUT`, `OUTPUT`, `ENVIRONMENT(RECFM(...), LRECL(...), PATH(...))`, `TEXT`, and `BINARY`.
+- Runtime `SUBSTR` behavior using one-based positions.
 - `PROC OPTIONS(MAIN)` program entry point.
 - `PROC RECURSIVE` metadata and ordinary recursive-call continuation semantics.
 - `PROC RETURNS(...)` function return metadata.
