@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "PL1CompInPy"
+version = "0.1.0"
+description = "A Python project for building a PL/1 compiler."
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+  { name = "HGP" }
+]
+license = { text = "MIT" }
+classifiers = [
+  "Development Status :: 2 - Pre-Alpha",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: PL/I",
+  "Topic :: Software Development :: Compilers"
+]
+
+[project.scripts]
+pl1compinpy = "pl1compinpy.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
