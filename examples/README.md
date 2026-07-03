@@ -10,6 +10,7 @@ These examples cover the compiler features currently implemented in PL1CompInPy.
 - `language/call_by_reference.pl1`: by-reference calls
 - `language/call_by_name.pl1`: by-name call normalization
 - `language/recursive_proc.pl1`: recursive procedure metadata and ordinary call continuation
+- `language/generic.pl1`: `GENERIC` declaration with type-based alternatives
 
 ## Runtime
 
@@ -28,3 +29,9 @@ These examples cover the compiler features currently implemented in PL1CompInPy.
 - `backend/jvm_bytecode.pl1`: JVM bytecode-style backend
 - `backend/binary_entry.pl1`: binary executable/container entry-point example
 
+## VSAM
+
+- `vsam/ksds.pl1`: keyed sequential data set declaration
+- `vsam/esds.pl1`: entry sequenced data set declaration
+- `vsam/rrds.pl1`: relative record data set declaration
+- `vsam/lds.pl1`: linear data set declaration

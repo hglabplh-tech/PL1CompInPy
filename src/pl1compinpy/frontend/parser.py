@@ -7,6 +7,7 @@ from ..core.ast import (
     Declaration,
     DoGroup,
     Expression,
+    GenericAlternative,
     Identifier,
     IfStatement,
     LabelledStatement,
@@ -76,6 +77,7 @@ class Parser:
         attributes: list[str] = []
         dimensions: dict[str, list[int]] = {}
         file_options: dict[str, str] = {}
+        generic_options: dict[str, list[GenericAlternative]] = {}
         before_attribute = True
         index = 0
         depth = 0
@@ -111,7 +113,8 @@ class Parser:
             index += 1
 
         file_options = self._file_options_from_tokens(tokens)
-        return Declaration(names, attributes, dimensions, file_options)
+        generic_options = self._generic_options_from_tokens(names, tokens)
+        return Declaration(names, attributes, dimensions, file_options, generic_options)
 
     def _dimensions_from_tokens(self, tokens: list[Token], index: int) -> tuple[list[int], int]:
         dimensions: list[int] = []
@@ -133,12 +136,31 @@ class Parser:
                 options["organization"] = upper
             elif upper in {"TEXT", "BINARY"}:
                 options["format"] = upper
-            elif upper in {"RECFM", "LRECL", "PATH"} and index + 2 < len(tokens):
+            elif upper in {"RECFM", "LRECL", "PATH", "VSAM", "KEYOFFSET", "KEYLENGTH"} and index + 2 < len(tokens):
                 if tokens[index + 1].type == TokenType.LPAREN:
                     value = tokens[index + 2].lexeme
                     options[upper.lower()] = value.upper() if upper != "PATH" else value
             index += 1
         return options
+
+    def _generic_options_from_tokens(self, names: list[str], tokens: list[Token]) -> dict[str, list[GenericAlternative]]:
+        if not names:
+            return {}
+        alternatives: list[GenericAlternative] = []
+        index = 0
+        while index < len(tokens):
+            if tokens[index].lexeme.upper() == "WHEN" and index >= 1 and index + 1 < len(tokens):
+                procedure = tokens[index - 1].lexeme
+                if tokens[index + 1].type == TokenType.LPAREN:
+                    parameter_types: list[str] = []
+                    index += 2
+                    while index < len(tokens) and tokens[index].type != TokenType.RPAREN:
+                        if tokens[index].type == TokenType.IDENTIFIER and tokens[index].lexeme.upper() not in {"WHEN"}:
+                            parameter_types.append(tokens[index].lexeme.upper())
+                        index += 1
+                    alternatives.append(GenericAlternative(procedure, parameter_types))
+            index += 1
+        return {name: alternatives for name in names if alternatives}
 
     def _procedure(self, name: str | None) -> Procedure:
         parameters: list[str] = []

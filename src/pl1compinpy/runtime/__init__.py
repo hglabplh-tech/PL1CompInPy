@@ -5,6 +5,7 @@ from .calling import RuntimeError, normalize_calls
 from .heap import HeapBlock, HeapRuntime, HeapRuntimeError
 from .io import FileDescriptor, FileRuntimeError, StdioRuntime
 from .strings import StringRuntime, StringRuntimeError, StringValue
+from .generics import GenericFunction, GenericRuntime, GenericRuntimeError, pl1_type
 
 __all__ = [
     "ArrayRuntime",
@@ -15,10 +16,14 @@ __all__ = [
     "HeapBlock",
     "HeapRuntime",
     "HeapRuntimeError",
+    "GenericFunction",
+    "GenericRuntime",
+    "GenericRuntimeError",
     "RuntimeError",
     "StdioRuntime",
     "StringRuntime",
     "StringRuntimeError",
     "StringValue",
     "normalize_calls",
+    "pl1_type",
 ]

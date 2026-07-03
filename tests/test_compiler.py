@@ -12,7 +12,8 @@ from pl1compinpy.codegen.executable_pipeline import lower_program
 from pl1compinpy.ast import Call, Declaration, IfStatement, LabelledStatement, Procedure
 from pl1compinpy.frontend.lexer import Lexer, TokenType
 from pl1compinpy.frontend.parser import Parser
-from pl1compinpy.runtime import ArrayRuntime, FileDescriptor, StdioRuntime, StringRuntime, normalize_calls
+from pl1compinpy.runtime import ArrayRuntime, FileDescriptor, GenericRuntime, StdioRuntime, StringRuntime, normalize_calls
+from pl1compinpy.vsam import VSAMCatalog, VSAMType
 
 
 class CompilerTests(unittest.TestCase):
@@ -292,6 +293,62 @@ class CompilerTests(unittest.TestCase):
 
         self.assertEqual(result.storage[:2], b"\x00\x03")
         self.assertEqual(result.text(), "ELL")
+
+    def test_parses_generic_declaration(self):
+        source = "DCL SELECTOR GENERIC(PFIXED WHEN(FIXED), PCHAR WHEN(CHARACTER));"
+        declaration = Parser(Lexer(source).tokenize()).parse().statements[0]
+
+        self.assertEqual(declaration.names, ["SELECTOR"])
+        alternatives = declaration.generic_options["SELECTOR"]
+        self.assertEqual([(alt.procedure, alt.parameter_types) for alt in alternatives], [
+            ("PFIXED", ["FIXED"]),
+            ("PCHAR", ["CHARACTER"]),
+        ])
+
+    def test_generic_runtime_dispatches_with_lambdas_by_type(self):
+        runtime = GenericRuntime()
+        runtime.define("SELECTOR").when(["FIXED"], lambda value: value + 1).when(["CHARACTER"], lambda value: value.lower())
+
+        self.assertEqual(runtime.call("SELECTOR", 41), 42)
+        self.assertEqual(runtime.call("SELECTOR", "HELLO"), "hello")
+
+    def test_vsam_ksds_catalog_and_data_components(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            catalog = VSAMCatalog.define(Path(tmp), "CUSTOMER", VSAMType.KSDS, key_offset=0, key_length=4)
+            catalog.write(b"KEY1payload")
+
+            self.assertTrue((Path(tmp) / "catalog.json").exists())
+            self.assertTrue((Path(tmp) / "data.bin").exists())
+            self.assertEqual(catalog.read(key=b"KEY1"), b"KEY1payload")
+
+    def test_vsam_esds_reads_by_rba(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            catalog = VSAMCatalog.define(Path(tmp), "EVENTS", VSAMType.ESDS)
+            rba = catalog.write(b"first")
+
+            self.assertEqual(catalog.read(rba=rba), b"first")
+
+    def test_vsam_rrds_reads_by_relative_record_number(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            catalog = VSAMCatalog.define(Path(tmp), "SLOTS", VSAMType.RRDS, record_length=6)
+            catalog.write(b"ABC", rrn=7)
+
+            self.assertEqual(catalog.read(rrn=7), b"ABC\0\0\0")
+
+    def test_vsam_lds_reads_by_relative_byte_address(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            catalog = VSAMCatalog.define(Path(tmp), "LINEAR", VSAMType.LDS)
+            catalog.write(b"0123456789", rba=0)
+
+            self.assertEqual(catalog.read(rba=3, length=4), b"3456")
+
+    def test_parses_vsam_file_options(self):
+        source = "DCL CUSTOMER_FILE FILE RECORD UPDATE ENVIRONMENT(VSAM(KSDS), KEYOFFSET(0), KEYLENGTH(4), PATH('customer.ksds')) BINARY;"
+        declaration = Parser(Lexer(source).tokenize()).parse().statements[0]
+
+        self.assertEqual(declaration.file_options["vsam"], "KSDS")
+        self.assertEqual(declaration.file_options["keyoffset"], "0")
+        self.assertEqual(declaration.file_options["keylength"], "4")
 
     def test_builtin_loader_reads_substr_pl1_source(self):
         source = BuiltinLibrary().source("SUBSTR")

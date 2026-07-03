@@ -42,6 +42,8 @@
   - fixed-length `RECFM(F)` records
   - variable-length `RECFM(V)` records with a two-byte length prefix
   - text and binary record payloads
+  - generic dispatch by argument type with lambda-backed alternatives
+  - VSAM-style catalog/data components for KSDS, ESDS, RRDS, and LDS
 - Binary/container writers for:
   - `pe32-x586-windows`
   - `elf64-x86_64`
@@ -61,6 +63,8 @@
 - Basic output through `CALL DISPLAY(...)`, `CALL PRINT(...)`, and basic `PUT LIST(...)`.
 - Procedure calls with by-reference and by-name normalization.
 - File declarations using `FILE`, `RECORD`, `INPUT`, `OUTPUT`, `ENVIRONMENT(RECFM(...), LRECL(...), PATH(...))`, `TEXT`, and `BINARY`.
+- Generic declarations using `GENERIC(... WHEN(...))`.
+- VSAM declarations using `ENVIRONMENT(VSAM(...), KEYOFFSET(...), KEYLENGTH(...))`.
 - Runtime `SUBSTR` behavior using one-based positions.
 - `PROC OPTIONS(MAIN)` program entry point.
 - `PROC RECURSIVE` metadata and ordinary recursive-call continuation semantics.

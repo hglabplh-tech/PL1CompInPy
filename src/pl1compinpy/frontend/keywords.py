@@ -128,6 +128,7 @@ _add("RETURNS", "procedure option", "Declares the return type of a procedure.")
 _add("SKIP", "I/O option", "Advances lines in stream I/O.")
 _add("UNTIL", "iteration keyword", "Terminates a loop after a condition becomes true.")
 _add("WHILE", "iteration keyword", "Continues a loop while a condition is true.")
+_add("WHEN", "generic keyword", "Associates a generic alternative with a parameter type list.")
 
 _add("ANYCONDITION", "condition", "Matches any signaled condition.")
 _add("AREA", "condition", "Raised for area storage problems.")

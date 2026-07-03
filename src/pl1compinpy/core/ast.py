@@ -24,6 +24,13 @@ class Declaration(Statement):
     attributes: list[str]
     dimensions: dict[str, list[int]] = field(default_factory=dict)
     file_options: dict[str, str] = field(default_factory=dict)
+    generic_options: dict[str, list["GenericAlternative"]] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
+class GenericAlternative:
+    procedure: str
+    parameter_types: list[str]
 
 
 @dataclass(frozen=True)
