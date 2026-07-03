@@ -12,6 +12,7 @@
 - PL/1 lexer with contextual keyword metadata.
 - PL/1 parser producing an AST for assignments, declarations, calls, procedures, labels, `DO` groups, and `IF/THEN/ELSE`.
 - Parser support for `DO WHILE`, post-test `DO ... UNTIL`, and `SELECT`/`WHEN`/`OTHERWISE`.
+- PL/I-style expression precedence for power, unary operators, multiplication/division, addition/subtraction, concatenation, comparison, logical AND, and logical OR.
 - Keyword catalog covering PL/1 statements, declaration attributes, storage attributes, I/O words, conditions, and preprocessor/listing words.
 - Python-like text emitter for early compiler validation.
 - Python source output backend.
@@ -46,6 +47,7 @@
   - fixed decimal and float conversion to/from picture-formatted text
   - `POINTER` variables
   - `BASED(pointer)` record storage bound to dedicated pointer locators
+  - calculation engine with a typed numeric tower, casts, and expression evaluation
   - strings stored as two-byte length plus payload
   - PL/I-style file declarations
   - PL/I-style `OPEN`, `READ`, `WRITE`, and `CLOSE` file statements
@@ -76,6 +78,7 @@
 - Pointer and based declarations such as `DCL P POINTER; DCL REC BASED(P);`.
 - Integer assignments.
 - Arithmetic with `+`, `-`, `*`, and `/`.
+- Power, concatenation, comparison, unary, and logical expression evaluation through the calculation engine.
 - Procedure calls.
 - Basic output through `CALL DISPLAY(...)`, `CALL PRINT(...)`, and basic `PUT LIST(...)`.
 - Record I/O statements using forms such as `OPEN FILE(F);`, `READ FILE(F) INTO(BUF);`, `WRITE FILE(F) FROM(BUF);`, and `CLOSE FILE(F);`.

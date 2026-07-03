@@ -5,6 +5,7 @@ These examples cover the compiler features currently implemented in PL1CompInPy.
 ## Language
 
 - `language/declarations.pl1`: declarations, assignment, and display calls
+- `language/calculation_engine.pl1`: operator precedence, numeric promotion, and logical expressions
 - `language/control_structures.pl1`: `IF/THEN/ELSE`
 - `language/do_while_until.pl1`: `DO WHILE` and post-test `DO ... UNTIL`
 - `language/select_when.pl1`: `SELECT` with `WHEN` and `OTHERWISE`

@@ -17,6 +17,7 @@ from .ast import (
     RawStatement,
     Statement,
     StringLiteral,
+    UnaryExpression,
 )
 from .compiler import Compiler, available_binary_formats, available_targets, compile_binary, compile_jvm_classes, compile_source
 
@@ -38,6 +39,7 @@ __all__ = [
     "RawStatement",
     "Statement",
     "StringLiteral",
+    "UnaryExpression",
     "available_binary_formats",
     "available_targets",
     "compile_binary",

@@ -2,6 +2,7 @@
 
 from .arrays import ArrayRuntime, ArrayRuntimeError, ArrayValue
 from .based import BasedRecord, BasedRuntime, BasedRuntimeError, PointerValue
+from .calculation import CalculationEngine, CalculationError, NumericTower, PL1Type, PL1Value
 from .calling import RuntimeError, normalize_calls
 from .heap import HeapBlock, HeapRuntime, HeapRuntimeError
 from .io import FileDescriptor, FileRuntimeError, StdioRuntime
@@ -16,6 +17,8 @@ __all__ = [
     "BasedRecord",
     "BasedRuntime",
     "BasedRuntimeError",
+    "CalculationEngine",
+    "CalculationError",
     "FileDescriptor",
     "FileRuntimeError",
     "HeapBlock",
@@ -27,6 +30,9 @@ __all__ = [
     "PictureRuntime",
     "PictureRuntimeError",
     "PictureSpec",
+    "NumericTower",
+    "PL1Type",
+    "PL1Value",
     "PointerValue",
     "RuntimeError",
     "StdioRuntime",

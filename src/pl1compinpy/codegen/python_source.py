@@ -17,6 +17,7 @@ from ..core.ast import (
     RawStatement,
     SelectStatement,
     StringLiteral,
+    UnaryExpression,
 )
 
 
@@ -151,6 +152,9 @@ class PythonSourceEmitter:
             left = self._expression(expression.left)
             right = self._expression(expression.right)
             return f"({left} {self._operator(expression.operator)} {right})"
+        if isinstance(expression, UnaryExpression):
+            operator = "not" if expression.operator.upper() in {"^", "NOT"} else expression.operator
+            return f"({operator} {self._expression(expression.operand)})"
         raise TypeError(f"Unsupported expression: {expression!r}")
 
     def _operator(self, operator: str) -> str:

@@ -116,6 +116,7 @@ Currently supported compiler features:
 
 - integer variable declarations and storage
 - integer assignment with `+`, `-`, `*`, and `/`
+- PL/I-style expression precedence for `**`, unary operators, `*`/`/`, `+`/`-`, `||`, comparisons, `&`, and `|`
 - `IF/THEN/ELSE` comparisons with `=`, `^=`, `<>`, `<`, `<=`, `>`, and `>=`
 - `DO WHILE` pre-test loops and post-test `DO ... UNTIL` loops
 - `SELECT`/`WHEN`/`OTHERWISE` conditional groups
@@ -177,6 +178,7 @@ The runtime also includes starter storage and I/O services:
 - `FLOAT` declarations initialized as floating-point values in Python output
 - `PICTURE`/`PIC` decimal display patterns using digit positions such as `9`, zero-suppressed `Z`, stored decimal `.`, and implied decimal `V`
 - conversion helpers between fixed decimal, float, and picture-formatted storage
+- calculation engine with fixed binary, fixed decimal, float, bit, and character values plus explicit casts and numeric promotion
 - `POINTER` locator variables and `BASED(pointer)` record storage bound to heap blocks through pointer values
 - string storage as two bytes of big-endian length followed by sequential payload bytes
 - a first packaged PL/I builtin source file for `SUBSTR(string, start[, length])`
@@ -220,6 +222,7 @@ PL1CompInPy/
     runtime/
       arrays.py
       based.py
+      calculation.py
       calling.py
       heap.py
       io.py

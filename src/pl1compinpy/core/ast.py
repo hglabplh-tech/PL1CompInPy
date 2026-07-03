@@ -126,3 +126,9 @@ class BinaryExpression(Expression):
     left: Expression
     operator: str
     right: Expression
+
+
+@dataclass(frozen=True)
+class UnaryExpression(Expression):
+    operator: str
+    operand: Expression

@@ -19,6 +19,7 @@ from ..core.ast import (
     SelectStatement,
     Statement,
     StringLiteral,
+    UnaryExpression,
     WhenBranch,
 )
 from .lexer import Token, TokenType
@@ -402,11 +403,35 @@ class Parser:
         return RawStatement(keyword, tokens)
 
     def _expression(self) -> Expression:
-        return self._comparison()
+        return self._logical_or()
+
+    def _logical_or(self) -> Expression:
+        expression = self._logical_and()
+        while self._match(TokenType.OR):
+            operator = self._previous().lexeme
+            right = self._logical_and()
+            expression = BinaryExpression(expression, operator, right)
+        return expression
+
+    def _logical_and(self) -> Expression:
+        expression = self._comparison()
+        while self._match(TokenType.AND):
+            operator = self._previous().lexeme
+            right = self._comparison()
+            expression = BinaryExpression(expression, operator, right)
+        return expression
 
     def _comparison(self) -> Expression:
-        expression = self._term()
+        expression = self._concatenation()
         while self._match(TokenType.EQ, TokenType.NE, TokenType.LT, TokenType.LE, TokenType.GT, TokenType.GE):
+            operator = self._previous().lexeme
+            right = self._concatenation()
+            expression = BinaryExpression(expression, operator, right)
+        return expression
+
+    def _concatenation(self) -> Expression:
+        expression = self._term()
+        while self._match(TokenType.CONCAT):
             operator = self._previous().lexeme
             right = self._term()
             expression = BinaryExpression(expression, operator, right)
@@ -414,19 +439,27 @@ class Parser:
 
     def _term(self) -> Expression:
         expression = self._factor()
-        while self._match(TokenType.PLUS, TokenType.MINUS, TokenType.CONCAT, TokenType.OR):
+        while self._match(TokenType.PLUS, TokenType.MINUS):
             operator = self._previous().lexeme
             right = self._factor()
             expression = BinaryExpression(expression, operator, right)
         return expression
 
     def _factor(self) -> Expression:
-        expression = self._power()
-        while self._match(TokenType.STAR, TokenType.SLASH, TokenType.AND):
+        expression = self._unary()
+        while self._match(TokenType.STAR, TokenType.SLASH):
             operator = self._previous().lexeme
-            right = self._power()
+            right = self._unary()
             expression = BinaryExpression(expression, operator, right)
         return expression
+
+    def _unary(self) -> Expression:
+        if self._match(TokenType.PLUS, TokenType.MINUS, TokenType.NOT):
+            operator = self._previous().lexeme
+            return UnaryExpression(operator, self._unary())
+        if self._match_keyword("NOT"):
+            return UnaryExpression("NOT", self._unary())
+        return self._power()
 
     def _power(self) -> Expression:
         expression = self._primary()

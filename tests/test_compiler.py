@@ -14,7 +14,7 @@ from pl1compinpy.codegen.dotnet_executable import DotNetExecutableError
 from pl1compinpy.codegen.jvm_classfile import JAVA_17_MAJOR_VERSION
 from pl1compinpy.codegen.executable_pipeline import lower_program
 from pl1compinpy.codegen.linkers import ELFLinker, MachOLinker, PELinker
-from pl1compinpy.ast import Call, Declaration, DoGroup, IOStatement, IfStatement, LabelledStatement, Procedure, SelectStatement
+from pl1compinpy.ast import BinaryExpression, Call, Declaration, DoGroup, IOStatement, IfStatement, LabelledStatement, Procedure, SelectStatement
 from pl1compinpy.frontend.lexer import Lexer, TokenType
 from pl1compinpy.frontend.parser import Parser
 from pl1compinpy.runtime import (
@@ -23,8 +23,11 @@ from pl1compinpy.runtime import (
     FileDescriptor,
     GenericRuntime,
     PictureRuntime,
+    CalculationEngine,
     StdioRuntime,
     StringRuntime,
+    PL1Type,
+    PL1Value,
     normalize_calls,
 )
 from pl1compinpy.vsam import VSAMCatalog, VSAMFileDescriptor, VSAMRuntime, VSAMType
@@ -154,6 +157,18 @@ class CompilerTests(unittest.TestCase):
         self.assertEqual(len(statement.when_branches), 2)
         self.assertEqual(len(statement.when_branches[1].expressions), 2)
         self.assertIsNotNone(statement.otherwise)
+
+    def test_expression_parser_uses_pl1_operator_precedence(self):
+        expression = Parser(Lexer("RESULT = A | B & C = D || E + F * G ** H;").tokenize()).parse().statements[0].expression
+
+        self.assertIsInstance(expression, BinaryExpression)
+        self.assertEqual(expression.operator, "|")
+        self.assertEqual(expression.right.operator, "&")
+        self.assertEqual(expression.right.right.operator, "=")
+        self.assertEqual(expression.right.right.right.operator, "||")
+        self.assertEqual(expression.right.right.right.right.operator, "+")
+        self.assertEqual(expression.right.right.right.right.right.operator, "*")
+        self.assertEqual(expression.right.right.right.right.right.right.operator, "**")
 
     def test_emits_x586_windows_assignment_control_and_io(self):
         source = "DCL TOTAL FIXED BIN(31); TOTAL = 40 + 2; IF TOTAL = 42 THEN CALL DISPLAY(TOTAL);"
@@ -471,6 +486,34 @@ class CompilerTests(unittest.TestCase):
         self.assertEqual(runtime.float_to_picture(12.345, "Z9.99"), "12.35")
         self.assertEqual(runtime.picture_to_fixed("  42", "ZZZ9"), Decimal("42"))
         self.assertEqual(runtime.picture_to_float("12.35", "Z9.99"), 12.35)
+
+    def test_calculation_engine_promotes_numeric_tower_and_precedence(self):
+        expression = Parser(Lexer("RESULT = 2 + 3 * 4 ** 2;").tokenize()).parse().statements[0].expression
+        result = CalculationEngine().evaluate(expression)
+
+        self.assertEqual(result.value, 50)
+        self.assertEqual(result.type, PL1Type.FIXED_BIN)
+
+    def test_calculation_engine_casts_and_converts_numeric_types(self):
+        engine = CalculationEngine({"A": PL1Value(Decimal("2.5"), PL1Type.FIXED_DEC), "B": PL1Value(4, PL1Type.FIXED_BIN)})
+        value = engine.evaluate(Parser(Lexer("RESULT = A + B;").tokenize()).parse().statements[0].expression)
+
+        self.assertEqual(value.value, Decimal("6.5"))
+        self.assertEqual(value.type, PL1Type.FIXED_DEC)
+        self.assertEqual(engine.cast(PL1Value("42.9", PL1Type.CHARACTER), PL1Type.FIXED_BIN).value, 42)
+        self.assertEqual(engine.cast(PL1Value(1, PL1Type.FIXED_BIN), PL1Type.FLOAT).value, 1.0)
+
+    def test_calculation_engine_handles_float_character_and_bit_operators(self):
+        engine = CalculationEngine({"X": PL1Value(1.5, PL1Type.FLOAT), "FLAG": PL1Value(True, PL1Type.BIT)})
+
+        float_value = engine.evaluate(Parser(Lexer("RESULT = X + 2;").tokenize()).parse().statements[0].expression)
+        text_value = engine.evaluate(Parser(Lexer("RESULT = 'A' || 'B';").tokenize()).parse().statements[0].expression)
+        bit_value = engine.evaluate(Parser(Lexer("RESULT = ^FLAG | 0;").tokenize()).parse().statements[0].expression)
+
+        self.assertEqual(float_value.type, PL1Type.FLOAT)
+        self.assertEqual(float_value.value, 3.5)
+        self.assertEqual(text_value.value, "AB")
+        self.assertEqual(bit_value.value, False)
 
     def test_based_runtime_binds_records_to_pointer_storage(self):
         runtime = BasedRuntime()
