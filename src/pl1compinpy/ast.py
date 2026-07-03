@@ -28,6 +28,7 @@ class Declaration(Statement):
 class Call(Statement):
     name: str
     arguments: list["Expression"]
+    mode: str = "reference"
 
 
 @dataclass(frozen=True)

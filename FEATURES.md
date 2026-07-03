@@ -21,6 +21,11 @@
   - executable mnemonics
   - machine code
   - executable container
+- Runtime calling convention:
+  - local variables allocated in stack frames
+  - parameters pushed right to left
+  - call by reference
+  - call by name normalized to sorted call by reference
 - Binary/container writers for:
   - `pe32-x586-windows`
   - `elf64-x86_64`
@@ -36,6 +41,7 @@
 - Arithmetic with `+`, `-`, `*`, and `/`.
 - Procedure calls.
 - Basic output through `CALL DISPLAY(...)`, `CALL PRINT(...)`, and basic `PUT LIST(...)`.
+- Procedure calls with by-reference and by-name normalization.
 - `IF/THEN/ELSE` comparisons using `=`, `^=`, `<>`, `<`, `<=`, `>`, and `>=`.
 - Labels and simple procedure bodies.
 - Simple `DO` groups.

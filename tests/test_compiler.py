@@ -7,9 +7,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from pl1compinpy import compile_source
 from pl1compinpy.compiler import compile_binary
 from pl1compinpy.executable_pipeline import lower_program
-from pl1compinpy.ast import Declaration, IfStatement, LabelledStatement, Procedure
+from pl1compinpy.ast import Call, Declaration, IfStatement, LabelledStatement, Procedure
 from pl1compinpy.lexer import Lexer, TokenType
 from pl1compinpy.parser import Parser
+from pl1compinpy.runtime import normalize_calls
 
 
 class CompilerTests(unittest.TestCase):
@@ -123,6 +124,44 @@ class CompilerTests(unittest.TestCase):
         self.assertIn(b"\xB8\x02\x00\x00\x00", code)
         self.assertIn(b"\x01\xD8", code)
         self.assertIn(b"\xA3", code)
+
+    def test_call_by_name_normalizes_to_reference_parameter_order(self):
+        program = Parser(Lexer("P: PROC(A,B); END P; CALL P(B,A) BY NAME;").tokenize()).parse()
+        normalized = normalize_calls(program)
+        call = normalized.statements[1]
+
+        self.assertIsInstance(call, Call)
+        self.assertEqual(call.mode, "reference")
+        self.assertEqual([argument.name for argument in call.arguments], ["A", "B"])
+
+    def test_runtime_lowers_locals_to_stack_and_parameters_to_references(self):
+        source = "P: PROC(A); DCL TEMP FIXED BIN(31); TEMP = A + 1; A = TEMP; END P;"
+        program = normalize_calls(Parser(Lexer(source).tokenize()).parse())
+        mnemonics, _, _ = lower_program(program)
+        ops = [mnemonic.op for mnemonic in mnemonics]
+
+        self.assertIn("ENTER_FRAME", ops)
+        self.assertIn("LOAD_EAX_REF_PARAM", ops)
+        self.assertIn("STORE_EAX_LOCAL", ops)
+        self.assertIn("STORE_EAX_REF_PARAM", ops)
+
+    def test_runtime_pushes_call_arguments_right_to_left_by_reference(self):
+        source = "P: PROC(A,B); END P; DCL A FIXED BIN(31), B FIXED BIN(31); CALL P(A,B);"
+        program = normalize_calls(Parser(Lexer(source).tokenize()).parse())
+        mnemonics, _, _ = lower_program(program)
+        call_index = [mnemonic.op for mnemonic in mnemonics].index("CALL_PROC")
+        pushed = mnemonics[call_index - 2 : call_index]
+
+        self.assertEqual([mnemonic.op for mnemonic in pushed], ["PUSH_GLOBAL_REF", "PUSH_GLOBAL_REF"])
+        self.assertEqual([mnemonic.args[0] for mnemonic in pushed], ["B", "A"])
+
+    def test_runtime_entry_jumps_over_procedure_definitions(self):
+        source = "P: PROC(A); A = 1; END P; DCL A FIXED BIN(31); CALL P(A);"
+        program = normalize_calls(Parser(Lexer(source).tokenize()).parse())
+        mnemonics, _, _ = lower_program(program)
+
+        self.assertEqual(mnemonics[0], type(mnemonics[0])("JMP", ("__main",)))
+        self.assertIn(type(mnemonics[0])("LABEL", ("__main",)), mnemonics)
 
 
 if __name__ == "__main__":

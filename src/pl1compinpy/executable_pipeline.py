@@ -3,7 +3,21 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 import struct
 
-from .ast import Assignment, BinaryExpression, Call, Declaration, Expression, Identifier, IfStatement, NumberLiteral, Program, Statement, StringLiteral
+from .ast import (
+    Assignment,
+    BinaryExpression,
+    Call,
+    Declaration,
+    Expression,
+    Identifier,
+    IfStatement,
+    LabelledStatement,
+    NumberLiteral,
+    Procedure,
+    Program,
+    Statement,
+    StringLiteral,
+)
 
 
 @dataclass(frozen=True)
@@ -24,12 +38,38 @@ class LoweringContext:
     strings: dict[str, int] = field(default_factory=dict)
     data: bytearray = field(default_factory=bytearray)
     label_index: int = 0
+    local_scopes: list[dict[str, int]] = field(default_factory=list)
+    parameter_scopes: list[dict[str, int]] = field(default_factory=list)
 
     def variable(self, name: str) -> int:
         if name not in self.variables:
             self.variables[name] = len(self.data)
             self.data.extend(b"\0\0\0\0")
         return self.variables[name]
+
+    def local(self, name: str) -> int:
+        if not self.local_scopes:
+            return self.variable(name)
+        scope = self.local_scopes[-1]
+        if name not in scope:
+            scope[name] = -4 * (len(scope) + 1)
+        return scope[name]
+
+    def local_bytes(self) -> int:
+        return len(self.local_scopes[-1]) * 4 if self.local_scopes else 0
+
+    def is_local(self, name: str) -> bool:
+        return bool(self.local_scopes and name in self.local_scopes[-1])
+
+    def is_parameter(self, name: str) -> bool:
+        return bool(self.parameter_scopes and name in self.parameter_scopes[-1])
+
+    def stack_offset(self, name: str) -> int:
+        if self.is_local(name):
+            return self.local_scopes[-1][name]
+        if self.is_parameter(name):
+            return self.parameter_scopes[-1][name]
+        raise KeyError(name)
 
     def string(self, value: str) -> tuple[int, int]:
         if value not in self.strings:
@@ -49,8 +89,19 @@ def lower_program(program: Program) -> tuple[list[Mnemonic], bytes, dict[str, in
         _collect_data(statement, context)
 
     mnemonics: list[Mnemonic] = []
-    for statement in program.statements:
-        mnemonics.extend(_lower_statement(statement, context))
+    procedure_statements = [statement for statement in program.statements if _is_procedure_definition(statement)]
+    main_statements = [statement for statement in program.statements if not _is_procedure_definition(statement)]
+
+    if procedure_statements:
+        mnemonics.append(Mnemonic("JMP", ("__main",)))
+        for statement in procedure_statements:
+            mnemonics.extend(_lower_statement(statement, context))
+        mnemonics.append(Mnemonic("LABEL", ("__main",)))
+        for statement in main_statements:
+            mnemonics.extend(_lower_statement(statement, context))
+    else:
+        for statement in main_statements:
+            mnemonics.extend(_lower_statement(statement, context))
     mnemonics.append(Mnemonic("EXIT_ZERO"))
     return mnemonics, bytes(context.data), context.variables
 
@@ -90,6 +141,10 @@ def _collect_data(statement: Statement, context: LoweringContext) -> None:
         _collect_data(statement.then_branch, context)
         if statement.else_branch:
             _collect_data(statement.else_branch, context)
+    elif isinstance(statement, LabelledStatement):
+        _collect_data(statement.statement, context)
+    elif isinstance(statement, Procedure):
+        return
 
 
 def _collect_expression_data(expression: Expression, context: LoweringContext) -> None:
@@ -102,19 +157,35 @@ def _collect_expression_data(expression: Expression, context: LoweringContext) -
         _collect_expression_data(expression.right, context)
 
 
+def _is_procedure_definition(statement: Statement) -> bool:
+    return isinstance(statement, Procedure) or (
+        isinstance(statement, LabelledStatement) and isinstance(statement.statement, Procedure)
+    )
+
+
 def _lower_statement(statement: Statement, context: LoweringContext) -> list[Mnemonic]:
     if isinstance(statement, Declaration):
+        if context.local_scopes:
+            for name in statement.names:
+                context.local(name)
         return [Mnemonic("COMMENT", (f"declare {', '.join(statement.names)}",))]
     if isinstance(statement, Assignment):
-        return _lower_expression(statement.expression) + [Mnemonic("STORE_EAX_VAR", (statement.target,))]
+        return _lower_expression(statement.expression, context) + [_store_name(statement.target, context)]
     if isinstance(statement, Call):
         if statement.name.upper() in {"DISPLAY", "PRINT"}:
             return _lower_display(statement.arguments, context)
-        return [Mnemonic("COMMENT", (f"call {statement.name}",))]
+        return _lower_call(statement, context)
+    if isinstance(statement, LabelledStatement):
+        if isinstance(statement.statement, Procedure):
+            procedure = statement.statement
+            return _lower_procedure(Procedure(procedure.name or statement.label, procedure.parameters, procedure.options, procedure.body), context)
+        return [Mnemonic("LABEL", (statement.label,))] + _lower_statement(statement.statement, context)
+    if isinstance(statement, Procedure):
+        return _lower_procedure(statement, context)
     if isinstance(statement, IfStatement):
         else_label = context.label("else")
         end_label = context.label("endif")
-        lines = _lower_condition_false_jump(statement.condition, else_label)
+        lines = _lower_condition_false_jump(statement.condition, else_label, context)
         lines.extend(_lower_statement(statement.then_branch, context))
         lines.append(Mnemonic("JMP", (end_label,)))
         lines.append(Mnemonic("LABEL", (else_label,)))
@@ -125,15 +196,49 @@ def _lower_statement(statement: Statement, context: LoweringContext) -> list[Mne
     return [Mnemonic("COMMENT", (statement.__class__.__name__,))]
 
 
-def _lower_expression(expression: Expression) -> list[Mnemonic]:
+def _lower_procedure(procedure: Procedure, context: LoweringContext) -> list[Mnemonic]:
+    name = procedure.name or "anonymous_procedure"
+    parameter_scope = {parameter: 8 + index * 4 for index, parameter in enumerate(procedure.parameters)}
+    context.parameter_scopes.append(parameter_scope)
+    context.local_scopes.append({})
+    for child in procedure.body:
+        if isinstance(child, Declaration):
+            for local_name in child.names:
+                context.local(local_name)
+    local_bytes = context.local_bytes()
+
+    lines = [Mnemonic("LABEL", (name,)), Mnemonic("ENTER_FRAME", (local_bytes,))]
+    for child in procedure.body:
+        lines.extend(_lower_statement(child, context))
+    lines.append(Mnemonic("LEAVE_RET", (len(procedure.parameters) * 4,)))
+    context.local_scopes.pop()
+    context.parameter_scopes.pop()
+    return lines
+
+
+def _lower_call(call: Call, context: LoweringContext) -> list[Mnemonic]:
+    lines: list[Mnemonic] = []
+    for argument in reversed(call.arguments):
+        if isinstance(argument, Identifier):
+            lines.append(_push_reference(argument.name, context))
+        else:
+            lines.extend(_lower_expression(argument, context))
+            lines.append(Mnemonic("PUSH_VALUE_TEMP"))
+    lines.append(Mnemonic("CALL_PROC", (call.name, len(call.arguments))))
+    if call.arguments:
+        lines.append(Mnemonic("CLEAN_ARGS", (len(call.arguments) * 4,)))
+    return lines
+
+
+def _lower_expression(expression: Expression, context: LoweringContext) -> list[Mnemonic]:
     if isinstance(expression, NumberLiteral):
         return [Mnemonic("MOV_EAX_IMM", (int(float(expression.value)),))]
     if isinstance(expression, Identifier):
-        return [Mnemonic("LOAD_EAX_VAR", (expression.name,))]
+        return [_load_name(expression.name, context)]
     if isinstance(expression, BinaryExpression):
-        lines = _lower_expression(expression.left)
+        lines = _lower_expression(expression.left, context)
         lines.append(Mnemonic("PUSH_EAX"))
-        lines.extend(_lower_expression(expression.right))
+        lines.extend(_lower_expression(expression.right, context))
         lines.append(Mnemonic("POP_EBX"))
         operator = {
             "+": "ADD_EAX_EBX",
@@ -147,14 +252,14 @@ def _lower_expression(expression: Expression) -> list[Mnemonic]:
     return [Mnemonic("MOV_EAX_IMM", (0,))]
 
 
-def _lower_condition_false_jump(expression: Expression, false_label: str) -> list[Mnemonic]:
+def _lower_condition_false_jump(expression: Expression, false_label: str, context: LoweringContext) -> list[Mnemonic]:
     if isinstance(expression, BinaryExpression) and expression.operator in {"=", "^=", "<>", "<", "<=", ">", ">="}:
-        lines = _lower_expression(expression.left)
+        lines = _lower_expression(expression.left, context)
         lines.append(Mnemonic("PUSH_EAX"))
-        lines.extend(_lower_expression(expression.right))
+        lines.extend(_lower_expression(expression.right, context))
         lines.extend([Mnemonic("POP_EBX"), Mnemonic("CMP_EBX_EAX"), Mnemonic("JFALSE", (expression.operator, false_label))])
         return lines
-    return _lower_expression(expression) + [Mnemonic("CMP_EAX_ZERO"), Mnemonic("JE", (false_label,))]
+    return _lower_expression(expression, context) + [Mnemonic("CMP_EAX_ZERO"), Mnemonic("JE", (false_label,))]
 
 
 def _lower_display(arguments: list[Expression], context: LoweringContext) -> list[Mnemonic]:
@@ -164,9 +269,36 @@ def _lower_display(arguments: list[Expression], context: LoweringContext) -> lis
             offset, length = context.string(argument.value)
             lines.append(Mnemonic("WRITE_STRING", (offset, length)))
         else:
-            lines.extend(_lower_expression(argument))
+            lines.extend(_lower_expression(argument, context))
             lines.append(Mnemonic("WRITE_INT_EAX"))
     return lines
+
+
+def _load_name(name: str, context: LoweringContext) -> Mnemonic:
+    if context.is_local(name):
+        return Mnemonic("LOAD_EAX_LOCAL", (context.stack_offset(name),))
+    if context.is_parameter(name):
+        return Mnemonic("LOAD_EAX_REF_PARAM", (context.stack_offset(name),))
+    context.variable(name)
+    return Mnemonic("LOAD_EAX_VAR", (name,))
+
+
+def _store_name(name: str, context: LoweringContext) -> Mnemonic:
+    if context.is_local(name):
+        return Mnemonic("STORE_EAX_LOCAL", (context.stack_offset(name),))
+    if context.is_parameter(name):
+        return Mnemonic("STORE_EAX_REF_PARAM", (context.stack_offset(name),))
+    context.variable(name)
+    return Mnemonic("STORE_EAX_VAR", (name,))
+
+
+def _push_reference(name: str, context: LoweringContext) -> Mnemonic:
+    if context.is_local(name):
+        return Mnemonic("PUSH_LOCAL_REF", (context.stack_offset(name),))
+    if context.is_parameter(name):
+        return Mnemonic("PUSH_PARAM_REF", (context.stack_offset(name),))
+    context.variable(name)
+    return Mnemonic("PUSH_GLOBAL_REF", (name,))
 
 
 class X586MnemonicAssembler:
@@ -204,12 +336,22 @@ class X586MnemonicAssembler:
         return labels
 
     def _size(self, mnemonic: Mnemonic) -> int:
+        if mnemonic.op == "ENTER_FRAME":
+            return 3 + (6 if int(mnemonic.args[0]) else 0)
         return {
             "COMMENT": 0,
             "LABEL": 0,
             "MOV_EAX_IMM": 5,
             "LOAD_EAX_VAR": 5,
             "STORE_EAX_VAR": 5,
+            "LOAD_EAX_LOCAL": 3,
+            "STORE_EAX_LOCAL": 3,
+            "LOAD_EAX_REF_PARAM": 5,
+            "STORE_EAX_REF_PARAM": 5,
+            "PUSH_GLOBAL_REF": 5,
+            "PUSH_LOCAL_REF": 4,
+            "PUSH_PARAM_REF": 3,
+            "PUSH_VALUE_TEMP": 1,
             "PUSH_EAX": 1,
             "POP_EBX": 1,
             "ADD_EAX_EBX": 2,
@@ -221,6 +363,9 @@ class X586MnemonicAssembler:
             "JFALSE": 6,
             "JE": 6,
             "JMP": 5,
+            "CALL_PROC": 5,
+            "CLEAN_ARGS": 3,
+            "LEAVE_RET": 4,
             "WRITE_STRING": 0,
             "WRITE_INT_EAX": 0,
             "EXIT_ZERO": 3,
@@ -236,6 +381,22 @@ class X586MnemonicAssembler:
             return b"\xA1" + struct.pack("<I", self._var_addr(str(mnemonic.args[0])))
         if op == "STORE_EAX_VAR":
             return b"\xA3" + struct.pack("<I", self._var_addr(str(mnemonic.args[0])))
+        if op == "LOAD_EAX_LOCAL":
+            return b"\x8B\x45" + struct.pack("b", int(mnemonic.args[0]))
+        if op == "STORE_EAX_LOCAL":
+            return b"\x89\x45" + struct.pack("b", int(mnemonic.args[0]))
+        if op == "LOAD_EAX_REF_PARAM":
+            return b"\x8B\x4D" + struct.pack("b", int(mnemonic.args[0])) + b"\x8B\x01"
+        if op == "STORE_EAX_REF_PARAM":
+            return b"\x8B\x4D" + struct.pack("b", int(mnemonic.args[0])) + b"\x89\x01"
+        if op == "PUSH_GLOBAL_REF":
+            return b"\x68" + struct.pack("<I", self._var_addr(str(mnemonic.args[0])))
+        if op == "PUSH_LOCAL_REF":
+            return b"\x8D\x45" + struct.pack("b", int(mnemonic.args[0])) + b"\x50"
+        if op == "PUSH_PARAM_REF":
+            return b"\xFF\x75" + struct.pack("b", int(mnemonic.args[0]))
+        if op == "PUSH_VALUE_TEMP":
+            return b"\x50"
         if op == "PUSH_EAX":
             return b"\x50"
         if op == "POP_EBX":
@@ -261,6 +422,20 @@ class X586MnemonicAssembler:
             label = str(mnemonic.args[0])
             rel = labels[label] - (offset + 5)
             return b"\xE9" + struct.pack("<i", rel)
+        if op == "CALL_PROC":
+            label = str(mnemonic.args[0])
+            rel = labels[label] - (offset + 5)
+            return b"\xE8" + struct.pack("<i", rel)
+        if op == "CLEAN_ARGS":
+            return b"\x83\xC4" + struct.pack("B", int(mnemonic.args[0]) & 0xFF)
+        if op == "ENTER_FRAME":
+            local_bytes = int(mnemonic.args[0])
+            code = b"\x55\x89\xE5"
+            if local_bytes:
+                code += b"\x81\xEC" + struct.pack("<I", local_bytes)
+            return code
+        if op == "LEAVE_RET":
+            return b"\xC9\xC2" + struct.pack("<H", int(mnemonic.args[0]) & 0xFFFF)
         if op == "EXIT_ZERO":
             return b"\x31\xC0\xC3"
         raise ValueError(f"Unsupported x586 mnemonic: {mnemonic}")

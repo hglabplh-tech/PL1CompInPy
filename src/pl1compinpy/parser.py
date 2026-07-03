@@ -139,13 +139,21 @@ class Parser:
     def _call_statement(self) -> Call:
         name = self._consume_identifier("Expected procedure name after CALL")
         arguments: list[Expression] = []
+        mode = "reference"
         if self._match(TokenType.LPAREN):
             if not self._check(TokenType.RPAREN):
                 arguments.append(self._expression())
                 while self._match(TokenType.COMMA):
                     arguments.append(self._expression())
             self._consume(TokenType.RPAREN, "Expected ')' after CALL arguments")
-        return Call(name.lexeme, arguments)
+        if self._match_keyword("BY"):
+            if self._match_keyword("NAME"):
+                mode = "name"
+            elif self._match_keyword("REFERENCE", "REF"):
+                mode = "reference"
+            else:
+                raise self._error(self._peek(), "Expected NAME or REFERENCE after BY")
+        return Call(name.lexeme, arguments, mode)
 
     def _assignment(self) -> Assignment:
         target = self._consume_identifier("Expected assignment target")

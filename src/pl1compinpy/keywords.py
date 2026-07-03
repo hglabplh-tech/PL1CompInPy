@@ -113,6 +113,7 @@ _add("LOCAL", "storage attribute", "Declares package-local scope in modern PL/I.
 _add("OPTIONS", "attribute", "Supplies procedure or file options.")
 _add("PARAMETER", "attribute", "Declares a procedure parameter.", "PARM")
 _add("POSITION", "attribute", "Sets bit or character position.", "POS")
+_add("REFERENCE", "calling convention", "Passes an argument by address.", "REF")
 _add("STATIC", "storage attribute", "Allocates persistent storage.")
 _add("VARIABLE", "attribute", "Marks an entry or condition as variable.")
 

@@ -20,12 +20,13 @@ from .backends import TARGETS, emit_assembly
 from .binary_formats import BINARY_FORMATS, emit_binary
 from .lexer import Lexer
 from .parser import Parser
+from .runtime import normalize_calls
 
 
 class Compiler:
     def compile(self, source: str, target: str = "python") -> str:
         tokens = Lexer(source).tokenize()
-        program = Parser(tokens).parse()
+        program = normalize_calls(Parser(tokens).parse())
         if target != "python":
             return emit_assembly(program, target)
         return PythonEmitter().emit(program)
@@ -44,7 +45,7 @@ def available_binary_formats() -> tuple[str, ...]:
 
 
 def compile_binary(format_name: str, source: str | None = None) -> bytes:
-    program = Parser(Lexer(source).tokenize()).parse() if source is not None else None
+    program = normalize_calls(Parser(Lexer(source).tokenize()).parse()) if source is not None else None
     return emit_binary(format_name, program)
 
 

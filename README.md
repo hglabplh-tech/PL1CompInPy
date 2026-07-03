@@ -124,6 +124,17 @@ source-driven x586 instruction encoding. The ELF and Mach-O paths use the same m
 and have starter encoders for Intel and ARM64 machine code, ready to be expanded with full runtime
 I/O and platform linker details.
 
+## Runtime Model
+
+The executable pipeline includes a first runtime calling convention:
+
+- procedure-local variables are allocated in the procedure stack frame
+- procedure parameters are passed on the stack from right to left
+- default procedure calls use call by reference
+- by-reference arguments pass the address of the caller variable, similar to C pointer-style calls
+- `CALL P(B,A) BY NAME;` is normalized by matching argument names to `P`'s parameter names, sorting them into parameter order, and lowering the result as a by-reference call
+- procedure definitions are emitted before main code and the entry path jumps over them, so procedures run only when called
+
 ## Project Layout
 
 ```text
