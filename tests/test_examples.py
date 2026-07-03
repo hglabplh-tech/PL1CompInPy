@@ -82,6 +82,15 @@ class ExampleTests(unittest.TestCase):
         self.assertEqual(unix_decl.file_options["format"], "TEXT")
         self.assertEqual(unix_decl.file_options["organization"], "STREAM")
 
+    def test_socket_pl1_examples_match_runtime_function_table(self):
+        sender = normalize_calls(self.parse_example("runtime/socket_primitive_sender.pl1"))
+        receiver = normalize_calls(self.parse_example("runtime/socket_primitive_receiver.pl1"))
+        streams = normalize_calls(self.parse_example("runtime/socket_streams.pl1"))
+
+        self.assertEqual([statement.name for statement in sender.statements[-3:]], ["TCPIP_OPEN", "TCPIP_SEND", "TCPIP_CLOSE"])
+        self.assertEqual([statement.name for statement in receiver.statements[-3:]], ["TCPIP_OPEN", "TCPIP_RECEIVE", "TCPIP_CLOSE"])
+        self.assertEqual([statement.name for statement in streams.statements[-5:]], ["SOCKET_OPEN", "SOCKET_WRITE", "SOCKET_READ", "SOCKET_CLOSE", "SOCKET_CLOSE"])
+
     def test_builtin_substr_example_includes_builtin_source(self):
         output = compile_source(self.example_source("builtins/substr.pl1"), builtins=["SUBSTR"])
 

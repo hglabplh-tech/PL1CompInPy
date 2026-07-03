@@ -27,6 +27,9 @@ These examples cover the compiler features currently implemented in PL1CompInPy.
 - `runtime/function_table.py`: dynamic user function table and static runtime function table lookup
 - `runtime/socket_io.py`: primitive runtime TCP socket send/receive example
 - `runtime/socket_stream.py`: file-like socket payload records above primitive sockets
+- `runtime/socket_primitive_sender.pl1`: primitive `TCPIP_OPEN`, `TCPIP_SEND`, and `TCPIP_CLOSE` call usage
+- `runtime/socket_primitive_receiver.pl1`: primitive `TCPIP_OPEN`, `TCPIP_RECEIVE`, and `TCPIP_CLOSE` call usage
+- `runtime/socket_streams.pl1`: PL/I socket stream `SOCKET_OPEN`, `SOCKET_WRITE`, `SOCKET_READ`, and `SOCKET_CLOSE` usage
 
 ## Builtins
 
