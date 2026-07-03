@@ -1,9 +1,11 @@
 """Runtime normalization and calling-convention support."""
 
 from .arrays import ArrayRuntime, ArrayRuntimeError, ArrayValue
+from .based import BasedRecord, BasedRuntime, BasedRuntimeError, PointerValue
 from .calling import RuntimeError, normalize_calls
 from .heap import HeapBlock, HeapRuntime, HeapRuntimeError
 from .io import FileDescriptor, FileRuntimeError, StdioRuntime
+from .picture import PictureRuntime, PictureRuntimeError, PictureSpec
 from .strings import StringRuntime, StringRuntimeError, StringValue
 from .generics import GenericFunction, GenericRuntime, GenericRuntimeError, pl1_type
 
@@ -11,6 +13,9 @@ __all__ = [
     "ArrayRuntime",
     "ArrayRuntimeError",
     "ArrayValue",
+    "BasedRecord",
+    "BasedRuntime",
+    "BasedRuntimeError",
     "FileDescriptor",
     "FileRuntimeError",
     "HeapBlock",
@@ -19,6 +24,10 @@ __all__ = [
     "GenericFunction",
     "GenericRuntime",
     "GenericRuntimeError",
+    "PictureRuntime",
+    "PictureRuntimeError",
+    "PictureSpec",
+    "PointerValue",
     "RuntimeError",
     "StdioRuntime",
     "StringRuntime",

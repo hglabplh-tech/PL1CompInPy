@@ -33,7 +33,7 @@ class PythonSourceEmitter:
         if isinstance(statement, Assignment):
             return [f"{prefix}{statement.target} = {self._expression(statement.expression)}"]
         if isinstance(statement, Declaration):
-            return [f"{prefix}{name} = 0" for name in statement.names] or [f"{prefix}pass"]
+            return [f"{prefix}{name} = {self._declaration_initial_value(statement, name)}" for name in statement.names] or [f"{prefix}pass"]
         if isinstance(statement, Call):
             arguments = ", ".join(self._expression(argument) for argument in statement.arguments)
             return [f"{prefix}{statement.name}({arguments})"]
@@ -117,6 +117,18 @@ class PythonSourceEmitter:
             "**": "**",
         }.get(operator, operator)
 
+    def _declaration_initial_value(self, declaration: Declaration, name: str) -> str:
+        attributes = {attribute.upper() for attribute in declaration.attributes}
+        if name in declaration.pointer_names or "POINTER" in attributes or "PTR" in attributes:
+            return "None"
+        if name in declaration.based_options:
+            return "None"
+        if name in declaration.picture_options:
+            return repr("")
+        if "FLOAT" in attributes:
+            return "0.0"
+        return "0"
+
     def _main_procedure_name(self, program: Program) -> str | None:
         for statement in program.statements:
             procedure = statement.statement if isinstance(statement, LabelledStatement) and isinstance(statement.statement, Procedure) else statement
@@ -127,4 +139,3 @@ class PythonSourceEmitter:
 
 def emit_python_source(program: Program) -> str:
     return PythonSourceEmitter().emit(program)
-

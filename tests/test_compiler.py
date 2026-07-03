@@ -1,4 +1,5 @@
 import unittest
+from decimal import Decimal
 from pathlib import Path
 import sys
 import struct
@@ -15,7 +16,16 @@ from pl1compinpy.codegen.linkers import ELFLinker, MachOLinker, PELinker
 from pl1compinpy.ast import Call, Declaration, IfStatement, LabelledStatement, Procedure
 from pl1compinpy.frontend.lexer import Lexer, TokenType
 from pl1compinpy.frontend.parser import Parser
-from pl1compinpy.runtime import ArrayRuntime, FileDescriptor, GenericRuntime, StdioRuntime, StringRuntime, normalize_calls
+from pl1compinpy.runtime import (
+    ArrayRuntime,
+    BasedRuntime,
+    FileDescriptor,
+    GenericRuntime,
+    PictureRuntime,
+    StdioRuntime,
+    StringRuntime,
+    normalize_calls,
+)
 from pl1compinpy.vsam import VSAMCatalog, VSAMType
 
 
@@ -80,6 +90,26 @@ class CompilerTests(unittest.TestCase):
         self.assertEqual(declaration.file_options["recfm"], "V")
         self.assertEqual(declaration.file_options["lrecl"], "80")
         self.assertEqual(declaration.file_options["path"], "out.dat")
+
+    def test_parses_picture_float_pointer_and_based_declarations(self):
+        program = Parser(
+            Lexer("DCL AMOUNT PIC'ZZZ9.99'; DCL RATE FLOAT DECIMAL(16); DCL P POINTER; DCL REC BASED(P);").tokenize()
+        ).parse()
+        amount = program.statements[0]
+        rate = program.statements[1]
+        pointer = program.statements[2]
+        record = program.statements[3]
+
+        self.assertEqual(amount.picture_options["AMOUNT"], "ZZZ9.99")
+        self.assertIn("FLOAT", rate.attributes)
+        self.assertEqual(pointer.pointer_names, ["P"])
+        self.assertEqual(record.based_options["REC"], "P")
+
+    def test_parses_level_number_based_record_declaration(self):
+        declaration = Parser(Lexer("DCL 1 REC BASED(P), 2 ID FIXED BIN(31);").tokenize()).parse().statements[0]
+
+        self.assertEqual(declaration.names, ["REC"])
+        self.assertEqual(declaration.based_options["REC"], "P")
 
     def test_parses_labelled_procedure(self):
         program = Parser(
@@ -341,6 +371,27 @@ class CompilerTests(unittest.TestCase):
 
         self.assertEqual(result.storage[:2], b"\x00\x03")
         self.assertEqual(result.text(), "ELL")
+
+    def test_picture_runtime_formats_and_parses_fixed_and_float_values(self):
+        runtime = PictureRuntime()
+
+        self.assertEqual(runtime.fixed_to_picture(42, "ZZZ9"), "  42")
+        self.assertEqual(runtime.float_to_picture(12.345, "Z9.99"), "12.35")
+        self.assertEqual(runtime.picture_to_fixed("  42", "ZZZ9"), Decimal("42"))
+        self.assertEqual(runtime.picture_to_float("12.35", "Z9.99"), 12.35)
+
+    def test_based_runtime_binds_records_to_pointer_storage(self):
+        runtime = BasedRuntime()
+        runtime.declare_pointer("P")
+        runtime.declare_based_record("REC", size=4, pointer_name="P")
+        pointer = runtime.allocate_based("REC")
+
+        runtime.write_record("REC", b"ABCD")
+        self.assertEqual(runtime.read_record("REC"), b"ABCD")
+
+        runtime.declare_pointer("Q")
+        runtime.set_pointer("Q", pointer.handle or 0)
+        self.assertEqual(runtime.read_record("REC", pointer_name="Q"), b"ABCD")
 
     def test_parses_generic_declaration(self):
         source = "DCL SELECTOR GENERIC(PFIXED WHEN(FIXED), PCHAR WHEN(CHARACTER));"

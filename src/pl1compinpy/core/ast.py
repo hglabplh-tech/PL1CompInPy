@@ -25,6 +25,9 @@ class Declaration(Statement):
     dimensions: dict[str, list[int]] = field(default_factory=dict)
     file_options: dict[str, str] = field(default_factory=dict)
     generic_options: dict[str, list["GenericAlternative"]] = field(default_factory=dict)
+    picture_options: dict[str, str] = field(default_factory=dict)
+    based_options: dict[str, str | None] = field(default_factory=dict)
+    pointer_names: list[str] = field(default_factory=list)
 
 
 @dataclass(frozen=True)

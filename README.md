@@ -164,6 +164,10 @@ The runtime also includes starter storage and I/O services:
 
 - PL/I-style array declarations such as `DCL A(10) FIXED BIN(31);`
 - heap allocation helpers used by dynamic array storage
+- `FLOAT` declarations initialized as floating-point values in Python output
+- `PICTURE`/`PIC` decimal display patterns using digit positions such as `9`, zero-suppressed `Z`, stored decimal `.`, and implied decimal `V`
+- conversion helpers between fixed decimal, float, and picture-formatted storage
+- `POINTER` locator variables and `BASED(pointer)` record storage bound to heap blocks through pointer values
 - string storage as two bytes of big-endian length followed by sequential payload bytes
 - a first packaged PL/I builtin source file for `SUBSTR(string, start[, length])`
 - PL/I-style file declarations such as `DCL F FILE RECORD OUTPUT ENVIRONMENT(RECFM(V), LRECL(80), PATH('out.dat')) BINARY;`
@@ -201,9 +205,11 @@ PL1CompInPy/
       parser.py
     runtime/
       arrays.py
+      based.py
       calling.py
       heap.py
       io.py
+      picture.py
       strings.py
   tests/
 ```

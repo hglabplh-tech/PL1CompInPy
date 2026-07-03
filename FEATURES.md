@@ -38,6 +38,11 @@
 - Runtime storage and I/O:
   - heap allocation blocks
   - heap-backed arrays
+  - `FLOAT` declarations
+  - `PICTURE`/`PIC` pattern metadata and runtime formatting/parsing
+  - fixed decimal and float conversion to/from picture-formatted text
+  - `POINTER` variables
+  - `BASED(pointer)` record storage bound to dedicated pointer locators
   - strings stored as two-byte length plus payload
   - PL/I-style file declarations
   - Unix-style stream files
@@ -60,7 +65,10 @@
 ## Supported PL/1 Subset
 
 - Integer variable declarations.
+- Floating-point declarations.
+- Picture declarations such as `DCL AMOUNT PIC'ZZZ9.99';`.
 - Array declarations such as `DCL A(10) FIXED BIN(31);`.
+- Pointer and based declarations such as `DCL P POINTER; DCL REC BASED(P);`.
 - Integer assignments.
 - Arithmetic with `+`, `-`, `*`, and `/`.
 - Procedure calls.

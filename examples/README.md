@@ -11,10 +11,12 @@ These examples cover the compiler features currently implemented in PL1CompInPy.
 - `language/call_by_name.pl1`: by-name call normalization
 - `language/recursive_proc.pl1`: recursive procedure metadata and ordinary call continuation
 - `language/generic.pl1`: `GENERIC` declaration with type-based alternatives
+- `language/picture_float.pl1`: `PICTURE`/`PIC` declarations and `FLOAT` data
 
 ## Runtime
 
 - `runtime/arrays.pl1`: array declarations
+- `runtime/based_pointer.pl1`: `POINTER` and `BASED(pointer)` declaration shape
 - `runtime/file_unix_text.pl1`: Unix-style text file declaration
 - `runtime/file_record_v.pl1`: variable-record file declaration
 - `runtime/file_record_f.pl1`: fixed-record file declaration

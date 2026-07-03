@@ -78,6 +78,9 @@ class Parser:
         dimensions: dict[str, list[int]] = {}
         file_options: dict[str, str] = {}
         generic_options: dict[str, list[GenericAlternative]] = {}
+        picture_options: dict[str, str] = {}
+        based_options: dict[str, str | None] = {}
+        pointer_names: list[str] = []
         before_attribute = True
         index = 0
         depth = 0
@@ -97,6 +100,17 @@ class Parser:
                     before_attribute = True
                 index += 1
                 continue
+            if depth == 0 and token.type == TokenType.NUMBER and index + 1 < len(tokens):
+                level = int(float(token.lexeme))
+                if level == 1 and tokens[index + 1].type == TokenType.IDENTIFIER:
+                    names.append(tokens[index + 1].lexeme)
+                    before_attribute = False
+                    index += 2
+                    continue
+                if level > 1:
+                    before_attribute = False
+                    index += 2 if tokens[index + 1].type == TokenType.IDENTIFIER else 1
+                    continue
             if token.type != TokenType.IDENTIFIER:
                 before_attribute = False
                 index += 1
@@ -114,7 +128,10 @@ class Parser:
 
         file_options = self._file_options_from_tokens(tokens)
         generic_options = self._generic_options_from_tokens(names, tokens)
-        return Declaration(names, attributes, dimensions, file_options, generic_options)
+        picture_options = self._picture_options_from_tokens(names, tokens)
+        based_options = self._based_options_from_tokens(names, tokens)
+        pointer_names = self._pointer_names_from_tokens(names, tokens)
+        return Declaration(names, attributes, dimensions, file_options, generic_options, picture_options, based_options, pointer_names)
 
     def _dimensions_from_tokens(self, tokens: list[Token], index: int) -> tuple[list[int], int]:
         dimensions: list[int] = []
@@ -161,6 +178,68 @@ class Parser:
                     alternatives.append(GenericAlternative(procedure, parameter_types))
             index += 1
         return {name: alternatives for name in names if alternatives}
+
+    def _picture_options_from_tokens(self, names: list[str], tokens: list[Token]) -> dict[str, str]:
+        if not names:
+            return {}
+        index = 0
+        while index < len(tokens):
+            upper = tokens[index].lexeme.upper()
+            if upper in {"PICTURE", "PIC"}:
+                pattern, _ = self._picture_pattern_from_tokens(tokens, index + 1)
+                return {name: pattern for name in names}
+            index += 1
+        return {}
+
+    def _picture_pattern_from_tokens(self, tokens: list[Token], index: int) -> tuple[str, int]:
+        if index < len(tokens) and tokens[index].type == TokenType.STRING:
+            return tokens[index].lexeme, index + 1
+        if index < len(tokens) and tokens[index].type == TokenType.LPAREN:
+            index += 1
+            parts: list[str] = []
+            depth = 1
+            while index < len(tokens) and depth:
+                token = tokens[index]
+                if token.type == TokenType.LPAREN:
+                    depth += 1
+                    parts.append(token.lexeme)
+                elif token.type == TokenType.RPAREN:
+                    depth -= 1
+                    if depth:
+                        parts.append(token.lexeme)
+                else:
+                    parts.append(token.lexeme)
+                index += 1
+            return "".join(parts), index
+
+        parts: list[str] = []
+        while index < len(tokens) and tokens[index].type not in {TokenType.COMMA, TokenType.SEMICOLON}:
+            if tokens[index].type in {TokenType.IDENTIFIER, TokenType.NUMBER, TokenType.DOT, TokenType.PLUS, TokenType.MINUS}:
+                parts.append(tokens[index].lexeme)
+                index += 1
+                continue
+            break
+        return "".join(parts), index
+
+    def _based_options_from_tokens(self, names: list[str], tokens: list[Token]) -> dict[str, str | None]:
+        if not names:
+            return {}
+        index = 0
+        while index < len(tokens):
+            if tokens[index].lexeme.upper() == "BASED":
+                pointer: str | None = None
+                if index + 2 < len(tokens) and tokens[index + 1].type == TokenType.LPAREN:
+                    pointer = tokens[index + 2].lexeme
+                return {name: pointer for name in names}
+            index += 1
+        return {}
+
+    def _pointer_names_from_tokens(self, names: list[str], tokens: list[Token]) -> list[str]:
+        if not names:
+            return []
+        if any(token.lexeme.upper() in {"POINTER", "PTR"} for token in tokens):
+            return names.copy()
+        return []
 
     def _procedure(self, name: str | None) -> Procedure:
         parameters: list[str] = []
