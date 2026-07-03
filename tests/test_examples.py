@@ -100,6 +100,13 @@ class ExampleTests(unittest.TestCase):
         self.assertIn(".class public PL1Program", output)
         self.assertIn(".method public static MAIN()I", output)
 
+    def test_backend_dotnet_il_example(self):
+        output = compile_source(self.example_source("backend/dotnet_il.pl1"), target="dotnet-il")
+
+        self.assertIn(".assembly PL1Program", output)
+        self.assertIn(".entrypoint", output)
+        self.assertIn("System.Console::WriteLine", output)
+
     def test_backend_assembly_examples(self):
         source = self.example_source("language/declarations.pl1")
         self.assertIn("global _main", compile_source(source, target="x586-windows"))

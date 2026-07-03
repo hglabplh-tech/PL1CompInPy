@@ -10,6 +10,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from pl1compinpy import compile_source
 from pl1compinpy.builtins import BuiltinLibrary
 from pl1compinpy.compiler import compile_binary, compile_jvm_classes
+from pl1compinpy.codegen.dotnet_executable import DotNetExecutableError
 from pl1compinpy.codegen.jvm_classfile import JAVA_17_MAJOR_VERSION
 from pl1compinpy.codegen.executable_pipeline import lower_program
 from pl1compinpy.codegen.linkers import ELFLinker, MachOLinker, PELinker
@@ -287,6 +288,32 @@ class CompilerTests(unittest.TestCase):
         self.assertIn(".method public static MAIN()I", output)
         self.assertIn(".method public static main([Ljava/lang/String;)V", output)
         self.assertIn("invokestatic PL1Program/MAIN()I", output)
+
+    def test_dotnet_il_backend_emits_entrypoint_and_console_output(self):
+        source = "MAIN: PROC OPTIONS(MAIN) RETURNS(FIXED); DCL TOTAL FIXED BIN(31); TOTAL = 40 + 2; CALL DISPLAY(TOTAL); RETURN TOTAL; END MAIN;"
+        output = compile_source(source, target="dotnet-il")
+
+        self.assertIn(".assembly extern mscorlib", output)
+        self.assertIn(".module PL1Program.exe", output)
+        self.assertIn(".entrypoint", output)
+        self.assertIn("call int32 PL1Program::MAIN()", output)
+        self.assertIn("call void [mscorlib]System.Console::WriteLine(int32)", output)
+
+    def test_dotnet_il_backend_copies_parameters_to_locals(self):
+        output = compile_source("ADD1: PROC(N) RETURNS(FIXED); RETURN N; END ADD1;", target="dotnet-il")
+
+        self.assertIn(".method public hidebysig static int32 ADD1(int32 N)", output)
+        self.assertIn("ldarg 0", output)
+        self.assertIn("stloc 0", output)
+        self.assertIn("ldloc 0", output)
+
+    def test_dotnet_executable_builder_reports_missing_ilasm(self):
+        program = Parser(Lexer("CALL DISPLAY('HELLO');").tokenize()).parse()
+        with tempfile.TemporaryDirectory() as tmp:
+            with self.assertRaises(DotNetExecutableError):
+                from pl1compinpy.codegen.dotnet_executable import emit_dotnet_executable
+
+                emit_dotnet_executable(program, Path(tmp) / "hello.exe", ilasm="/missing/ilasm")
 
     def test_jvm_classfile_backend_emits_java_17_class(self):
         source = "MAIN: PROC OPTIONS(MAIN) RETURNS(FIXED); RETURN 0; END MAIN;"

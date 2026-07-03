@@ -54,6 +54,7 @@ Emit assembly instead of the default Python-like output:
 ```bash
 python -m pl1compinpy examples/hello.pl1 --target python-source
 python -m pl1compinpy examples/hello.pl1 --target jvm-bytecode
+python -m pl1compinpy examples/hello.pl1 --target dotnet-il
 python -m pl1compinpy examples/hello.pl1 --target x586-windows
 python -m pl1compinpy examples/hello.pl1 --target x86_64-windows
 python -m pl1compinpy examples/hello.pl1 --target x586-macos
@@ -84,6 +85,12 @@ Create a JVM `.class` file using Java 17 classfile version 61:
 python -m pl1compinpy examples/backend/jvm_bytecode.pl1 --emit class -o PL1Program.class
 ```
 
+Create a .NET executable using Microsoft ILAsm:
+
+```bash
+python -m pl1compinpy examples/backend/dotnet_il.pl1 --emit dotnet-exe -o PL1Program.exe
+```
+
 Run tests:
 
 ```bash
@@ -97,6 +104,8 @@ The project includes backend emitters for:
 - `python-source`: Python source code
 - `jvm-bytecode`: JVM bytecode-style textual output
 - `--emit class`: binary JVM `.class` output targeting JDK 17 classfile version 61
+- `dotnet-il`: .NET Common Intermediate Language / ILAsm textual output
+- `--emit dotnet-exe`: invokes ILAsm to turn generated .NET IL into a PE `.exe`
 - `x586-windows`: 32-bit x86-style assembly for Windows toolchains using C `printf`
 - `x86_64-windows`: 64-bit x86 assembly for Windows x64 toolchains using C `printf`
 - `x586-macos`: 32-bit x86-style assembly with macOS symbol naming
@@ -192,6 +201,8 @@ PL1CompInPy/
     codegen/
       backends.py
       binary_formats.py
+      dotnet_executable.py
+      dotnet_il.py
       executable_pipeline.py
       jvm_bytecode.py
       python_source.py

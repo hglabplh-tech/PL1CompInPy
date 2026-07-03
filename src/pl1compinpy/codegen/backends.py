@@ -36,6 +36,7 @@ TARGETS = {
     "python": None,
     "python-source": None,
     "jvm-bytecode": None,
+    "dotnet-il": None,
     "x586-windows": AssemblyTarget("x586-windows", "x586", "windows", "_", "_main", "_printf"),
     "x586-macos": AssemblyTarget("x586-macos", "x586", "macos", "_", "_main", "_printf"),
     "x86_64-windows": AssemblyTarget("x86_64-windows", "x86_64", "windows", "", "main", "printf"),

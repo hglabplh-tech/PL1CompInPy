@@ -3,7 +3,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from .compiler import available_binary_formats, available_targets, compile_binary, compile_jvm_classes, compile_source
+from .compiler import available_binary_formats, available_targets, compile_binary, compile_dotnet_executable, compile_jvm_classes, compile_source
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -15,9 +15,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("-o", "--output", type=Path, help="Write compiler output to this file")
     parser.add_argument(
         "--emit",
-        choices=("text", "binary", "class"),
+        choices=("text", "binary", "class", "dotnet-exe"),
         default="text",
-        help="Emit text output, a binary executable/container artifact, or JVM class file(s)",
+        help="Emit text output, a binary executable/container artifact, JVM class file(s), or a .NET executable via ILAsm",
     )
     parser.add_argument(
         "--binary-format",
@@ -57,6 +57,11 @@ def main(argv: list[str] | None = None) -> int:
             args.output.mkdir(parents=True, exist_ok=True)
             for filename, content in classes.items():
                 (args.output / filename).write_bytes(content)
+        return 0
+    if args.emit == "dotnet-exe":
+        if not args.output:
+            build_parser().error("--emit dotnet-exe requires -o/--output")
+        compile_dotnet_executable(args.source.read_text(encoding="utf-8"), args.output, args.builtin)
         return 0
 
     output = compile_source(args.source.read_text(encoding="utf-8"), target=args.target, builtins=args.builtin)
