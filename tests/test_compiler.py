@@ -35,8 +35,10 @@ from pl1compinpy.runtime import (
     PL1Type,
     PL1Value,
     SocketDescriptor,
+    SocketFileDescriptor,
     SocketRuntime,
     SocketSecureMode,
+    SocketStreamRuntime,
     build_dynamic_function_table,
     declared_builtins,
     normalize_calls,
@@ -619,6 +621,40 @@ class CompilerTests(unittest.TestCase):
         self.assertEqual(tls_descriptor.secure, SocketSecureMode.TLS)
         self.assertEqual(ssl_descriptor.server_hostname, "localhost")
         self.assertTrue(tls_descriptor.verify)
+
+    def test_socket_stream_runtime_handles_variable_text_records(self):
+        runtime = SocketStreamRuntime()
+        left, right = socket.socketpair()
+        try:
+            left.settimeout(1.0)
+            right.settimeout(1.0)
+            runtime.adopt("LEFT", left)
+            runtime.adopt("RIGHT", right)
+            sender = SocketFileDescriptor("LEFT", recfm="V", text=True)
+            receiver = SocketFileDescriptor("RIGHT", recfm="V", text=True)
+
+            runtime.write_payload(sender, "HELLO SOCKET")
+
+            self.assertEqual(runtime.read_payload(receiver), "HELLO SOCKET")
+        finally:
+            runtime.close_all()
+
+    def test_socket_stream_runtime_handles_fixed_binary_records(self):
+        runtime = SocketStreamRuntime()
+        left, right = socket.socketpair()
+        try:
+            left.settimeout(1.0)
+            right.settimeout(1.0)
+            runtime.adopt("LEFT", left)
+            runtime.adopt("RIGHT", right)
+            sender = SocketFileDescriptor("LEFT", recfm="F", lrecl=6)
+            receiver = SocketFileDescriptor("RIGHT", recfm="F", lrecl=6)
+
+            runtime.write_record(sender, b"ABC")
+
+            self.assertEqual(runtime.read_record(receiver), b"ABC\0\0\0")
+        finally:
+            runtime.close_all()
 
     def test_based_runtime_binds_records_to_pointer_storage(self):
         runtime = BasedRuntime()

@@ -5,6 +5,8 @@ from enum import Enum
 import socket
 import ssl
 
+from ..core.ast import IOStatement, Identifier, NumberLiteral, StringLiteral
+
 
 class SocketRuntimeError(ValueError):
     pass
@@ -57,6 +59,26 @@ class SocketHandle:
     def address(self) -> tuple[str, int]:
         host, port = self.socket.getsockname()[:2]
         return str(host), int(port)
+
+
+@dataclass(frozen=True)
+class SocketFileDescriptor:
+    name: str
+    endpoint: SocketDescriptor | None = None
+    recfm: str = "UNIX"
+    lrecl: int | None = None
+    text: bool = False
+
+    @classmethod
+    def from_endpoint(
+        cls,
+        endpoint: SocketDescriptor,
+        *,
+        recfm: str = "UNIX",
+        lrecl: int | None = None,
+        text: bool = False,
+    ) -> "SocketFileDescriptor":
+        return cls(endpoint.name, endpoint, recfm.upper(), lrecl, text)
 
 
 class SocketRuntime:
@@ -162,4 +184,114 @@ class SocketRuntime:
         return context
 
 
-__all__ = ["SocketDescriptor", "SocketHandle", "SocketRuntime", "SocketRuntimeError", "SocketSecureMode"]
+class SocketStreamRuntime:
+    def __init__(self, primitive: SocketRuntime | None = None) -> None:
+        self.primitive = primitive if primitive is not None else SocketRuntime()
+
+    def open(self, descriptor: SocketFileDescriptor) -> SocketHandle:
+        if descriptor.endpoint is None:
+            raise SocketRuntimeError(f"Socket descriptor {descriptor.name} has no endpoint to open")
+        return self.primitive.open(descriptor.endpoint)
+
+    def close(self, descriptor: SocketFileDescriptor) -> None:
+        self.primitive.close(descriptor.name)
+
+    def adopt(self, name: str, stream: socket.socket | ssl.SSLSocket, secure: SocketSecureMode | str = SocketSecureMode.NONE) -> SocketHandle:
+        return self.primitive.adopt(name, stream, secure)
+
+    def write_payload(self, descriptor: SocketFileDescriptor, data: bytes | str) -> None:
+        self.write_record(descriptor, data)
+
+    def read_payload(self, descriptor: SocketFileDescriptor, size: int | None = None) -> bytes | str:
+        return self.read_record(descriptor, size)
+
+    def write_record(self, descriptor: SocketFileDescriptor, data: bytes | str) -> None:
+        payload = data.encode("utf-8") if isinstance(data, str) else data
+        recfm = descriptor.recfm.upper()
+        if recfm == "V":
+            if len(payload) > 0xFFFF:
+                raise SocketRuntimeError("V socket record exceeds two-byte length prefix")
+            self.primitive.send(descriptor.name, len(payload).to_bytes(2, "big") + payload)
+        elif recfm == "F":
+            if descriptor.lrecl is None:
+                raise SocketRuntimeError("F socket record requires LRECL")
+            if len(payload) > descriptor.lrecl:
+                payload = payload[: descriptor.lrecl]
+            pad = b" " if descriptor.text else b"\0"
+            self.primitive.send(descriptor.name, payload.ljust(descriptor.lrecl, pad))
+        else:
+            self.primitive.send(descriptor.name, payload + (b"\n" if descriptor.text else b""))
+
+    def read_record(self, descriptor: SocketFileDescriptor, size: int | None = None) -> bytes | str:
+        recfm = descriptor.recfm.upper()
+        if recfm == "V":
+            length_bytes = self._read_exact(descriptor.name, 2)
+            if not length_bytes:
+                payload = b""
+            else:
+                payload = self._read_exact(descriptor.name, int.from_bytes(length_bytes, "big"))
+        elif recfm == "F":
+            if descriptor.lrecl is None:
+                raise SocketRuntimeError("F socket record requires LRECL")
+            payload = self._read_exact(descriptor.name, descriptor.lrecl)
+        else:
+            payload = self.primitive.receive(descriptor.name, size or 4096)
+            if descriptor.text:
+                payload = payload.rstrip(b"\n")
+        return payload.decode("utf-8") if descriptor.text else payload
+
+    def execute(self, statement: IOStatement, descriptors: dict[str, SocketFileDescriptor], variables: dict[str, object] | None = None) -> None:
+        variables = variables if variables is not None else {}
+        if statement.file_name is None:
+            raise SocketRuntimeError(f"{statement.operation} requires FILE(name)")
+        descriptor = descriptors[statement.file_name]
+        if statement.operation == "OPEN":
+            self.open(descriptor)
+        elif statement.operation == "CLOSE":
+            self.close(descriptor)
+        elif statement.operation == "READ":
+            if statement.target is None:
+                raise SocketRuntimeError("READ requires INTO(name)")
+            variables[statement.target] = self.read_record(descriptor)
+        elif statement.operation == "WRITE":
+            self.write_record(descriptor, self._io_value(statement, variables))
+        else:
+            raise SocketRuntimeError(f"Unsupported socket I/O operation: {statement.operation}")
+
+    def close_all(self) -> None:
+        self.primitive.close_all()
+
+    def _read_exact(self, name: str, size: int) -> bytes:
+        chunks: list[bytes] = []
+        remaining = size
+        while remaining:
+            chunk = self.primitive.receive(name, remaining)
+            if not chunk:
+                if chunks:
+                    raise SocketRuntimeError("Short socket record")
+                return b""
+            chunks.append(chunk)
+            remaining -= len(chunk)
+        return b"".join(chunks)
+
+    def _io_value(self, statement: IOStatement, variables: dict[str, object]) -> bytes | str:
+        source = statement.source
+        if isinstance(source, Identifier):
+            value = variables.get(source.name, b"")
+            return value if isinstance(value, (bytes, str)) else str(value)
+        if isinstance(source, StringLiteral):
+            return source.value
+        if isinstance(source, NumberLiteral):
+            return source.value
+        return b""
+
+
+__all__ = [
+    "SocketDescriptor",
+    "SocketFileDescriptor",
+    "SocketHandle",
+    "SocketRuntime",
+    "SocketRuntimeError",
+    "SocketSecureMode",
+    "SocketStreamRuntime",
+]

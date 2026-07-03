@@ -194,6 +194,7 @@ The runtime also includes starter storage and I/O services:
 - variable-record files using `RECFM(V)`, represented here with a two-byte big-endian length prefix followed by record data
 - binary and text record payloads
 - primitive TCP socket I/O runtime with client/server sockets, SSL client sockets, and TLS client sockets
+- file-like socket stream layer for easier text/binary payload `READ`/`WRITE`, with Unix-style, fixed, and variable record framing
 - static runtime function descriptors for `ALLOC`, `FREE`, file I/O, VSAM I/O, TCP/IP, SSL, and TLS helpers
 - generic function dispatch by argument type, using runtime lambda implementations
 - local VSAM-style datasets with a catalog file plus binary data file for KSDS, ESDS, RRDS, and LDS organizations

@@ -26,6 +26,7 @@ These examples cover the compiler features currently implemented in PL1CompInPy.
 - `runtime/file_read_write.pl1`: `OPEN`, `READ`, `WRITE`, and `CLOSE` file statements
 - `runtime/function_table.py`: dynamic user function table and static runtime function table lookup
 - `runtime/socket_io.py`: primitive runtime TCP socket send/receive example
+- `runtime/socket_stream.py`: file-like socket payload records above primitive sockets
 
 ## Builtins
 

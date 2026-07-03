@@ -59,6 +59,7 @@
   - variable-length `RECFM(V)` records with a two-byte length prefix
   - text and binary record payloads
   - primitive TCP socket runtime with SSL/TLS descriptor support
+  - file-like socket stream runtime for easier payload reads/writes
   - generic dispatch by argument type with lambda-backed alternatives
   - VSAM-style catalog/data components for KSDS, ESDS, RRDS, and LDS
   - VSAM `OPEN`, `WRITE`, `READ`, and `CLOSE` runtime dispatch for KSDS, ESDS, RRDS, and LDS
@@ -89,6 +90,7 @@
 - Basic output through `CALL DISPLAY(...)`, `CALL PRINT(...)`, and basic `PUT LIST(...)`.
 - Record I/O statements using forms such as `OPEN FILE(F);`, `READ FILE(F) INTO(BUF);`, `WRITE FILE(F) FROM(BUF);`, and `CLOSE FILE(F);`.
 - Primitive runtime socket I/O for plain TCP, SSL, and TLS sockets.
+- File-like socket payload I/O with Unix-style, `RECFM(F)`, and `RECFM(V)` framing.
 - Procedure calls with by-reference and by-name normalization.
 - File declarations using `FILE`, `RECORD`, `INPUT`, `OUTPUT`, `ENVIRONMENT(RECFM(...), LRECL(...), PATH(...))`, `TEXT`, and `BINARY`.
 - Generic declarations using `GENERIC(... WHEN(...))`.

@@ -270,6 +270,10 @@ def runtime_function_table() -> FunctionTable:
     table.add_runtime("TCPIP_SEND", "runtime.socket.send", [socket_ref(), any_value("DATA")])
     table.add_runtime("TCPIP_RECEIVE", "runtime.socket.receive", [socket_ref(), ParameterDescriptor("SIZE", "FIXED BIN", optional=True)], returns="CHARACTER")
     table.add_runtime("TCPIP_CLOSE", "runtime.socket.close", [socket_ref()])
+    table.add_runtime("SOCKET_OPEN", "runtime.socket_stream.open", [socket_ref()], returns="SOCKET")
+    table.add_runtime("SOCKET_READ", "runtime.socket_stream.read_record", [socket_ref(), any_ref("TARGET")])
+    table.add_runtime("SOCKET_WRITE", "runtime.socket_stream.write_record", [socket_ref(), any_value("SOURCE")])
+    table.add_runtime("SOCKET_CLOSE", "runtime.socket_stream.close", [socket_ref()])
     table.add_runtime("SSL_SOCKET", "runtime.socket.ssl", [socket_ref()], returns="SOCKET")
     table.add_runtime("TLS_SOCKET", "runtime.socket.tls", [socket_ref()], returns="SOCKET")
 

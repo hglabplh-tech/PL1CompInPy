@@ -7,7 +7,7 @@ from .calling import RuntimeError, normalize_calls
 from .heap import HeapBlock, HeapRuntime, HeapRuntimeError
 from .io import FileDescriptor, FileRuntimeError, StdioRuntime
 from .picture import PictureRuntime, PictureRuntimeError, PictureSpec
-from .socket_io import SocketDescriptor, SocketHandle, SocketRuntime, SocketRuntimeError, SocketSecureMode
+from .socket_io import SocketDescriptor, SocketFileDescriptor, SocketHandle, SocketRuntime, SocketRuntimeError, SocketSecureMode, SocketStreamRuntime
 from .strings import StringRuntime, StringRuntimeError, StringValue
 from .generics import GenericFunction, GenericRuntime, GenericRuntimeError, pl1_type
 from .function_table import (
@@ -54,10 +54,12 @@ __all__ = [
     "RUNTIME_FUNCTION_TABLE",
     "RuntimeError",
     "SocketDescriptor",
+    "SocketFileDescriptor",
     "SocketHandle",
     "SocketRuntime",
     "SocketRuntimeError",
     "SocketSecureMode",
+    "SocketStreamRuntime",
     "StdioRuntime",
     "StringRuntime",
     "StringRuntimeError",
