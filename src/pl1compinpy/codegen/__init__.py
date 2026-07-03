@@ -9,6 +9,7 @@ from .jvm_bytecode import emit_jvm_bytecode
 from .jvm_classfile import JAVA_17_MAJOR_VERSION, emit_jvm_class, emit_jvm_classes
 from .linkers import ELFLinker, ExecutableLinker, LinkRequest, MachOLinker, PELinker, link_executable
 from .python_source import emit_python_source
+from .runtime_link import RuntimeLinkage, RuntimeLinkManifest, encoded_runtime_manifest, runtime_linkage, runtime_manifest
 
 
 def emit_code(program, target: str) -> str:
@@ -32,6 +33,8 @@ __all__ = [
     "MachOLinker",
     "Mnemonic",
     "PELinker",
+    "RuntimeLinkage",
+    "RuntimeLinkManifest",
     "TARGETS",
     "assemble_executable",
     "emit_assembly",
@@ -43,7 +46,10 @@ __all__ = [
     "emit_jvm_class",
     "emit_jvm_classes",
     "emit_python_source",
+    "encoded_runtime_manifest",
     "JAVA_17_MAJOR_VERSION",
     "link_executable",
     "lower_program",
+    "runtime_linkage",
+    "runtime_manifest",
 ]

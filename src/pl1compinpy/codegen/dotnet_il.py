@@ -1,12 +1,16 @@
 from __future__ import annotations
 
 from ..core.ast import Assignment, BinaryExpression, Call, Declaration, Identifier, LabelledStatement, NumberLiteral, Procedure, Program, RawStatement, StringLiteral
+from .runtime_link import runtime_linkage
 
 
 class DotNetILEmitter:
     def emit(self, program: Program) -> str:
+        linkage = runtime_linkage("dotnet-il")
         lines = [
             ".assembly extern mscorlib {}",
+            ".assembly extern PL1CompInPy.Runtime {}",
+            f"// runtime-link: {', '.join(linkage.managed_references)}",
             ".assembly PL1Program {}",
             ".module PL1Program.exe",
             ".corflags 0x00000001",
@@ -81,12 +85,13 @@ class DotNetILEmitter:
             "  {",
             "    .entrypoint",
             "    .maxstack 8",
+            "    call void [PL1CompInPy.Runtime]PL1CompInPy.Runtime.PL1Runtime::Init()",
         ]
         if returns:
             lines.extend([f"    call int32 PL1Program::{procedure_name}()", "    pop"])
         else:
             lines.append(f"    call void PL1Program::{procedure_name}()")
-        lines.extend(["    ret", "  }"])
+        lines.extend(["    call void [PL1CompInPy.Runtime]PL1CompInPy.Runtime.PL1Runtime::Shutdown()", "    ret", "  }"])
         return lines
 
     def _entrypoint_body(self, statements: list[object]) -> list[str]:
@@ -103,8 +108,9 @@ class DotNetILEmitter:
         ]
         if local_types:
             lines.append("    .locals init (" + ", ".join(local_types) + ")")
+        lines.append("    call void [PL1CompInPy.Runtime]PL1CompInPy.Runtime.PL1Runtime::Init()")
         lines.extend(body_lines)
-        lines.extend(["    ret", "  }"])
+        lines.extend(["    call void [PL1CompInPy.Runtime]PL1CompInPy.Runtime.PL1Runtime::Shutdown()", "    ret", "  }"])
         return lines
 
     def _statement(self, statement: object, locals_map: dict[str, int], local_types: list[str]) -> list[str]:

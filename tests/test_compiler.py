@@ -15,6 +15,7 @@ from pl1compinpy.codegen.dotnet_executable import DotNetExecutableError
 from pl1compinpy.codegen.jvm_classfile import JAVA_17_MAJOR_VERSION
 from pl1compinpy.codegen.executable_pipeline import lower_program
 from pl1compinpy.codegen.linkers import ELFLinker, MachOLinker, PELinker
+from pl1compinpy.codegen.runtime_link import runtime_linkage
 from pl1compinpy.ast import BinaryExpression, Call, Declaration, DoGroup, Identifier, IOStatement, IfStatement, LabelledStatement, Procedure, SelectStatement
 from pl1compinpy.frontend.lexer import Lexer, TokenType
 from pl1compinpy.frontend.parser import Parser
@@ -425,6 +426,37 @@ class CompilerTests(unittest.TestCase):
         self.assertIn("if TOTAL == 1:", output)
         self.assertIn("else:", output)
 
+    def test_runtime_linkage_plans_cover_native_and_managed_targets(self):
+        windows = runtime_linkage("pe64-x86_64-windows")
+        elf = runtime_linkage("elf64-x86_64")
+        arm64_windows = runtime_linkage("arm64-windows")
+        jvm = runtime_linkage("jvm-bytecode")
+        dotnet = runtime_linkage("dotnet-il")
+
+        self.assertIn("LIBCMT.lib", windows.static_libraries)
+        self.assertIn("MSVCRT.lib", windows.import_libraries)
+        self.assertIn("libpl1rt_x86_64.a", elf.static_libraries)
+        self.assertIn("pl1rt_arm64_windows.lib", arm64_windows.static_libraries)
+        self.assertEqual(jvm.managed_type, "pl1compinpy/runtime/PL1Runtime")
+        self.assertEqual(dotnet.managed_type, "PL1CompInPy.Runtime.PL1Runtime")
+
+    def test_native_assembly_links_pl1_runtime_symbols(self):
+        source = "DCL TOTAL FIXED BIN(31); TOTAL = 1;"
+        x86_64_windows = compile_source(source, target="x86_64-windows")
+        arm64_macos = compile_source(source, target="arm64-macos")
+
+        self.assertIn("extern pl1rt_init", x86_64_windows)
+        self.assertIn("call pl1rt_init", x86_64_windows)
+        self.assertIn(".extern _pl1rt_init", arm64_macos)
+        self.assertIn("bl _pl1rt_shutdown", arm64_macos)
+
+    def test_native_binary_embeds_runtime_link_manifest(self):
+        binary = compile_binary("elf64-x86_64", "CALL DISPLAY('RUNTIME');")
+
+        self.assertIn(b"PL1RTLINK\0", binary)
+        self.assertIn(b"libpl1rt_x86_64.a", binary)
+        self.assertIn(b"DISPLAY", binary)
+
     def test_jvm_bytecode_backend_emits_main_and_return_descriptor(self):
         source = "MAIN: PROC OPTIONS(MAIN) RETURNS(FIXED); RETURN 0; END MAIN;"
         output = compile_source(source, target="jvm-bytecode")
@@ -432,16 +464,21 @@ class CompilerTests(unittest.TestCase):
         self.assertIn(".class public PL1Program", output)
         self.assertIn(".method public static MAIN()I", output)
         self.assertIn(".method public static main([Ljava/lang/String;)V", output)
+        self.assertIn("invokestatic pl1compinpy/runtime/PL1Runtime/init()V", output)
         self.assertIn("invokestatic PL1Program/MAIN()I", output)
+        self.assertIn("invokestatic pl1compinpy/runtime/PL1Runtime/shutdown()V", output)
 
     def test_dotnet_il_backend_emits_entrypoint_and_console_output(self):
         source = "MAIN: PROC OPTIONS(MAIN) RETURNS(FIXED); DCL TOTAL FIXED BIN(31); TOTAL = 40 + 2; CALL DISPLAY(TOTAL); RETURN TOTAL; END MAIN;"
         output = compile_source(source, target="dotnet-il")
 
         self.assertIn(".assembly extern mscorlib", output)
+        self.assertIn(".assembly extern PL1CompInPy.Runtime {}", output)
         self.assertIn(".module PL1Program.exe", output)
         self.assertIn(".entrypoint", output)
+        self.assertIn("PL1CompInPy.Runtime.PL1Runtime::Init()", output)
         self.assertIn("call int32 PL1Program::MAIN()", output)
+        self.assertIn("PL1CompInPy.Runtime.PL1Runtime::Shutdown()", output)
         self.assertIn("call void [mscorlib]System.Console::WriteLine(int32)", output)
 
     def test_dotnet_il_backend_copies_parameters_to_locals(self):
@@ -468,6 +505,7 @@ class CompilerTests(unittest.TestCase):
         self.assertEqual(classfile[:4], b"\xca\xfe\xba\xbe")
         self.assertEqual(int.from_bytes(classfile[4:6], "big"), 0)
         self.assertEqual(int.from_bytes(classfile[6:8], "big"), JAVA_17_MAJOR_VERSION)
+        self.assertIn(b"pl1compinpy/runtime/PL1Runtime", classfile)
         self.assertIn(b"PL1Program", classfile)
         self.assertIn(b"MAIN", classfile)
         self.assertIn(b"main", classfile)

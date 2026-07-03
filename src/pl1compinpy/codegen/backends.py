@@ -19,6 +19,7 @@ from ..core.ast import (
     Statement,
     StringLiteral,
 )
+from .runtime_link import runtime_linkage
 
 
 @dataclass(frozen=True)
@@ -80,6 +81,7 @@ class AssemblyEmitter:
         self.target = target
         self.symbols = SymbolTable()
         self.label_index = 0
+        self.runtime_linkage = runtime_linkage(target.name)
 
     def _collect_symbols(self, program: Program) -> None:
         for statement in program.statements:
@@ -129,6 +131,22 @@ class AssemblyEmitter:
     def _symbol(self, name: str) -> str:
         return f"{self.target.symbol_prefix}{name}"
 
+    def _runtime_symbol(self, name: str) -> str:
+        return self.runtime_linkage.symbol(name, self.target.symbol_prefix)
+
+    def _runtime_externs(self) -> list[str]:
+        return [f"extern {self._runtime_symbol(self.runtime_linkage.startup_symbol)}", f"extern {self._runtime_symbol(self.runtime_linkage.shutdown_symbol)}"]
+
+    def _runtime_link_comments(self, comment: str) -> list[str]:
+        linkage = self.runtime_linkage
+        lines = [
+            f"{comment} runtime-link: {linkage.runtime_kind}",
+            f"{comment} runtime-static: {', '.join(linkage.static_libraries) or 'none'}",
+            f"{comment} runtime-dynamic: {', '.join(linkage.dynamic_libraries) or 'none'}",
+            f"{comment} c-runtime: {linkage.c_runtime or 'managed'}",
+        ]
+        return lines
+
     def _escaped_bytes(self, value: str) -> str:
         parts = [str(ord(char)) for char in value]
         return ", ".join(parts + ["0"])
@@ -168,7 +186,9 @@ class X586AssemblyEmitter(AssemblyEmitter):
         lines = [
             "; PL1CompInPy generated x586 assembly",
             f"; target: {self.target.name}",
+            *self._runtime_link_comments(";"),
             f"extern {self.target.printf_symbol}",
+            *self._runtime_externs(),
             f"global {self.target.entry_symbol}",
             "section .data",
             "fmt_int db \"%d\", 10, 0",
@@ -179,10 +199,10 @@ class X586AssemblyEmitter(AssemblyEmitter):
         for value, label in self.symbols.strings.items():
             lines.append(f"{label} db {self._escaped_bytes(value)}")
 
-        lines.extend(["section .text", f"{self.target.entry_symbol}:"])
+        lines.extend(["section .text", f"{self.target.entry_symbol}:", f"    call {self._runtime_symbol(self.runtime_linkage.startup_symbol)}"])
         for statement in program.statements:
             lines.extend(self._statement(statement))
-        lines.extend(["    xor eax, eax", "    ret"])
+        lines.extend([f"    call {self._runtime_symbol(self.runtime_linkage.shutdown_symbol)}", "    xor eax, eax", "    ret"])
         return "\n".join(lines) + "\n"
 
     def _statement(self, statement: Statement) -> list[str]:
@@ -297,9 +317,11 @@ class X8664AssemblyEmitter(AssemblyEmitter):
         lines = [
             "; PL1CompInPy generated x86_64 assembly",
             f"; target: {self.target.name}",
+            *self._runtime_link_comments(";"),
             "bits 64",
             "default rel",
             f"extern {self.target.printf_symbol}",
+            *self._runtime_externs(),
             f"global {self.target.entry_symbol}",
             "section .data",
             "fmt_int db \"%d\", 10, 0",
@@ -310,10 +332,10 @@ class X8664AssemblyEmitter(AssemblyEmitter):
         for value, label in self.symbols.strings.items():
             lines.append(f"{label} db {self._escaped_bytes(value)}")
 
-        lines.extend(["section .text", f"{self.target.entry_symbol}:"])
+        lines.extend(["section .text", f"{self.target.entry_symbol}:", f"    call {self._runtime_symbol(self.runtime_linkage.startup_symbol)}"])
         for statement in program.statements:
             lines.extend(self._statement(statement))
-        lines.extend(["    xor eax, eax", "    ret"])
+        lines.extend([f"    call {self._runtime_symbol(self.runtime_linkage.shutdown_symbol)}", "    xor eax, eax", "    ret"])
         return "\n".join(lines) + "\n"
 
     def _statement(self, statement: Statement) -> list[str]:
@@ -444,6 +466,7 @@ class Arm64AssemblyEmitter(AssemblyEmitter):
         lines = [
             "// PL1CompInPy generated ARM64 assembly",
             f"// target: {self.target.name}",
+            *self._runtime_link_comments("//"),
             ".data",
             'fmt_int: .asciz "%d\\n"',
             'fmt_str: .asciz "%s\\n"',
@@ -453,10 +476,17 @@ class Arm64AssemblyEmitter(AssemblyEmitter):
         for value, label in self.symbols.strings.items():
             lines.append(f'{label}: .asciz "{self._escape_asciz(value)}"')
 
-        lines.extend([".text", f".globl {self.target.entry_symbol}", f"{self.target.entry_symbol}:"])
+        lines.extend([
+            ".text",
+            f".extern {self._runtime_symbol(self.runtime_linkage.startup_symbol)}",
+            f".extern {self._runtime_symbol(self.runtime_linkage.shutdown_symbol)}",
+            f".globl {self.target.entry_symbol}",
+            f"{self.target.entry_symbol}:",
+            f"    bl {self._runtime_symbol(self.runtime_linkage.startup_symbol)}",
+        ])
         for statement in program.statements:
             lines.extend(self._statement(statement))
-        lines.extend(["    mov w0, #0", "    ret"])
+        lines.extend([f"    bl {self._runtime_symbol(self.runtime_linkage.shutdown_symbol)}", "    mov w0, #0", "    ret"])
         return "\n".join(lines) + "\n"
 
     def _statement(self, statement: Statement) -> list[str]:

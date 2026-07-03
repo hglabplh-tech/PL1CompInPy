@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 import struct
 
 from ..core.ast import Assignment, BinaryExpression, Call, Declaration, Identifier, LabelledStatement, NumberLiteral, Procedure, Program, RawStatement
+from .runtime_link import runtime_linkage
 
 
 JAVA_17_MAJOR_VERSION = 61
@@ -65,6 +66,8 @@ class JVMProcedure:
 
 class JVMClassFileEmitter:
     def emit(self, program: Program, class_name: str = "PL1Program") -> bytes:
+        linkage = runtime_linkage("jvm-bytecode")
+        runtime_type = linkage.managed_type or "pl1compinpy/runtime/PL1Runtime"
         procedures = self._procedures(program)
         main_name = self._main_name(program)
         pool = ConstantPool()
@@ -79,6 +82,8 @@ class JVMClassFileEmitter:
         if main_name:
             pool.utf8("main")
             pool.utf8("([Ljava/lang/String;)V")
+            pool.method_ref(runtime_type, linkage.startup_symbol, "()V")
+            pool.method_ref(runtime_type, linkage.shutdown_symbol, "()V")
             target = next((procedure for procedure in procedures if procedure.name == main_name), None)
             if target:
                 pool.method_ref(class_name, target.name, target.descriptor)
@@ -88,9 +93,11 @@ class JVMClassFileEmitter:
         if main_name:
             target = next((procedure for procedure in procedures if procedure.name == main_name), None)
             if target:
-                main_code = b"\xb8" + struct.pack(">H", pool.method_ref(class_name, target.name, target.descriptor))
+                main_code = b"\xb8" + struct.pack(">H", pool.method_ref(runtime_type, linkage.startup_symbol, "()V"))
+                main_code += b"\xb8" + struct.pack(">H", pool.method_ref(class_name, target.name, target.descriptor))
                 if target.returns:
                     main_code += b"\x57"
+                main_code += b"\xb8" + struct.pack(">H", pool.method_ref(runtime_type, linkage.shutdown_symbol, "()V"))
                 main_code += b"\xb1"
                 methods.append(self._method(pool, "main", "([Ljava/lang/String;)V", main_code, max_stack=1, max_locals=1))
 
@@ -213,4 +220,3 @@ def emit_jvm_class(program: Program, class_name: str = "PL1Program") -> bytes:
 
 def emit_jvm_classes(program: Program, class_name: str = "PL1Program") -> dict[str, bytes]:
     return {f"{class_name}.class": emit_jvm_class(program, class_name)}
-

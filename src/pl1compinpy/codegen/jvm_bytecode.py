@@ -1,11 +1,15 @@
 from __future__ import annotations
 
 from ..core.ast import Assignment, BinaryExpression, Call, Declaration, Identifier, LabelledStatement, NumberLiteral, Procedure, Program, RawStatement
+from .runtime_link import runtime_linkage
 
 
 class JVMBytecodeEmitter:
     def emit(self, program: Program) -> str:
+        linkage = runtime_linkage("jvm-bytecode")
+        runtime_type = linkage.managed_type or "pl1compinpy/runtime/PL1Runtime"
         lines = [
+            f"; runtime-link: {', '.join(linkage.managed_references)}",
             ".class public PL1Program",
             ".super java/lang/Object",
             "",
@@ -27,8 +31,10 @@ class JVMBytecodeEmitter:
             lines.extend(
                 [
                     ".method public static main([Ljava/lang/String;)V",
+                    f"    invokestatic {runtime_type}/{linkage.startup_symbol}()V",
                     "    invokestatic PL1Program/" + main + "()I",
                     "    pop",
+                    f"    invokestatic {runtime_type}/{linkage.shutdown_symbol}()V",
                     "    return",
                     ".end method",
                 ]
@@ -121,4 +127,3 @@ class JVMBytecodeEmitter:
 
 def emit_jvm_bytecode(program: Program) -> str:
     return JVMBytecodeEmitter().emit(program)
-

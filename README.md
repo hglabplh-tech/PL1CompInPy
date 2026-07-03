@@ -174,6 +174,9 @@ The executable pipeline includes a first runtime calling convention:
 - PL/I builtins are also registered in the static table, but a source program must declare them with `DCL name BUILTIN;` before calls are accepted
 - `CALL` validation uses the merged runtime and dynamic tables before lowering
 - procedure definitions are emitted before main code and the entry path jumps over them, so procedures run only when called
+- native targets use a C-style runtime link model: generated objects reference `pl1rt_init`/`pl1rt_shutdown`, then the final executable is resolved against a PL/I runtime object/archive or shared/import library plus the platform C runtime
+- JVM output links the runtime through the `pl1compinpy/runtime/PL1Runtime` class on the classpath
+- .NET IL links the runtime through the `PL1CompInPy.Runtime` managed assembly
 
 The runtime also includes starter storage and I/O services:
 
@@ -196,6 +199,7 @@ The runtime also includes starter storage and I/O services:
 - primitive TCP socket I/O runtime with client/server sockets, SSL client sockets, and TLS client sockets
 - file-like socket stream layer for easier text/binary payload `READ`/`WRITE`, with Unix-style, fixed, and variable record framing
 - static runtime function descriptors for `ALLOC`, `FREE`, file I/O, VSAM I/O, TCP/IP, SSL, and TLS helpers
+- runtime link manifests embedded in generated native executable payloads, recording the target runtime libraries and used runtime calls
 - generic function dispatch by argument type, using runtime lambda implementations
 - local VSAM-style datasets with a catalog file plus binary data file for KSDS, ESDS, RRDS, and LDS organizations
 - VSAM runtime descriptors and I/O dispatch for `OPEN`, `WRITE FROM`, KSDS keyed `READ`, ESDS RBA `READ`, RRDS RRN `READ`/`WRITE`, LDS RBA/LENGTH `READ`, and `CLOSE`

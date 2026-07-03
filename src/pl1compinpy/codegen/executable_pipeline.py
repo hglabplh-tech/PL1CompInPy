@@ -19,6 +19,7 @@ from ..core.ast import (
     Statement,
     StringLiteral,
 )
+from .runtime_link import encoded_runtime_manifest
 
 
 @dataclass(frozen=True)
@@ -112,6 +113,7 @@ def lower_program(program: Program) -> tuple[list[Mnemonic], bytes, dict[str, in
 
 def assemble_executable(program: Program, binary_format: str, *, image_base: int = 0x400000, code_rva: int = 0x1000) -> ExecutableImage:
     mnemonics, data, variables = lower_program(program)
+    data = data + encoded_runtime_manifest(binary_format, program)
     if binary_format == "pe32-x586-windows":
         code = X586MnemonicAssembler(image_base=image_base, code_rva=code_rva, data=bytes(data), variables=variables).assemble(mnemonics)
         return ExecutableImage(code=code, data=data)

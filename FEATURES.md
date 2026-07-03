@@ -71,6 +71,9 @@
   - `macho64-x86_64-macos`
   - `macho64-arm64-macos`
 - Public linker facade classes for PE, ELF, and Mach-O executable containers.
+- C-style runtime linkage plans for PE, ELF, Mach-O, JVM, and .NET targets.
+- Native runtime startup/shutdown symbol references plus embedded runtime link manifests.
+- Managed runtime references for JVM classpath and .NET assembly linkage.
 - Unit tests for lexer, parser, compiler output, assembly output, and binary signatures.
 - Packaged PL/I builtin source inclusion with a first `SUBSTR` builtin.
 - Static PL/I builtin function table entries that require `DCL name BUILTIN;` before use.
