@@ -57,6 +57,8 @@ class Procedure(Statement):
 class DoGroup(Statement):
     control: list[str]
     body: list["Statement"]
+    while_condition: "Expression | None" = None
+    until_condition: "Expression | None" = None
 
 
 @dataclass(frozen=True)
@@ -64,6 +66,27 @@ class IfStatement(Statement):
     condition: "Expression"
     then_branch: Statement
     else_branch: Statement | None
+
+
+@dataclass(frozen=True)
+class IOStatement(Statement):
+    operation: str
+    file_name: str | None = None
+    target: str | None = None
+    source: "Expression | None" = None
+
+
+@dataclass(frozen=True)
+class SelectStatement(Statement):
+    expression: "Expression | None"
+    when_branches: list["WhenBranch"]
+    otherwise: Statement | None = None
+
+
+@dataclass(frozen=True)
+class WhenBranch:
+    expressions: list["Expression"]
+    statement: Statement
 
 
 @dataclass(frozen=True)

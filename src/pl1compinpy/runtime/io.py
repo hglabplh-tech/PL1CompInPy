@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import BinaryIO
 
-from ..core.ast import Declaration
+from ..core.ast import Declaration, Identifier, IOStatement, NumberLiteral, StringLiteral
 
 
 class FileRuntimeError(ValueError):
@@ -97,6 +97,35 @@ class StdioRuntime:
                 payload = payload.rstrip(b"\n")
         return payload.decode("utf-8") if descriptor.text else payload
 
+    def execute(self, statement: IOStatement, descriptors: dict[str, FileDescriptor], variables: dict[str, object] | None = None) -> None:
+        variables = variables if variables is not None else {}
+        if statement.file_name is None:
+            raise FileRuntimeError(f"{statement.operation} requires FILE(name)")
+        descriptor = descriptors[statement.file_name]
+        if statement.operation == "OPEN":
+            self.open(descriptor)
+        elif statement.operation == "CLOSE":
+            self.close(descriptor)
+        elif statement.operation == "READ":
+            if statement.target is None:
+                raise FileRuntimeError("READ requires INTO(name)")
+            variables[statement.target] = self.read_record(descriptor)
+        elif statement.operation == "WRITE":
+            self.write_record(descriptor, self._io_value(statement, variables))
+        else:
+            raise FileRuntimeError(f"Unsupported I/O operation: {statement.operation}")
+
+    def _io_value(self, statement: IOStatement, variables: dict[str, object]) -> bytes | str:
+        source = statement.source
+        if isinstance(source, Identifier):
+            value = variables.get(source.name, b"")
+            return value if isinstance(value, (bytes, str)) else str(value)
+        if isinstance(source, StringLiteral):
+            return source.value
+        if isinstance(source, NumberLiteral):
+            return source.value
+        return b""
+
     def _handle(self, descriptor: FileDescriptor) -> BinaryIO:
         try:
             return self._open_files[descriptor.name]
@@ -105,4 +134,3 @@ class StdioRuntime:
 
 
 __all__ = ["FileDescriptor", "FileRuntimeError", "StdioRuntime"]
-

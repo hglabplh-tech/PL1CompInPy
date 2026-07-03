@@ -9,11 +9,13 @@ from ..core.ast import (
     Expression,
     Identifier,
     IfStatement,
+    IOStatement,
     LabelledStatement,
     NumberLiteral,
     Procedure,
     Program,
     RawStatement,
+    SelectStatement,
     StringLiteral,
 )
 
@@ -40,8 +42,13 @@ class PythonSourceEmitter:
         if isinstance(statement, Procedure):
             return self._procedure(statement, indent)
         if isinstance(statement, DoGroup):
-            lines = [f"{prefix}while True:"]
+            if statement.while_condition:
+                lines = [f"{prefix}while {self._expression(statement.while_condition)}:"]
+            else:
+                lines = [f"{prefix}while True:"]
             lines.extend(self._body(statement.body, indent + 4))
+            if statement.until_condition:
+                lines.extend([f"{prefix}    if {self._expression(statement.until_condition)}:", f"{prefix}        break"])
             return lines
         if isinstance(statement, IfStatement):
             lines = [f"{prefix}if {self._expression(statement.condition)}:"]
@@ -50,6 +57,10 @@ class PythonSourceEmitter:
                 lines.append(f"{prefix}else:")
                 lines.extend(self._statement(statement.else_branch, indent + 4))
             return lines
+        if isinstance(statement, IOStatement):
+            return self._io_statement(statement, indent)
+        if isinstance(statement, SelectStatement):
+            return self._select_statement(statement, indent)
         if isinstance(statement, LabelledStatement):
             if isinstance(statement.statement, Procedure):
                 procedure = statement.statement
@@ -74,6 +85,42 @@ class PythonSourceEmitter:
             rest = " ".join(statement.tokens)
             return [f"{prefix}# {statement.keyword} {rest}".rstrip()]
         raise TypeError(f"Unsupported statement: {statement!r}")
+
+    def _io_statement(self, statement: IOStatement, indent: int) -> list[str]:
+        prefix = " " * indent
+        file_name = statement.file_name or "None"
+        if statement.operation == "OPEN":
+            return [f"{prefix}runtime.open({file_name})"]
+        if statement.operation == "CLOSE":
+            return [f"{prefix}runtime.close({file_name})"]
+        if statement.operation == "READ":
+            target = statement.target or "_"
+            return [f"{prefix}{target} = runtime.read_record({file_name})"]
+        if statement.operation == "WRITE":
+            source = self._expression(statement.source) if statement.source else "b''"
+            return [f"{prefix}runtime.write_record({file_name}, {source})"]
+        return [f"{prefix}# unsupported I/O operation {statement.operation}"]
+
+    def _select_statement(self, statement: SelectStatement, indent: int) -> list[str]:
+        prefix = " " * indent
+        lines: list[str] = []
+        for index, branch in enumerate(statement.when_branches):
+            keyword = "if" if index == 0 else "elif"
+            condition = self._select_condition(statement, branch.expressions)
+            lines.append(f"{prefix}{keyword} {condition}:")
+            lines.extend(self._statement(branch.statement, indent + 4))
+        if statement.otherwise:
+            lines.append(f"{prefix}else:")
+            lines.extend(self._statement(statement.otherwise, indent + 4))
+        return lines or [f"{prefix}pass"]
+
+    def _select_condition(self, statement: SelectStatement, expressions: list[Expression]) -> str:
+        if not expressions:
+            return "False"
+        if statement.expression:
+            subject = self._expression(statement.expression)
+            return " or ".join(f"{subject} == {self._expression(expression)}" for expression in expressions)
+        return " or ".join(self._expression(expression) for expression in expressions)
 
     def _procedure(self, procedure: Procedure, indent: int) -> list[str]:
         prefix = " " * indent

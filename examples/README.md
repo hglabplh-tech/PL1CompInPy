@@ -6,6 +6,8 @@ These examples cover the compiler features currently implemented in PL1CompInPy.
 
 - `language/declarations.pl1`: declarations, assignment, and display calls
 - `language/control_structures.pl1`: `IF/THEN/ELSE`
+- `language/do_while_until.pl1`: `DO WHILE` and post-test `DO ... UNTIL`
+- `language/select_when.pl1`: `SELECT` with `WHEN` and `OTHERWISE`
 - `language/procedure_main.pl1`: `PROC OPTIONS(MAIN)` and `RETURNS`
 - `language/call_by_reference.pl1`: by-reference calls
 - `language/call_by_name.pl1`: by-name call normalization
@@ -20,6 +22,7 @@ These examples cover the compiler features currently implemented in PL1CompInPy.
 - `runtime/file_unix_text.pl1`: Unix-style text file declaration
 - `runtime/file_record_v.pl1`: variable-record file declaration
 - `runtime/file_record_f.pl1`: fixed-record file declaration
+- `runtime/file_read_write.pl1`: `OPEN`, `READ`, `WRITE`, and `CLOSE` file statements
 
 ## Builtins
 

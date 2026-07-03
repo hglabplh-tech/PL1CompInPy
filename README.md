@@ -117,7 +117,8 @@ Currently supported compiler features:
 - integer variable declarations and storage
 - integer assignment with `+`, `-`, `*`, and `/`
 - `IF/THEN/ELSE` comparisons with `=`, `^=`, `<>`, `<`, `<=`, `>`, and `>=`
-- simple `DO` groups as loops
+- `DO WHILE` pre-test loops and post-test `DO ... UNTIL` loops
+- `SELECT`/`WHEN`/`OTHERWISE` conditional groups
 - labels and procedure bodies
 - `PROC OPTIONS(MAIN)` as a program entry point
 - `PROC RECURSIVE` metadata, with recursive calls lowered as ordinary calls that continue at the next statement after return
@@ -180,6 +181,7 @@ The runtime also includes starter storage and I/O services:
 - string storage as two bytes of big-endian length followed by sequential payload bytes
 - a first packaged PL/I builtin source file for `SUBSTR(string, start[, length])`
 - PL/I-style file declarations such as `DCL F FILE RECORD OUTPUT ENVIRONMENT(RECFM(V), LRECL(80), PATH('out.dat')) BINARY;`
+- PL/I-style file statements: `OPEN FILE(F);`, `READ FILE(F) INTO(BUF);`, `WRITE FILE(F) FROM(BUF);`, and `CLOSE FILE(F);`
 - normal Unix-style stream files
 - fixed-record files using `RECFM(F)` and `LRECL(n)`
 - variable-record files using `RECFM(V)`, represented here with a two-byte big-endian length prefix followed by record data

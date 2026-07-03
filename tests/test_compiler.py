@@ -14,7 +14,7 @@ from pl1compinpy.codegen.dotnet_executable import DotNetExecutableError
 from pl1compinpy.codegen.jvm_classfile import JAVA_17_MAJOR_VERSION
 from pl1compinpy.codegen.executable_pipeline import lower_program
 from pl1compinpy.codegen.linkers import ELFLinker, MachOLinker, PELinker
-from pl1compinpy.ast import Call, Declaration, IfStatement, LabelledStatement, Procedure
+from pl1compinpy.ast import Call, Declaration, DoGroup, IOStatement, IfStatement, LabelledStatement, Procedure, SelectStatement
 from pl1compinpy.frontend.lexer import Lexer, TokenType
 from pl1compinpy.frontend.parser import Parser
 from pl1compinpy.runtime import (
@@ -124,6 +124,35 @@ class CompilerTests(unittest.TestCase):
         program = Parser(Lexer("IF TOTAL = 0 THEN CALL ZERO(); ELSE CALL NONZERO();").tokenize()).parse()
 
         self.assertIsInstance(program.statements[0], IfStatement)
+
+    def test_parses_file_io_statements(self):
+        program = Parser(Lexer("OPEN FILE(F); READ FILE(F) INTO(BUF); WRITE FILE(F) FROM(BUF); CLOSE FILE(F);").tokenize()).parse()
+
+        self.assertEqual([statement.operation for statement in program.statements], ["OPEN", "READ", "WRITE", "CLOSE"])
+        self.assertTrue(all(isinstance(statement, IOStatement) for statement in program.statements))
+        self.assertEqual(program.statements[1].file_name, "F")
+        self.assertEqual(program.statements[1].target, "BUF")
+        self.assertEqual(program.statements[2].source.name, "BUF")
+
+    def test_parses_do_while_and_do_until_groups(self):
+        source = "DO WHILE TOTAL < 3; TOTAL = TOTAL + 1; END; DO; TOTAL = TOTAL + 1; UNTIL TOTAL = 5; END;"
+        program = Parser(Lexer(source).tokenize()).parse()
+        first = program.statements[0]
+        second = program.statements[1]
+
+        self.assertIsInstance(first, DoGroup)
+        self.assertIsNotNone(first.while_condition)
+        self.assertIsInstance(second, DoGroup)
+        self.assertIsNotNone(second.until_condition)
+
+    def test_parses_select_when_otherwise(self):
+        source = "SELECT(TOTAL); WHEN(1) CALL DISPLAY('ONE'); WHEN(2,3) CALL DISPLAY('MANY'); OTHERWISE CALL DISPLAY('OTHER'); END;"
+        statement = Parser(Lexer(source).tokenize()).parse().statements[0]
+
+        self.assertIsInstance(statement, SelectStatement)
+        self.assertEqual(len(statement.when_branches), 2)
+        self.assertEqual(len(statement.when_branches[1].expressions), 2)
+        self.assertIsNotNone(statement.otherwise)
 
     def test_emits_x586_windows_assignment_control_and_io(self):
         source = "DCL TOTAL FIXED BIN(31); TOTAL = 40 + 2; IF TOTAL = 42 THEN CALL DISPLAY(TOTAL);"
@@ -280,6 +309,24 @@ class CompilerTests(unittest.TestCase):
         self.assertIn('if __name__ == "__main__":', output)
         self.assertIn("    MAIN()", output)
 
+    def test_python_source_backend_emits_file_io_loops_and_select(self):
+        source = (
+            "OPEN FILE(F); READ FILE(F) INTO(BUF); WRITE FILE(F) FROM(BUF); CLOSE FILE(F); "
+            "DO WHILE TOTAL < 3; TOTAL = TOTAL + 1; END; "
+            "DO; TOTAL = TOTAL + 1; UNTIL TOTAL = 5; END; "
+            "SELECT(TOTAL); WHEN(1) CALL DISPLAY('ONE'); OTHERWISE CALL DISPLAY('OTHER'); END;"
+        )
+        output = compile_source(source, target="python-source")
+
+        self.assertIn("runtime.open(F)", output)
+        self.assertIn("BUF = runtime.read_record(F)", output)
+        self.assertIn("runtime.write_record(F, BUF)", output)
+        self.assertIn("runtime.close(F)", output)
+        self.assertIn("while (TOTAL < 3):", output)
+        self.assertIn("if (TOTAL == 5):", output)
+        self.assertIn("if TOTAL == 1:", output)
+        self.assertIn("else:", output)
+
     def test_jvm_bytecode_backend_emits_main_and_return_descriptor(self):
         source = "MAIN: PROC OPTIONS(MAIN) RETURNS(FIXED); RETURN 0; END MAIN;"
         output = compile_source(source, target="jvm-bytecode")
@@ -370,6 +417,23 @@ class CompilerTests(unittest.TestCase):
             runtime.close(descriptor)
 
             self.assertEqual((Path(tmp) / "f.dat").read_bytes(), b"XY   ")
+
+    def test_runtime_executes_parsed_file_io_statements(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            output = FileDescriptor("F", Path(tmp) / "io.dat", mode="OUTPUT", recfm="V")
+            program = Parser(Lexer("OPEN FILE(F); WRITE FILE(F) FROM(BUF); CLOSE FILE(F);").tokenize()).parse()
+            runtime = StdioRuntime()
+            variables = {"BUF": b"PAYLOAD"}
+
+            for statement in program.statements:
+                runtime.execute(statement, {"F": output}, variables)
+
+            input_descriptor = FileDescriptor("F", Path(tmp) / "io.dat", mode="INPUT", recfm="V")
+            read_program = Parser(Lexer("OPEN FILE(F); READ FILE(F) INTO(BUF); CLOSE FILE(F);").tokenize()).parse()
+            for statement in read_program.statements:
+                runtime.execute(statement, {"F": input_descriptor}, variables)
+
+            self.assertEqual(variables["BUF"], b"PAYLOAD")
 
     def test_file_descriptor_from_pl1_declaration(self):
         source = "DCL F FILE RECORD INPUT ENVIRONMENT(RECFM(F), LRECL(12), PATH('input.dat')) TEXT;"

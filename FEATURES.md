@@ -11,6 +11,7 @@
   - `codegen` for assembly text, executable lowering, and binary containers
 - PL/1 lexer with contextual keyword metadata.
 - PL/1 parser producing an AST for assignments, declarations, calls, procedures, labels, `DO` groups, and `IF/THEN/ELSE`.
+- Parser support for `DO WHILE`, post-test `DO ... UNTIL`, and `SELECT`/`WHEN`/`OTHERWISE`.
 - Keyword catalog covering PL/1 statements, declaration attributes, storage attributes, I/O words, conditions, and preprocessor/listing words.
 - Python-like text emitter for early compiler validation.
 - Python source output backend.
@@ -47,6 +48,7 @@
   - `BASED(pointer)` record storage bound to dedicated pointer locators
   - strings stored as two-byte length plus payload
   - PL/I-style file declarations
+  - PL/I-style `OPEN`, `READ`, `WRITE`, and `CLOSE` file statements
   - Unix-style stream files
   - fixed-length `RECFM(F)` records
   - variable-length `RECFM(V)` records with a two-byte length prefix
@@ -75,6 +77,7 @@
 - Arithmetic with `+`, `-`, `*`, and `/`.
 - Procedure calls.
 - Basic output through `CALL DISPLAY(...)`, `CALL PRINT(...)`, and basic `PUT LIST(...)`.
+- Record I/O statements using forms such as `OPEN FILE(F);`, `READ FILE(F) INTO(BUF);`, `WRITE FILE(F) FROM(BUF);`, and `CLOSE FILE(F);`.
 - Procedure calls with by-reference and by-name normalization.
 - File declarations using `FILE`, `RECORD`, `INPUT`, `OUTPUT`, `ENVIRONMENT(RECFM(...), LRECL(...), PATH(...))`, `TEXT`, and `BINARY`.
 - Generic declarations using `GENERIC(... WHEN(...))`.
@@ -84,6 +87,8 @@
 - `PROC RECURSIVE` metadata and ordinary recursive-call continuation semantics.
 - `PROC RETURNS(...)` function return metadata.
 - `IF/THEN/ELSE` comparisons using `=`, `^=`, `<>`, `<`, `<=`, `>`, and `>=`.
+- `DO WHILE` and post-test `DO ... UNTIL` groups.
+- `SELECT` with `WHEN` and `OTHERWISE`.
 - Labels and simple procedure bodies.
 - Simple `DO` groups.
 

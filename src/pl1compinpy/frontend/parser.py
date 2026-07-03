@@ -10,13 +10,16 @@ from ..core.ast import (
     GenericAlternative,
     Identifier,
     IfStatement,
+    IOStatement,
     LabelledStatement,
     NumberLiteral,
     Procedure,
     Program,
     RawStatement,
+    SelectStatement,
     Statement,
     StringLiteral,
+    WhenBranch,
 )
 from .lexer import Token, TokenType
 
@@ -60,6 +63,10 @@ class Parser:
             return self._do_group()
         if self._match_keyword("IF"):
             return self._if_statement()
+        if self._check_keyword("OPEN", "CLOSE", "READ", "WRITE"):
+            return self._io_statement()
+        if self._match_keyword("SELECT"):
+            return self._select_statement()
         if self._match_keyword("CALL"):
             statement = self._call_statement()
             self._consume(TokenType.SEMICOLON, "Expected ';' after CALL statement")
@@ -293,10 +300,16 @@ class Parser:
         raise self._error(self._peek(), "Expected ')'")
 
     def _do_group(self) -> DoGroup:
-        control = [token.lexeme for token in self._collect_until_semicolon()]
+        control_tokens = self._collect_until_semicolon()
+        control = [token.lexeme for token in control_tokens]
+        while_condition = self._do_control_condition(control_tokens, "WHILE")
+        until_condition = self._do_control_condition(control_tokens, "UNTIL")
         body: list[Statement] = []
 
         while not self._check(TokenType.EOF) and not self._match_keyword("END"):
+            if self._match_keyword("UNTIL"):
+                until_condition = self._expression_from_tokens(self._collect_until_semicolon())
+                continue
             if self._match_semicolon():
                 continue
             body.append(self._statement())
@@ -304,7 +317,16 @@ class Parser:
         if not self._previous_keyword("END"):
             raise self._error(self._peek(), "Expected END for DO group")
         self._consume(TokenType.SEMICOLON, "Expected ';' after END")
-        return DoGroup(control, body)
+        return DoGroup(control, body, while_condition, until_condition)
+
+    def _do_control_condition(self, tokens: list[Token], keyword: str) -> Expression | None:
+        for index, token in enumerate(tokens):
+            if token.lexeme.upper() == keyword:
+                condition_tokens = tokens[index + 1 :]
+                if condition_tokens and condition_tokens[0].type == TokenType.LPAREN and condition_tokens[-1].type == TokenType.RPAREN:
+                    condition_tokens = condition_tokens[1:-1]
+                return self._expression_from_tokens(condition_tokens) if condition_tokens else None
+        return None
 
     def _if_statement(self) -> IfStatement:
         condition_tokens = self._collect_until_keyword("THEN")
@@ -331,6 +353,42 @@ class Parser:
             else:
                 raise self._error(self._peek(), "Expected NAME or REFERENCE after BY")
         return Call(name.lexeme, arguments, mode)
+
+    def _io_statement(self) -> IOStatement:
+        operation = self._advance().lexeme.upper()
+        tokens = self._collect_until_semicolon()
+        file_name = self._option_value(tokens, "FILE")
+        target = self._option_value(tokens, "INTO")
+        source_tokens = self._option_tokens(tokens, "FROM")
+        source = self._expression_from_tokens(source_tokens) if source_tokens else None
+        return IOStatement(operation, file_name, target, source)
+
+    def _select_statement(self) -> SelectStatement:
+        header_tokens = self._collect_until_semicolon()
+        expression_tokens = header_tokens
+        if expression_tokens and expression_tokens[0].type == TokenType.LPAREN and expression_tokens[-1].type == TokenType.RPAREN:
+            expression_tokens = expression_tokens[1:-1]
+        expression = self._expression_from_tokens(expression_tokens) if expression_tokens else None
+        branches: list[WhenBranch] = []
+        otherwise: Statement | None = None
+
+        while not self._check(TokenType.EOF) and not self._match_keyword("END"):
+            if self._match_semicolon():
+                continue
+            if self._match_keyword("WHEN"):
+                self._consume(TokenType.LPAREN, "Expected '(' after WHEN")
+                expressions = self._expressions_until_rparen()
+                branches.append(WhenBranch(expressions, self._statement()))
+                continue
+            if self._match_keyword("OTHERWISE", "OTHER"):
+                otherwise = self._statement()
+                continue
+            raise self._error(self._peek(), "Expected WHEN, OTHERWISE, or END in SELECT")
+
+        if not self._previous_keyword("END"):
+            raise self._error(self._peek(), "Expected END for SELECT")
+        self._consume(TokenType.SEMICOLON, "Expected ';' after SELECT END")
+        return SelectStatement(expression, branches, otherwise)
 
     def _assignment(self) -> Assignment:
         target = self._consume_identifier("Expected assignment target")
@@ -394,6 +452,48 @@ class Parser:
         parser = Parser(tokens + [Token(TokenType.EOF, "", self._peek().line, self._peek().column)])
         return parser._expression()
 
+    def _expressions_until_rparen(self) -> list[Expression]:
+        expressions: list[Expression] = []
+        if self._check(TokenType.RPAREN):
+            self._advance()
+            return expressions
+        expressions.append(self._expression())
+        while self._match(TokenType.COMMA):
+            expressions.append(self._expression())
+        self._consume(TokenType.RPAREN, "Expected ')' after expression list")
+        return expressions
+
+    def _option_value(self, tokens: list[Token], keyword: str) -> str | None:
+        option_tokens = self._option_tokens(tokens, keyword)
+        if not option_tokens:
+            return None
+        return option_tokens[0].lexeme
+
+    def _option_tokens(self, tokens: list[Token], keyword: str) -> list[Token]:
+        index = 0
+        while index < len(tokens):
+            if tokens[index].lexeme.upper() == keyword:
+                if index + 1 < len(tokens) and tokens[index + 1].type == TokenType.LPAREN:
+                    depth = 1
+                    inner: list[Token] = []
+                    index += 2
+                    while index < len(tokens) and depth:
+                        if tokens[index].type == TokenType.LPAREN:
+                            depth += 1
+                            inner.append(tokens[index])
+                        elif tokens[index].type == TokenType.RPAREN:
+                            depth -= 1
+                            if depth:
+                                inner.append(tokens[index])
+                        else:
+                            inner.append(tokens[index])
+                        index += 1
+                    return inner
+                if index + 1 < len(tokens):
+                    return [tokens[index + 1]]
+            index += 1
+        return []
+
     def _identifier_list_until(self, end: TokenType) -> list[str]:
         values: list[str] = []
         while not self._check(TokenType.EOF) and not self._check(end):
@@ -455,16 +555,12 @@ class Parser:
             "GOTO",
             "LOCATE",
             "ON",
-            "OPEN",
             "PUT",
-            "READ",
             "RETURN",
             "REVERT",
             "REWRITE",
-            "SELECT",
             "SIGNAL",
             "STOP",
-            "WRITE",
         )
 
     def _match(self, *types: TokenType) -> bool:
