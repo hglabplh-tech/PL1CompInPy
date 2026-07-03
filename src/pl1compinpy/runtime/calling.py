@@ -3,7 +3,14 @@ from __future__ import annotations
 from dataclasses import replace
 
 from ..core.ast import Call, DoGroup, IfStatement, LabelledStatement, Procedure, Program, SelectStatement, Statement
-from .function_table import RUNTIME_FUNCTION_TABLE, FunctionDescriptor, FunctionTable, FunctionTableError, build_dynamic_function_table
+from .function_table import (
+    RUNTIME_FUNCTION_TABLE,
+    FunctionDescriptor,
+    FunctionTable,
+    FunctionTableError,
+    build_dynamic_function_table,
+    declare_program_builtins,
+)
 
 
 class RuntimeError(ValueError):
@@ -13,6 +20,7 @@ class RuntimeError(ValueError):
 def normalize_calls(program: Program) -> Program:
     procedures = _procedure_table(program.statements)
     table = RUNTIME_FUNCTION_TABLE.merge(build_dynamic_function_table(program))
+    declare_program_builtins(program, table)
     return Program([_normalize_statement(statement, procedures, table) for statement in program.statements])
 
 

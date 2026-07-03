@@ -38,6 +38,7 @@ from pl1compinpy.runtime import (
     SocketRuntime,
     SocketSecureMode,
     build_dynamic_function_table,
+    declared_builtins,
     normalize_calls,
 )
 from pl1compinpy.vsam import VSAMCatalog, VSAMFileDescriptor, VSAMRuntime, VSAMType
@@ -292,6 +293,37 @@ class CompilerTests(unittest.TestCase):
     def test_runtime_function_table_contains_io_alloc_tcpip_and_socket_entries(self):
         for name in ["ALLOC", "FREE", "OPEN", "READ", "WRITE", "CLOSE", "TCPIP", "TCPIP_SEND", "SSL_SOCKET", "TLS_SOCKET"]:
             self.assertEqual(RUNTIME_FUNCTION_TABLE.get(name).source, "runtime")
+
+    def test_static_table_contains_declared_pl1_builtins(self):
+        descriptor = RUNTIME_FUNCTION_TABLE.get("SUBSTR")
+
+        self.assertEqual(descriptor.source, "builtin")
+        self.assertTrue(descriptor.requires_declaration)
+        self.assertEqual([parameter.name for parameter in descriptor.parameters], ["S", "START", "COUNT"])
+
+    def test_builtin_declaration_enables_static_builtin_call(self):
+        source = "DCL SUBSTR BUILTIN; CALL SUBSTR(S, START, COUNT);"
+        program = Parser(Lexer(source).tokenize()).parse()
+        normalized = normalize_calls(program)
+
+        self.assertEqual(declared_builtins(program), {"SUBSTR"})
+        self.assertIsInstance(normalized.statements[1], Call)
+
+    def test_static_builtin_call_requires_builtin_declaration(self):
+        program = Parser(Lexer("CALL SUBSTR(S, START, COUNT);").tokenize()).parse()
+
+        with self.assertRaises(Exception) as context:
+            normalize_calls(program)
+        self.assertIn("must be declared with BUILTIN", str(context.exception))
+
+    def test_builtin_by_name_normalizes_after_declaration(self):
+        source = "DCL SUBSTR BUILTIN; CALL SUBSTR(COUNT, S, START) BY NAME;"
+        program = normalize_calls(Parser(Lexer(source).tokenize()).parse())
+        call = program.statements[1]
+
+        self.assertIsInstance(call, Call)
+        self.assertEqual(call.mode, "reference")
+        self.assertEqual([argument.name for argument in call.arguments], ["S", "START", "COUNT"])
 
     def test_function_table_validates_call_descriptions(self):
         table = FunctionTable()

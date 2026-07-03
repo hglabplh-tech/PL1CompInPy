@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Callable
 
-from ..core.ast import Call, Identifier, LabelledStatement, Procedure, Program, SelectStatement, Statement
+from ..core.ast import Call, Declaration, Identifier, LabelledStatement, Procedure, Program, RawStatement, SelectStatement, Statement
 
 
 class FunctionTableError(ValueError):
@@ -27,6 +27,7 @@ class FunctionDescriptor:
     default_mode: str = "reference"
     source: str = "runtime"
     variadic: bool = False
+    requires_declaration: bool = False
 
     @property
     def normalized_name(self) -> str:
@@ -36,6 +37,7 @@ class FunctionDescriptor:
 @dataclass
 class FunctionTable:
     functions: dict[str, FunctionDescriptor] = field(default_factory=dict)
+    declared_builtins: set[str] = field(default_factory=set)
 
     def add_function(self, descriptor: FunctionDescriptor) -> FunctionDescriptor:
         self.functions[descriptor.normalized_name] = descriptor
@@ -63,6 +65,29 @@ class FunctionTable:
             )
         )
 
+    def add_builtin(
+        self,
+        name: str,
+        pointer: Callable[..., Any] | str,
+        parameters: list[ParameterDescriptor] | None = None,
+        returns: str | None = None,
+        *,
+        default_mode: str = "reference",
+        variadic: bool = False,
+    ) -> FunctionDescriptor:
+        return self.add_function(
+            FunctionDescriptor(
+                name,
+                pointer,
+                tuple(parameters or ()),
+                returns,
+                default_mode=default_mode,
+                source="builtin",
+                variadic=variadic,
+                requires_declaration=True,
+            )
+        )
+
     def add_procedure(self, name: str, procedure: Procedure) -> FunctionDescriptor:
         parameters = tuple(ParameterDescriptor(parameter, mode="reference") for parameter in procedure.parameters)
         return self.add_function(
@@ -77,9 +102,13 @@ class FunctionTable:
         )
 
     def merge(self, other: "FunctionTable") -> "FunctionTable":
-        merged = FunctionTable(dict(self.functions))
+        merged = FunctionTable(dict(self.functions), set(self.declared_builtins))
         merged.functions.update(other.functions)
+        merged.declared_builtins.update(other.declared_builtins)
         return merged
+
+    def declare_builtin(self, name: str) -> None:
+        self.declared_builtins.add(name.upper())
 
     def get(self, name: str) -> FunctionDescriptor:
         try:
@@ -89,6 +118,8 @@ class FunctionTable:
 
     def validate_call(self, call: Call) -> FunctionDescriptor:
         descriptor = self.get(call.name)
+        if descriptor.requires_declaration and descriptor.normalized_name not in self.declared_builtins:
+            raise FunctionTableError(f"Builtin function {call.name} must be declared with BUILTIN before use")
         required = [parameter for parameter in descriptor.parameters if not parameter.optional]
         if not descriptor.variadic and not (len(required) <= len(call.arguments) <= len(descriptor.parameters)):
             raise FunctionTableError(
@@ -122,6 +153,47 @@ def build_dynamic_function_table(program: Program) -> FunctionTable:
     for statement in program.statements:
         _add_statement_function(table, statement)
     return table
+
+
+def declare_program_builtins(program: Program, table: FunctionTable) -> FunctionTable:
+    for statement in program.statements:
+        _declare_statement_builtins(statement, table)
+    return table
+
+
+def declared_builtins(program: Program) -> set[str]:
+    table = FunctionTable()
+    declare_program_builtins(program, table)
+    return table.declared_builtins
+
+
+def _declare_statement_builtins(statement: Statement | None, table: FunctionTable) -> None:
+    from ..core.ast import DoGroup, IfStatement
+
+    if statement is None:
+        return
+    if isinstance(statement, Declaration) and any(attribute.upper() == "BUILTIN" for attribute in statement.attributes):
+        for name in statement.names:
+            table.declare_builtin(name)
+    elif isinstance(statement, RawStatement) and statement.keyword.upper() == "BUILTIN":
+        for token in statement.tokens:
+            if token.isidentifier():
+                table.declare_builtin(token)
+    elif isinstance(statement, Procedure):
+        for child in statement.body:
+            _declare_statement_builtins(child, table)
+    elif isinstance(statement, LabelledStatement):
+        _declare_statement_builtins(statement.statement, table)
+    elif isinstance(statement, DoGroup):
+        for child in statement.body:
+            _declare_statement_builtins(child, table)
+    elif isinstance(statement, IfStatement):
+        _declare_statement_builtins(statement.then_branch, table)
+        _declare_statement_builtins(statement.else_branch, table)
+    elif isinstance(statement, SelectStatement):
+        for branch in statement.when_branches:
+            _declare_statement_builtins(branch.statement, table)
+        _declare_statement_builtins(statement.otherwise, table)
 
 
 def _add_statement_function(table: FunctionTable, statement: Statement) -> None:
@@ -172,7 +244,7 @@ def runtime_function_table() -> FunctionTable:
     table.add_runtime("PRINT", "runtime.print", [any_value("VALUE")], variadic=True)
     table.add_runtime("PUT", "runtime.put", [any_value("VALUE")], variadic=True)
     table.add_runtime("GET", "runtime.get", [any_ref("TARGET")], variadic=True)
-    table.add_runtime("SUBSTR", "builtins.substr", [ParameterDescriptor("STRING", "CHARACTER"), ParameterDescriptor("START", "FIXED BIN"), ParameterDescriptor("LENGTH", "FIXED BIN", optional=True)], returns="CHARACTER")
+    table.add_builtin("SUBSTR", "builtins.substr", [ParameterDescriptor("S", "CHARACTER"), ParameterDescriptor("START", "FIXED BIN"), ParameterDescriptor("COUNT", "FIXED BIN", optional=True)], returns="CHARACTER")
 
     for name in ("ALLOCATE", "ALLOC"):
         table.add_runtime(name, "runtime.heap.allocate", [ParameterDescriptor("SIZE", "FIXED BIN")], returns="POINTER")
@@ -214,6 +286,8 @@ __all__ = [
     "ParameterDescriptor",
     "RUNTIME_FUNCTION_TABLE",
     "build_dynamic_function_table",
+    "declare_program_builtins",
+    "declared_builtins",
     "runtime_function_table",
     "validate_program_calls",
 ]

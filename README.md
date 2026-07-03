@@ -171,6 +171,7 @@ The executable pipeline includes a first runtime calling convention:
 - `CALL P(B,A) BY NAME;` is normalized by matching argument names to `P`'s parameter names, sorting them into parameter order, and lowering the result as a by-reference call
 - user procedures are registered in a dynamic function table as they are detected
 - runtime services are registered in a static function table with PL/I-like names, pointer targets, parameter descriptions, return types, and call modes
+- PL/I builtins are also registered in the static table, but a source program must declare them with `DCL name BUILTIN;` before calls are accepted
 - `CALL` validation uses the merged runtime and dynamic tables before lowering
 - procedure definitions are emitted before main code and the entry path jumps over them, so procedures run only when called
 
@@ -185,6 +186,7 @@ The runtime also includes starter storage and I/O services:
 - `POINTER` locator variables and `BASED(pointer)` record storage bound to heap blocks through pointer values
 - string storage as two bytes of big-endian length followed by sequential payload bytes
 - a first packaged PL/I builtin source file for `SUBSTR(string, start[, length])`
+- static builtin call checking for `DCL SUBSTR BUILTIN;`
 - PL/I-style file declarations such as `DCL F FILE RECORD OUTPUT ENVIRONMENT(RECFM(V), LRECL(80), PATH('out.dat')) BINARY;`
 - PL/I-style file statements: `OPEN FILE(F);`, `READ FILE(F) INTO(BUF);`, `WRITE FILE(F) FROM(BUF);`, and `CLOSE FILE(F);`
 - normal Unix-style stream files

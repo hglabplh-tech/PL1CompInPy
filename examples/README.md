@@ -30,6 +30,7 @@ These examples cover the compiler features currently implemented in PL1CompInPy.
 ## Builtins
 
 - `builtins/substr.pl1`: compile with `--builtin SUBSTR`
+- `builtins/declared_substr.pl1`: `DCL SUBSTR BUILTIN;` enables a static PL/I builtin call
 
 ## Backends
 

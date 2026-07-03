@@ -17,6 +17,8 @@ from .function_table import (
     ParameterDescriptor,
     RUNTIME_FUNCTION_TABLE,
     build_dynamic_function_table,
+    declare_program_builtins,
+    declared_builtins,
     runtime_function_table,
     validate_program_calls,
 )
@@ -61,6 +63,8 @@ __all__ = [
     "StringRuntimeError",
     "StringValue",
     "build_dynamic_function_table",
+    "declare_program_builtins",
+    "declared_builtins",
     "normalize_calls",
     "pl1_type",
     "runtime_function_table",

@@ -585,6 +585,7 @@ class Parser:
             "ALLOCATE",
             "ALLOC",
             "BEGIN",
+            "BUILTIN",
             "CLOSE",
             "DEFAULT",
             "DFT",

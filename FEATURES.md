@@ -72,6 +72,7 @@
 - Public linker facade classes for PE, ELF, and Mach-O executable containers.
 - Unit tests for lexer, parser, compiler output, assembly output, and binary signatures.
 - Packaged PL/I builtin source inclusion with a first `SUBSTR` builtin.
+- Static PL/I builtin function table entries that require `DCL name BUILTIN;` before use.
 
 ## Supported PL/1 Subset
 
@@ -93,7 +94,7 @@
 - Generic declarations using `GENERIC(... WHEN(...))`.
 - VSAM declarations using `ENVIRONMENT(VSAM(...), KEYOFFSET(...), KEYLENGTH(...))`.
 - VSAM I/O statements using `OPEN FILE(...)`, `WRITE FILE(...) FROM(...)`, `READ FILE(...) KEY(...) INTO(...)`, ESDS `RBA(...)`, RRDS `RRN(...)`, LDS `RBA(...) LENGTH(...)`, and `CLOSE FILE(...)`.
-- Runtime `SUBSTR` behavior using one-based positions.
+- Runtime `SUBSTR` behavior using one-based positions, enabled in source with `DCL SUBSTR BUILTIN;`.
 - `PROC OPTIONS(MAIN)` program entry point.
 - `PROC RECURSIVE` metadata and ordinary recursive-call continuation semantics.
 - `PROC RETURNS(...)` function return metadata.
