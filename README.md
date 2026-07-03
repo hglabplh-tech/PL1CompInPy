@@ -142,6 +142,16 @@ The executable pipeline includes a first runtime calling convention:
 - `CALL P(B,A) BY NAME;` is normalized by matching argument names to `P`'s parameter names, sorting them into parameter order, and lowering the result as a by-reference call
 - procedure definitions are emitted before main code and the entry path jumps over them, so procedures run only when called
 
+The runtime also includes starter storage and I/O services:
+
+- PL/I-style array declarations such as `DCL A(10) FIXED BIN(31);`
+- heap allocation helpers used by dynamic array storage
+- PL/I-style file declarations such as `DCL F FILE RECORD OUTPUT ENVIRONMENT(RECFM(V), LRECL(80), PATH('out.dat')) BINARY;`
+- normal Unix-style stream files
+- fixed-record files using `RECFM(F)` and `LRECL(n)`
+- variable-record files using `RECFM(V)`, represented here with a two-byte big-endian length prefix followed by record data
+- binary and text record payloads
+
 ## Project Layout
 
 ```text
@@ -164,6 +174,9 @@ PL1CompInPy/
       lexer.py
       parser.py
     runtime/
+      arrays.py
       calling.py
+      heap.py
+      io.py
   tests/
 ```

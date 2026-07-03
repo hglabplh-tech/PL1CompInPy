@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 
 @dataclass(frozen=True)
@@ -22,6 +22,8 @@ class Assignment(Statement):
 class Declaration(Statement):
     names: list[str]
     attributes: list[str]
+    dimensions: dict[str, list[int]] = field(default_factory=dict)
+    file_options: dict[str, str] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)

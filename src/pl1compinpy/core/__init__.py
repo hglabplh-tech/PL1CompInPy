@@ -41,4 +41,3 @@ __all__ = [
     "compile_binary",
     "compile_source",
 ]
-

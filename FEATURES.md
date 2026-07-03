@@ -33,6 +33,14 @@
   - parameters pushed right to left
   - call by reference
   - call by name normalized to sorted call by reference
+- Runtime storage and I/O:
+  - heap allocation blocks
+  - heap-backed arrays
+  - PL/I-style file declarations
+  - Unix-style stream files
+  - fixed-length `RECFM(F)` records
+  - variable-length `RECFM(V)` records with a two-byte length prefix
+  - text and binary record payloads
 - Binary/container writers for:
   - `pe32-x586-windows`
   - `elf64-x86_64`
@@ -44,11 +52,13 @@
 ## Supported PL/1 Subset
 
 - Integer variable declarations.
+- Array declarations such as `DCL A(10) FIXED BIN(31);`.
 - Integer assignments.
 - Arithmetic with `+`, `-`, `*`, and `/`.
 - Procedure calls.
 - Basic output through `CALL DISPLAY(...)`, `CALL PRINT(...)`, and basic `PUT LIST(...)`.
 - Procedure calls with by-reference and by-name normalization.
+- File declarations using `FILE`, `RECORD`, `INPUT`, `OUTPUT`, `ENVIRONMENT(RECFM(...), LRECL(...), PATH(...))`, `TEXT`, and `BINARY`.
 - `PROC OPTIONS(MAIN)` program entry point.
 - `PROC RECURSIVE` metadata and ordinary recursive-call continuation semantics.
 - `PROC RETURNS(...)` function return metadata.

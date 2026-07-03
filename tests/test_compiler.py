@@ -1,6 +1,7 @@
 import unittest
 from pathlib import Path
 import sys
+import tempfile
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
@@ -10,7 +11,7 @@ from pl1compinpy.codegen.executable_pipeline import lower_program
 from pl1compinpy.ast import Call, Declaration, IfStatement, LabelledStatement, Procedure
 from pl1compinpy.frontend.lexer import Lexer, TokenType
 from pl1compinpy.frontend.parser import Parser
-from pl1compinpy.runtime import normalize_calls
+from pl1compinpy.runtime import ArrayRuntime, FileDescriptor, StdioRuntime, normalize_calls
 
 
 class CompilerTests(unittest.TestCase):
@@ -54,6 +55,26 @@ class CompilerTests(unittest.TestCase):
         self.assertIsInstance(program.statements[0], Declaration)
         self.assertEqual(program.statements[0].names, ["TOTAL"])
         self.assertEqual(program.statements[0].attributes, ["FIXED", "BIN"])
+
+    def test_parses_array_declaration(self):
+        program = Parser(Lexer("DCL A(10) FIXED BIN(31), B(2,3) FIXED BIN(31);").tokenize()).parse()
+        declaration = program.statements[0]
+
+        self.assertEqual(declaration.names, ["A", "B"])
+        self.assertEqual(declaration.dimensions["A"], [10])
+        self.assertEqual(declaration.dimensions["B"], [2, 3])
+
+    def test_parses_file_descriptor_declaration(self):
+        source = "DCL F FILE RECORD OUTPUT ENVIRONMENT(RECFM(V), LRECL(80), PATH('out.dat')) BINARY;"
+        declaration = Parser(Lexer(source).tokenize()).parse().statements[0]
+
+        self.assertEqual(declaration.names, ["F"])
+        self.assertIn("FILE", declaration.attributes)
+        self.assertEqual(declaration.file_options["mode"], "OUTPUT")
+        self.assertEqual(declaration.file_options["organization"], "RECORD")
+        self.assertEqual(declaration.file_options["recfm"], "V")
+        self.assertEqual(declaration.file_options["lrecl"], "80")
+        self.assertEqual(declaration.file_options["path"], "out.dat")
 
     def test_parses_labelled_procedure(self):
         program = Parser(
@@ -209,6 +230,51 @@ class CompilerTests(unittest.TestCase):
         self.assertEqual(mnemonics[call_index].args[0], "FACT")
         self.assertEqual(ops[call_index + 1], "CLEAN_ARGS")
         self.assertIn("LEAVE_RET", ops[call_index + 2 :])
+
+    def test_runtime_allocates_arrays_on_heap(self):
+        runtime = ArrayRuntime()
+        array = runtime.allocate_array("A", [2, 3])
+
+        array.set(42, 2, 3)
+        self.assertEqual(array.get(2, 3), 42)
+        self.assertEqual(runtime.heap.block(array.heap_handle).size, 24)
+
+    def test_runtime_writes_and_reads_v_records(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            descriptor = FileDescriptor("F", Path(tmp) / "v.dat", mode="OUTPUT", recfm="V")
+            runtime = StdioRuntime()
+            runtime.open(descriptor)
+            runtime.write_record(descriptor, b"ABC")
+            runtime.close(descriptor)
+
+            self.assertEqual((Path(tmp) / "v.dat").read_bytes(), b"\x00\x03ABC")
+
+            input_descriptor = FileDescriptor("F", Path(tmp) / "v.dat", mode="INPUT", recfm="V")
+            runtime.open(input_descriptor)
+            self.assertEqual(runtime.read_record(input_descriptor), b"ABC")
+            runtime.close(input_descriptor)
+
+    def test_runtime_writes_fixed_records(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            descriptor = FileDescriptor("F", Path(tmp) / "f.dat", mode="OUTPUT", recfm="F", lrecl=5, text=True)
+            runtime = StdioRuntime()
+            runtime.open(descriptor)
+            runtime.write_record(descriptor, "XY")
+            runtime.close(descriptor)
+
+            self.assertEqual((Path(tmp) / "f.dat").read_bytes(), b"XY   ")
+
+    def test_file_descriptor_from_pl1_declaration(self):
+        source = "DCL F FILE RECORD INPUT ENVIRONMENT(RECFM(F), LRECL(12), PATH('input.dat')) TEXT;"
+        declaration = Parser(Lexer(source).tokenize()).parse().statements[0]
+        descriptor = FileDescriptor.from_declaration(declaration, Path("/tmp"))
+
+        self.assertEqual(descriptor.name, "F")
+        self.assertEqual(descriptor.path, Path("/tmp/input.dat"))
+        self.assertEqual(descriptor.mode, "INPUT")
+        self.assertEqual(descriptor.recfm, "F")
+        self.assertEqual(descriptor.lrecl, 12)
+        self.assertTrue(descriptor.text)
 
 
 if __name__ == "__main__":

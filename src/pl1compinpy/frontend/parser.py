@@ -74,22 +74,71 @@ class Parser:
         tokens = self._collect_until_semicolon()
         names: list[str] = []
         attributes: list[str] = []
+        dimensions: dict[str, list[int]] = {}
+        file_options: dict[str, str] = {}
         before_attribute = True
+        index = 0
+        depth = 0
 
-        for token in tokens:
+        while index < len(tokens):
+            token = tokens[index]
+            if token.type == TokenType.LPAREN:
+                depth += 1
+                index += 1
+                continue
+            if token.type == TokenType.RPAREN:
+                depth = max(depth - 1, 0)
+                index += 1
+                continue
             if token.type == TokenType.COMMA:
-                before_attribute = True
+                if depth == 0:
+                    before_attribute = True
+                index += 1
                 continue
             if token.type != TokenType.IDENTIFIER:
                 before_attribute = False
+                index += 1
                 continue
-            if before_attribute and not token.is_keyword:
+            if depth == 0 and before_attribute and not token.is_keyword:
                 names.append(token.lexeme)
-            else:
+                if index + 1 < len(tokens) and tokens[index + 1].type == TokenType.LPAREN:
+                    dims, index = self._dimensions_from_tokens(tokens, index + 2)
+                    dimensions[token.lexeme] = dims
+                    continue
+            elif depth == 0:
                 attributes.append(token.lexeme)
                 before_attribute = False
+            index += 1
 
-        return Declaration(names, attributes)
+        file_options = self._file_options_from_tokens(tokens)
+        return Declaration(names, attributes, dimensions, file_options)
+
+    def _dimensions_from_tokens(self, tokens: list[Token], index: int) -> tuple[list[int], int]:
+        dimensions: list[int] = []
+        while index < len(tokens) and tokens[index].type != TokenType.RPAREN:
+            if tokens[index].type == TokenType.NUMBER:
+                dimensions.append(int(float(tokens[index].lexeme)))
+            index += 1
+        return dimensions, index + 1
+
+    def _file_options_from_tokens(self, tokens: list[Token]) -> dict[str, str]:
+        options: dict[str, str] = {}
+        index = 0
+        while index < len(tokens):
+            token = tokens[index]
+            upper = token.lexeme.upper()
+            if upper in {"INPUT", "OUTPUT", "UPDATE"}:
+                options["mode"] = upper
+            elif upper in {"RECORD", "STREAM"}:
+                options["organization"] = upper
+            elif upper in {"TEXT", "BINARY"}:
+                options["format"] = upper
+            elif upper in {"RECFM", "LRECL", "PATH"} and index + 2 < len(tokens):
+                if tokens[index + 1].type == TokenType.LPAREN:
+                    value = tokens[index + 2].lexeme
+                    options[upper.lower()] = value.upper() if upper != "PATH" else value
+            index += 1
+        return options
 
     def _procedure(self, name: str | None) -> Procedure:
         parameters: list[str] = []
