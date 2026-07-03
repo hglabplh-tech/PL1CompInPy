@@ -10,6 +10,16 @@ from .picture import PictureRuntime, PictureRuntimeError, PictureSpec
 from .socket_io import SocketDescriptor, SocketHandle, SocketRuntime, SocketRuntimeError, SocketSecureMode
 from .strings import StringRuntime, StringRuntimeError, StringValue
 from .generics import GenericFunction, GenericRuntime, GenericRuntimeError, pl1_type
+from .function_table import (
+    FunctionDescriptor,
+    FunctionTable,
+    FunctionTableError,
+    ParameterDescriptor,
+    RUNTIME_FUNCTION_TABLE,
+    build_dynamic_function_table,
+    runtime_function_table,
+    validate_program_calls,
+)
 
 __all__ = [
     "ArrayRuntime",
@@ -28,13 +38,18 @@ __all__ = [
     "GenericFunction",
     "GenericRuntime",
     "GenericRuntimeError",
+    "FunctionDescriptor",
+    "FunctionTable",
+    "FunctionTableError",
     "PictureRuntime",
     "PictureRuntimeError",
     "PictureSpec",
     "NumericTower",
     "PL1Type",
     "PL1Value",
+    "ParameterDescriptor",
     "PointerValue",
+    "RUNTIME_FUNCTION_TABLE",
     "RuntimeError",
     "SocketDescriptor",
     "SocketHandle",
@@ -45,6 +60,9 @@ __all__ = [
     "StringRuntime",
     "StringRuntimeError",
     "StringValue",
+    "build_dynamic_function_table",
     "normalize_calls",
     "pl1_type",
+    "runtime_function_table",
+    "validate_program_calls",
 ]

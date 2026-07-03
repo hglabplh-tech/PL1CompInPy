@@ -39,6 +39,9 @@
   - parameters pushed right to left
   - call by reference
   - call by name normalized to sorted call by reference
+  - dynamic function table for user procedures
+  - static runtime function table for runtime functions, I/O, allocation, VSAM, TCP/IP, SSL, and TLS helpers
+  - call validation against function parameter and return descriptions
 - Runtime storage and I/O:
   - heap allocation blocks
   - heap-backed arrays
@@ -81,6 +84,7 @@
 - Arithmetic with `+`, `-`, `*`, and `/`.
 - Power, concatenation, comparison, unary, and logical expression evaluation through the calculation engine.
 - Procedure calls.
+- Function calls resolved and checked through runtime and dynamic function tables.
 - Basic output through `CALL DISPLAY(...)`, `CALL PRINT(...)`, and basic `PUT LIST(...)`.
 - Record I/O statements using forms such as `OPEN FILE(F);`, `READ FILE(F) INTO(BUF);`, `WRITE FILE(F) FROM(BUF);`, and `CLOSE FILE(F);`.
 - Primitive runtime socket I/O for plain TCP, SSL, and TLS sockets.

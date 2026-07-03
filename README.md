@@ -169,6 +169,9 @@ The executable pipeline includes a first runtime calling convention:
 - default procedure calls use call by reference
 - by-reference arguments pass the address of the caller variable, similar to C pointer-style calls
 - `CALL P(B,A) BY NAME;` is normalized by matching argument names to `P`'s parameter names, sorting them into parameter order, and lowering the result as a by-reference call
+- user procedures are registered in a dynamic function table as they are detected
+- runtime services are registered in a static function table with PL/I-like names, pointer targets, parameter descriptions, return types, and call modes
+- `CALL` validation uses the merged runtime and dynamic tables before lowering
 - procedure definitions are emitted before main code and the entry path jumps over them, so procedures run only when called
 
 The runtime also includes starter storage and I/O services:
@@ -189,6 +192,7 @@ The runtime also includes starter storage and I/O services:
 - variable-record files using `RECFM(V)`, represented here with a two-byte big-endian length prefix followed by record data
 - binary and text record payloads
 - primitive TCP socket I/O runtime with client/server sockets, SSL client sockets, and TLS client sockets
+- static runtime function descriptors for `ALLOC`, `FREE`, file I/O, VSAM I/O, TCP/IP, SSL, and TLS helpers
 - generic function dispatch by argument type, using runtime lambda implementations
 - local VSAM-style datasets with a catalog file plus binary data file for KSDS, ESDS, RRDS, and LDS organizations
 - VSAM runtime descriptors and I/O dispatch for `OPEN`, `WRITE FROM`, KSDS keyed `READ`, ESDS RBA `READ`, RRDS RRN `READ`/`WRITE`, LDS RBA/LENGTH `READ`, and `CLOSE`
@@ -225,6 +229,7 @@ PL1CompInPy/
       based.py
       calculation.py
       calling.py
+      function_table.py
       heap.py
       io.py
       picture.py

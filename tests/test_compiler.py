@@ -15,7 +15,7 @@ from pl1compinpy.codegen.dotnet_executable import DotNetExecutableError
 from pl1compinpy.codegen.jvm_classfile import JAVA_17_MAJOR_VERSION
 from pl1compinpy.codegen.executable_pipeline import lower_program
 from pl1compinpy.codegen.linkers import ELFLinker, MachOLinker, PELinker
-from pl1compinpy.ast import BinaryExpression, Call, Declaration, DoGroup, IOStatement, IfStatement, LabelledStatement, Procedure, SelectStatement
+from pl1compinpy.ast import BinaryExpression, Call, Declaration, DoGroup, Identifier, IOStatement, IfStatement, LabelledStatement, Procedure, SelectStatement
 from pl1compinpy.frontend.lexer import Lexer, TokenType
 from pl1compinpy.frontend.parser import Parser
 from pl1compinpy.runtime import (
@@ -23,8 +23,13 @@ from pl1compinpy.runtime import (
     BasedRuntime,
     FileDescriptor,
     GenericRuntime,
+    FunctionDescriptor,
+    FunctionTable,
+    FunctionTableError,
     PictureRuntime,
     CalculationEngine,
+    ParameterDescriptor,
+    RUNTIME_FUNCTION_TABLE,
     StdioRuntime,
     StringRuntime,
     PL1Type,
@@ -32,6 +37,7 @@ from pl1compinpy.runtime import (
     SocketDescriptor,
     SocketRuntime,
     SocketSecureMode,
+    build_dynamic_function_table,
     normalize_calls,
 )
 from pl1compinpy.vsam import VSAMCatalog, VSAMFileDescriptor, VSAMRuntime, VSAMType
@@ -272,6 +278,44 @@ class CompilerTests(unittest.TestCase):
         self.assertIsInstance(call, Call)
         self.assertEqual(call.mode, "reference")
         self.assertEqual([argument.name for argument in call.arguments], ["A", "B"])
+
+    def test_dynamic_function_table_registers_user_procedures(self):
+        program = Parser(Lexer("P: PROC(A,B) RETURNS(FIXED); END P;").tokenize()).parse()
+        table = build_dynamic_function_table(program)
+        descriptor = table.get("P")
+
+        self.assertEqual(descriptor.source, "dynamic")
+        self.assertEqual(descriptor.returns, "FIXED")
+        self.assertEqual([parameter.name for parameter in descriptor.parameters], ["A", "B"])
+        self.assertIsNotNone(descriptor.pointer)
+
+    def test_runtime_function_table_contains_io_alloc_tcpip_and_socket_entries(self):
+        for name in ["ALLOC", "FREE", "OPEN", "READ", "WRITE", "CLOSE", "TCPIP", "TCPIP_SEND", "SSL_SOCKET", "TLS_SOCKET"]:
+            self.assertEqual(RUNTIME_FUNCTION_TABLE.get(name).source, "runtime")
+
+    def test_function_table_validates_call_descriptions(self):
+        table = FunctionTable()
+        table.add_function(
+            FunctionDescriptor(
+                "ADD",
+                lambda left, right: left + right,
+                (
+                    ParameterDescriptor("LEFT", "FIXED BIN"),
+                    ParameterDescriptor("RIGHT", "FIXED BIN"),
+                ),
+                returns="FIXED BIN",
+            )
+        )
+
+        self.assertEqual(table.call("ADD", 2, 3), 5)
+        with self.assertRaises(FunctionTableError):
+            table.validate_call(Call("ADD", [Identifier("LEFT")]))
+
+    def test_normalize_calls_checks_unknown_functions(self):
+        program = Parser(Lexer("CALL DOES_NOT_EXIST();").tokenize()).parse()
+
+        with self.assertRaises(Exception):
+            normalize_calls(program)
 
     def test_runtime_lowers_locals_to_stack_and_parameters_to_references(self):
         source = "P: PROC(A); DCL TEMP FIXED BIN(31); TEMP = A + 1; A = TEMP; END P;"
