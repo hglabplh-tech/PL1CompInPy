@@ -4,6 +4,7 @@
 
 - Python package structure using `pyproject.toml`.
 - Command-line compiler entry point via `python -m pl1compinpy`.
+- Generated API reference for all Python modules, classes, functions, and methods.
 - Layered package organization:
   - `core` for AST and compiler orchestration
   - `frontend` for keywords, lexing, and parsing

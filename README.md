@@ -5,6 +5,7 @@ PL1CompInPy is a starter Python project for a PL/1 compiler.
 ## Project Documents
 
 - [Features](FEATURES.md)
+- [Generated API Reference](docs/API.md)
 - [Code of Conduct](CODE_OF_CONDUCT.md)
 - [MIT License](LICENSE)
 
@@ -209,6 +210,10 @@ The runtime also includes starter storage and I/O services:
 ```text
 PL1CompInPy/
   pyproject.toml
+  docs/
+    API.md
+  scripts/
+    generate_api_docs.py
   src/pl1compinpy/
     builtins/
       loader.py
