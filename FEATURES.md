@@ -54,10 +54,12 @@
   - `FLOAT` declarations
   - `PICTURE`/`PIC` pattern metadata and runtime formatting/parsing
   - fixed decimal and float conversion to/from picture-formatted text
+  - scaled fixed decimal runtime values with packed decimal and zoned decimal codecs
+  - exported decimal conversion APIs for fixed decimal, fixed binary, float, string, packed, and zoned forms
   - `POINTER` variables
   - `BASED(pointer)` record storage bound to dedicated pointer locators
-  - calculation engine with a typed numeric tower, casts, and expression evaluation
-  - strings stored as two-byte length plus payload
+  - calculation engine with a typed numeric tower, casts, expression evaluation, and shared runtime implementations for numeric builtins
+  - strings stored as two-byte length plus payload, with runtime `LENGTH`, one-based `SUBSTR`, and one-based `INDEX`
   - PL/I-style file declarations
   - PL/I-style `OPEN`, `READ`, `WRITE`, and `CLOSE` file statements
   - Unix-style stream files
@@ -105,8 +107,9 @@
 - Generic declarations using `GENERIC(... WHEN(...))`.
 - VSAM declarations using `ENVIRONMENT(VSAM(...), KEYOFFSET(...), KEYLENGTH(...))`.
 - VSAM I/O statements using `OPEN FILE(...)`, `WRITE FILE(...) FROM(...)`, `READ FILE(...) KEY(...) INTO(...)`, ESDS `RBA(...)`, RRDS `RRN(...)`, LDS `RBA(...) LENGTH(...)`, and `CLOSE FILE(...)`.
-- Runtime `SUBSTR` behavior using one-based positions, enabled in source with `DCL SUBSTR BUILTIN;`.
-- Declared static builtins for string and numeric helpers such as `LENGTH`, `INDEX`, `ABS`, `MIN`, `MAX`, `MOD`, `ROUND`, and `TRUNC`.
+- Runtime `SUBSTR` behavior using one-based positions over two-byte-length string payloads, enabled in source with `DCL SUBSTR BUILTIN;`.
+- Declared static builtins for string and numeric helpers such as `LENGTH`, `INDEX`, `ABS`, `SIGN`, `MIN`, `MAX`, `MOD`, `ROUND`, `TRUNC`, `CEIL`, `FLOOR`, `SQRT`, `EXP`, `LOG`, `SIN`, `COS`, and `TAN`.
+- Declared static conversion builtins for `FIXED_DECIMAL`, `DECIMAL_TO_PACKED`, `DECIMAL_FROM_PACKED`, `DECIMAL_TO_ZONED`, and `DECIMAL_FROM_ZONED`.
 - `PROC OPTIONS(MAIN)` program entry point.
 - `PROC RECURSIVE` metadata and ordinary recursive-call continuation semantics.
 - `PROC RETURNS(...)` function return metadata.

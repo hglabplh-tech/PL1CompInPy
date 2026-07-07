@@ -28,6 +28,7 @@ These examples cover the compiler features currently implemented in PL1CompInPy.
 - `runtime/file_record_f.pl1`: fixed-record file declaration
 - `runtime/file_read_write.pl1`: `OPEN`, `READ`, `WRITE`, and `CLOSE` file statements
 - `runtime/function_table.py`: dynamic user function table and static runtime function table lookup
+- `runtime/fixed_decimal_packed_zoned.py`: fixed decimal, packed decimal, zoned decimal, and two-byte string runtime APIs
 - `runtime/runtime_visitor.py`: direct use of the AST `RuntimeExecutionVisitor`
 - `runtime/socket_io.py`: primitive runtime TCP socket send/receive example
 - `runtime/socket_stream.py`: file-like socket payload records above primitive sockets

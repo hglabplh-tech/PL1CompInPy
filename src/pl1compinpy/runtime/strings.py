@@ -44,6 +44,23 @@ class StringRuntime:
         storage[2:] = payload
         return StringValue(self.heap, handle)
 
+    def assign(self, value: StringValue, data: bytes | str, encoding: str = "utf-8") -> None:
+        payload = data.encode(encoding) if isinstance(data, str) else data
+        if len(payload) > 0xFFFF:
+            raise StringRuntimeError("String payload exceeds two-byte length field")
+        block = self.heap.block(value.handle)
+        block.storage = bytearray(2 + len(payload))
+        block.storage[:2] = len(payload).to_bytes(2, "big")
+        block.storage[2:] = payload
+
+    def length(self, value: StringValue) -> int:
+        return value.length
+
+    def index(self, value: StringValue, needle: StringValue | bytes | str, encoding: str = "utf-8") -> int:
+        payload = needle.payload if isinstance(needle, StringValue) else needle.encode(encoding) if isinstance(needle, str) else needle
+        index = value.payload.find(payload)
+        return 0 if index < 0 else index + 1
+
     def substr(self, value: StringValue, start: int, count: int | None = None) -> StringValue:
         if start < 1:
             raise StringRuntimeError("SUBSTR start position is one-based")
@@ -56,4 +73,3 @@ class StringRuntime:
 
 
 __all__ = ["StringRuntime", "StringRuntimeError", "StringValue"]
-

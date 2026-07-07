@@ -5,6 +5,7 @@ from decimal import Decimal, DivisionByZero
 from enum import Enum
 
 from ..core.ast import BinaryExpression, Expression, Identifier, NumberLiteral, StringLiteral, UnaryExpression
+from .decimal import FixedDecimal
 
 
 class CalculationError(ValueError):
@@ -28,6 +29,8 @@ class PL1Value:
     def truthy(self) -> bool:
         if self.type == PL1Type.BIT:
             return bool(self.value)
+        if isinstance(self.value, FixedDecimal):
+            return self.value.scaled != 0
         if self.type in {PL1Type.FIXED_BIN, PL1Type.FIXED_DEC, PL1Type.FLOAT}:
             return self.value != 0
         return bool(self.value)
@@ -50,9 +53,14 @@ class NumericTower:
 
     def cast(self, value: PL1Value, target: PL1Type | str) -> PL1Value:
         target = PL1Type(target)
+        if target == PL1Type.FIXED_DEC and value.type == PL1Type.FIXED_DEC and not isinstance(value.value, FixedDecimal):
+            text = str(value.value)
+            return PL1Value(FixedDecimal.from_string(text, max(len(text.replace(".", "").replace("-", "").replace("+", "")), 1), len(text.split(".", 1)[1]) if "." in text else 0), target)
         if value.type == target:
             return value
         if target == PL1Type.CHARACTER:
+            if isinstance(value.value, FixedDecimal):
+                return PL1Value(value.value.string(), target)
             return PL1Value(str(value.value), target)
         if target == PL1Type.BIT:
             return PL1Value(value.truthy, target)
@@ -61,14 +69,21 @@ class NumericTower:
             if target == PL1Type.FLOAT:
                 return PL1Value(float(text), target)
             if target == PL1Type.FIXED_DEC:
-                return PL1Value(Decimal(text), target)
+                return PL1Value(FixedDecimal.from_string(text, max(len(text.replace(".", "").replace("-", "").replace("+", "")), 1), len(text.split(".", 1)[1]) if "." in text else 0), target)
             if target == PL1Type.FIXED_BIN:
                 return PL1Value(int(Decimal(text)), target)
         if target == PL1Type.FLOAT:
+            if isinstance(value.value, FixedDecimal):
+                return PL1Value(value.value.float(), target)
             return PL1Value(float(value.value), target)
         if target == PL1Type.FIXED_DEC:
-            return PL1Value(Decimal(str(value.value)), target)
+            if isinstance(value.value, FixedDecimal):
+                return PL1Value(value.value, target)
+            text = str(value.value)
+            return PL1Value(FixedDecimal.from_string(text, max(len(text.replace(".", "").replace("-", "").replace("+", "")), 1), len(text.split(".", 1)[1]) if "." in text else 0), target)
         if target == PL1Type.FIXED_BIN:
+            if isinstance(value.value, FixedDecimal):
+                return PL1Value(value.value.int(), target)
             return PL1Value(int(Decimal(str(value.value))), target)
         raise CalculationError(f"Cannot cast {value.type} to {target}")
 
@@ -85,7 +100,7 @@ class NumericTower:
             return PL1Type.BIT
         if isinstance(raw, int):
             return PL1Type.FIXED_BIN
-        if isinstance(raw, Decimal):
+        if isinstance(raw, (Decimal, FixedDecimal)):
             return PL1Type.FIXED_DEC
         if isinstance(raw, float):
             return PL1Type.FLOAT
@@ -119,7 +134,7 @@ class CalculationEngine:
 
     def _number(self, text: str) -> PL1Value:
         if "." in text:
-            return PL1Value(Decimal(text), PL1Type.FIXED_DEC)
+            return PL1Value(FixedDecimal.from_string(text, len(text.replace(".", "").replace("-", "").replace("+", "")), len(text.split(".", 1)[1])), PL1Type.FIXED_DEC)
         return PL1Value(int(text), PL1Type.FIXED_BIN)
 
     def _unary(self, expression: UnaryExpression) -> PL1Value:
@@ -150,12 +165,20 @@ class CalculationEngine:
         left, right, target = self.tower.promote(left, right)
         try:
             if op == "+":
+                if target == PL1Type.FIXED_DEC and isinstance(left.value, FixedDecimal) and isinstance(right.value, FixedDecimal):
+                    return PL1Value(left.value.add(right.value), target)
                 return PL1Value(left.value + right.value, target)
             if op == "-":
+                if target == PL1Type.FIXED_DEC and isinstance(left.value, FixedDecimal) and isinstance(right.value, FixedDecimal):
+                    return PL1Value(left.value.sub(right.value), target)
                 return PL1Value(left.value - right.value, target)
             if op == "*":
+                if target == PL1Type.FIXED_DEC and isinstance(left.value, FixedDecimal) and isinstance(right.value, FixedDecimal):
+                    return PL1Value(left.value.mul(right.value), target)
                 return PL1Value(left.value * right.value, target)
             if op == "/":
+                if target == PL1Type.FIXED_DEC and isinstance(left.value, FixedDecimal) and isinstance(right.value, FixedDecimal):
+                    return PL1Value(left.value.div(right.value), PL1Type.FIXED_DEC)
                 return PL1Value(left.value / right.value, PL1Type.FLOAT if target == PL1Type.FLOAT else PL1Type.FIXED_DEC)
             if op == "**":
                 return PL1Value(left.value ** right.value, target)
@@ -167,18 +190,21 @@ class CalculationEngine:
         if left.type != PL1Type.CHARACTER or right.type != PL1Type.CHARACTER:
             left, right, _ = self.tower.promote(left, right)
         if op == "=":
-            return left.value == right.value
+            return self._comparable(left.value) == self._comparable(right.value)
         if op in {"^=", "¬=", "~=", "<>"}:
-            return left.value != right.value
+            return self._comparable(left.value) != self._comparable(right.value)
         if op == "<":
-            return left.value < right.value
+            return self._comparable(left.value) < self._comparable(right.value)
         if op == "<=":
-            return left.value <= right.value
+            return self._comparable(left.value) <= self._comparable(right.value)
         if op == ">":
-            return left.value > right.value
+            return self._comparable(left.value) > self._comparable(right.value)
         if op in {">=", "=>"}:
-            return left.value >= right.value
+            return self._comparable(left.value) >= self._comparable(right.value)
         raise CalculationError(f"Unsupported comparison operator: {op}")
+
+    def _comparable(self, value: object) -> object:
+        return value.decimal() if isinstance(value, FixedDecimal) else value
 
 
 __all__ = ["CalculationEngine", "CalculationError", "NumericTower", "PL1Type", "PL1Value"]

@@ -4,9 +4,9 @@ This file is generated from the Python source tree. Regenerate it with `python s
 
 ## Summary
 
-- Modules: 42
-- Classes: 110
-- Functions and methods: 427
+- Modules: 43
+- Classes: 115
+- Functions and methods: 477
 
 ## `pl1compinpy`
 
@@ -3758,7 +3758,7 @@ class CalculationError(ValueError)
 
 Exception type raised for calculation errors.
 
-Defined at line 10.
+Defined at line 11.
 
 #### `PL1Type`
 
@@ -3768,7 +3768,7 @@ class PL1Type(str, Enum)
 
 Class implementing pl1 type behavior in the PL/I compiler.
 
-Defined at line 14.
+Defined at line 15.
 
 #### `PL1Value`
 
@@ -3778,7 +3778,7 @@ class PL1Value
 
 Data container describing pl1 value values used by the compiler.
 
-Defined at line 23.
+Defined at line 24.
 
 Methods:
 
@@ -3790,7 +3790,7 @@ def truthy(self) -> bool
 
 Performs truthy behavior in `PL1Value`.
 
-Defined at line 28.
+Defined at line 29.
 
 #### `NumericTower`
 
@@ -3800,7 +3800,7 @@ class NumericTower
 
 Class implementing numeric tower behavior in the PL/I compiler.
 
-Defined at line 36.
+Defined at line 39.
 
 Methods:
 
@@ -3812,7 +3812,7 @@ def value(self, raw: object, type_name: PL1Type | str | None = None) -> PL1Value
 
 Performs value behavior in `NumericTower`.
 
-Defined at line 44.
+Defined at line 47.
 
 ##### `NumericTower.cast`
 
@@ -3822,7 +3822,7 @@ def cast(self, value: PL1Value, target: PL1Type | str) -> PL1Value
 
 Performs cast behavior in `NumericTower`.
 
-Defined at line 51.
+Defined at line 54.
 
 ##### `NumericTower.promote`
 
@@ -3832,7 +3832,7 @@ def promote(self, left: PL1Value, right: PL1Value) -> tuple[PL1Value, PL1Value, 
 
 Performs promote behavior in `NumericTower`.
 
-Defined at line 75.
+Defined at line 90.
 
 ##### `NumericTower._infer`
 
@@ -3842,7 +3842,7 @@ def _infer(self, raw: object) -> PL1Type
 
 Internal helper in `NumericTower` for infer.
 
-Defined at line 83.
+Defined at line 98.
 
 #### `CalculationEngine`
 
@@ -3852,7 +3852,7 @@ class CalculationEngine
 
 Class implementing calculation engine behavior in the PL/I compiler.
 
-Defined at line 97.
+Defined at line 112.
 
 Methods:
 
@@ -3864,7 +3864,7 @@ def __init__(self, variables: dict[str, PL1Value | object] | None = None) -> Non
 
 Initializes an instance of `CalculationEngine`.
 
-Defined at line 98.
+Defined at line 113.
 
 ##### `CalculationEngine.evaluate`
 
@@ -3874,7 +3874,7 @@ def evaluate(self, expression: Expression) -> PL1Value
 
 Performs evaluate behavior in `CalculationEngine`.
 
-Defined at line 102.
+Defined at line 117.
 
 ##### `CalculationEngine.cast`
 
@@ -3884,7 +3884,7 @@ def cast(self, value: PL1Value | object, target: PL1Type | str) -> PL1Value
 
 Performs cast behavior in `CalculationEngine`.
 
-Defined at line 117.
+Defined at line 132.
 
 ##### `CalculationEngine._number`
 
@@ -3894,7 +3894,7 @@ def _number(self, text: str) -> PL1Value
 
 Internal helper in `CalculationEngine` for number.
 
-Defined at line 120.
+Defined at line 135.
 
 ##### `CalculationEngine._unary`
 
@@ -3904,7 +3904,7 @@ def _unary(self, expression: UnaryExpression) -> PL1Value
 
 Internal helper in `CalculationEngine` for unary.
 
-Defined at line 125.
+Defined at line 140.
 
 ##### `CalculationEngine._binary`
 
@@ -3914,7 +3914,7 @@ def _binary(self, expression: BinaryExpression) -> PL1Value
 
 Internal helper in `CalculationEngine` for binary.
 
-Defined at line 138.
+Defined at line 153.
 
 ##### `CalculationEngine._compare`
 
@@ -3924,7 +3924,17 @@ def _compare(self, left: PL1Value, right: PL1Value, op: str) -> bool
 
 Internal helper in `CalculationEngine` for compare.
 
-Defined at line 166.
+Defined at line 189.
+
+##### `CalculationEngine._comparable`
+
+```python
+def _comparable(self, value: object) -> object
+```
+
+Internal helper in `CalculationEngine` for comparable.
+
+Defined at line 206.
 
 ## `pl1compinpy.runtime.calling`
 
@@ -3995,6 +4005,586 @@ def _descriptor_parameter_names(descriptor: FunctionDescriptor) -> list[str]
 Internal helper in `pl1compinpy.runtime.calling` for descriptor parameter names.
 
 Defined at line 85.
+
+## `pl1compinpy.runtime.decimal`
+
+Source: `pl1compinpy/runtime/decimal.py`
+
+Module containing decimal support for the PL/I compiler.
+
+### Classes
+
+#### `FixedDecimal`
+
+```python
+class FixedDecimal
+```
+
+Data container describing fixed decimal values used by the compiler.
+
+Defined at line 15.
+
+Methods:
+
+##### `FixedDecimal.from_decimal`
+
+```python
+def from_decimal(cls, value: Decimal, precision: int, scale: int = 0) -> 'FixedDecimal'
+```
+
+Performs from decimal behavior in `FixedDecimal`.
+
+Defined at line 21.
+
+##### `FixedDecimal.from_string`
+
+```python
+def from_string(cls, text: str, precision: int, scale: int = 0) -> 'FixedDecimal'
+```
+
+Performs from string behavior in `FixedDecimal`.
+
+Defined at line 29.
+
+##### `FixedDecimal.from_int`
+
+```python
+def from_int(cls, value: int, precision: int, scale: int = 0) -> 'FixedDecimal'
+```
+
+Performs from int behavior in `FixedDecimal`.
+
+Defined at line 33.
+
+##### `FixedDecimal.from_float`
+
+```python
+def from_float(cls, value: float, precision: int, scale: int = 0) -> 'FixedDecimal'
+```
+
+Performs from float behavior in `FixedDecimal`.
+
+Defined at line 37.
+
+##### `FixedDecimal.decimal`
+
+```python
+def decimal(self) -> Decimal
+```
+
+Performs decimal behavior in `FixedDecimal`.
+
+Defined at line 40.
+
+##### `FixedDecimal.string`
+
+```python
+def string(self) -> str
+```
+
+Performs string behavior in `FixedDecimal`.
+
+Defined at line 43.
+
+##### `FixedDecimal.__str__`
+
+```python
+def __str__(self) -> str
+```
+
+Internal helper in `FixedDecimal` for str.
+
+Defined at line 47.
+
+##### `FixedDecimal.__eq__`
+
+```python
+def __eq__(self, other: object) -> bool
+```
+
+Internal helper in `FixedDecimal` for eq.
+
+Defined at line 50.
+
+##### `FixedDecimal.int`
+
+```python
+def int(self) -> int
+```
+
+Performs int behavior in `FixedDecimal`.
+
+Defined at line 57.
+
+##### `FixedDecimal.float`
+
+```python
+def float(self) -> float
+```
+
+Performs float behavior in `FixedDecimal`.
+
+Defined at line 60.
+
+##### `FixedDecimal.check`
+
+```python
+def check(self) -> None
+```
+
+Performs check behavior in `FixedDecimal`.
+
+Defined at line 63.
+
+##### `FixedDecimal.rescale`
+
+```python
+def rescale(self, precision: int, scale: int) -> 'FixedDecimal'
+```
+
+Performs rescale behavior in `FixedDecimal`.
+
+Defined at line 68.
+
+##### `FixedDecimal.add`
+
+```python
+def add(self, other: 'FixedDecimal') -> 'FixedDecimal'
+```
+
+Performs add behavior in `FixedDecimal`.
+
+Defined at line 71.
+
+##### `FixedDecimal.sub`
+
+```python
+def sub(self, other: 'FixedDecimal') -> 'FixedDecimal'
+```
+
+Performs sub behavior in `FixedDecimal`.
+
+Defined at line 78.
+
+##### `FixedDecimal.mul`
+
+```python
+def mul(self, other: 'FixedDecimal') -> 'FixedDecimal'
+```
+
+Performs mul behavior in `FixedDecimal`.
+
+Defined at line 85.
+
+##### `FixedDecimal.div`
+
+```python
+def div(self, other: 'FixedDecimal', precision: int | None = None, scale: int | None = None) -> 'FixedDecimal'
+```
+
+Performs div behavior in `FixedDecimal`.
+
+Defined at line 88.
+
+#### `ZonedDecimalCodec`
+
+```python
+class ZonedDecimalCodec
+```
+
+Class implementing zoned decimal codec behavior in the PL/I compiler.
+
+Defined at line 102.
+
+Methods:
+
+##### `ZonedDecimalCodec.encode`
+
+```python
+def encode(value: FixedDecimal, signed: bool = True, overpunch: bool = True) -> str
+```
+
+Performs encode behavior in `ZonedDecimalCodec`.
+
+Defined at line 104.
+
+##### `ZonedDecimalCodec.decode`
+
+```python
+def decode(text: str, precision: int, scale: int = 0) -> FixedDecimal
+```
+
+Performs decode behavior in `ZonedDecimalCodec`.
+
+Defined at line 114.
+
+#### `PackedDecimalCodec`
+
+```python
+class PackedDecimalCodec
+```
+
+Class implementing packed decimal codec behavior in the PL/I compiler.
+
+Defined at line 130.
+
+Methods:
+
+##### `PackedDecimalCodec.encode`
+
+```python
+def encode(value: FixedDecimal) -> bytes
+```
+
+Performs encode behavior in `PackedDecimalCodec`.
+
+Defined at line 135.
+
+##### `PackedDecimalCodec.decode`
+
+```python
+def decode(data: bytes | bytearray, precision: int, scale: int = 0) -> FixedDecimal
+```
+
+Performs decode behavior in `PackedDecimalCodec`.
+
+Defined at line 144.
+
+#### `DecimalRuntime`
+
+```python
+class DecimalRuntime
+```
+
+Class implementing decimal runtime behavior in the PL/I compiler.
+
+Defined at line 162.
+
+Methods:
+
+##### `DecimalRuntime.fixed_decimal`
+
+```python
+def fixed_decimal(value: Decimal | str | int | float | FixedDecimal, precision: int, scale: int = 0) -> FixedDecimal
+```
+
+Performs fixed decimal behavior in `DecimalRuntime`.
+
+Defined at line 164.
+
+##### `DecimalRuntime.convert`
+
+```python
+def convert(value: Any, source: str, target: str, *, precision: int, scale: int = 0) -> Any
+```
+
+Performs convert behavior in `DecimalRuntime`.
+
+Defined at line 176.
+
+##### `DecimalRuntime.to_fixed_decimal`
+
+```python
+def to_fixed_decimal(value: Any, source: str, precision: int, scale: int = 0) -> FixedDecimal
+```
+
+Performs to fixed decimal behavior in `DecimalRuntime`.
+
+Defined at line 196.
+
+#### `CalculationBuiltinRuntime`
+
+```python
+class CalculationBuiltinRuntime
+```
+
+Class implementing calculation builtin runtime behavior in the PL/I compiler.
+
+Defined at line 237.
+
+Methods:
+
+##### `CalculationBuiltinRuntime.ABS`
+
+```python
+def ABS(self, value: Any) -> Any
+```
+
+Performs abs behavior in `CalculationBuiltinRuntime`.
+
+Defined at line 238.
+
+##### `CalculationBuiltinRuntime.SIGN`
+
+```python
+def SIGN(self, value: Any) -> int
+```
+
+Performs sign behavior in `CalculationBuiltinRuntime`.
+
+Defined at line 245.
+
+##### `CalculationBuiltinRuntime.MIN`
+
+```python
+def MIN(self, *args: Any) -> Any
+```
+
+Performs min behavior in `CalculationBuiltinRuntime`.
+
+Defined at line 249.
+
+##### `CalculationBuiltinRuntime.MAX`
+
+```python
+def MAX(self, *args: Any) -> Any
+```
+
+Performs max behavior in `CalculationBuiltinRuntime`.
+
+Defined at line 252.
+
+##### `CalculationBuiltinRuntime.MOD`
+
+```python
+def MOD(self, left: Any, right: Any) -> int
+```
+
+Performs mod behavior in `CalculationBuiltinRuntime`.
+
+Defined at line 255.
+
+##### `CalculationBuiltinRuntime.TRUNC`
+
+```python
+def TRUNC(self, value: Any, scale: Any = 0) -> FixedDecimal
+```
+
+Performs trunc behavior in `CalculationBuiltinRuntime`.
+
+Defined at line 258.
+
+##### `CalculationBuiltinRuntime.ROUND`
+
+```python
+def ROUND(self, value: Any, scale: Any = 0) -> FixedDecimal
+```
+
+Performs round behavior in `CalculationBuiltinRuntime`.
+
+Defined at line 263.
+
+##### `CalculationBuiltinRuntime.CEIL`
+
+```python
+def CEIL(self, value: Any) -> int
+```
+
+Performs ceil behavior in `CalculationBuiltinRuntime`.
+
+Defined at line 268.
+
+##### `CalculationBuiltinRuntime.FLOOR`
+
+```python
+def FLOOR(self, value: Any) -> int
+```
+
+Performs floor behavior in `CalculationBuiltinRuntime`.
+
+Defined at line 271.
+
+##### `CalculationBuiltinRuntime.SQRT`
+
+```python
+def SQRT(self, value: Any) -> Any
+```
+
+Performs sqrt behavior in `CalculationBuiltinRuntime`.
+
+Defined at line 274.
+
+##### `CalculationBuiltinRuntime.EXP`
+
+```python
+def EXP(self, value: Any) -> float
+```
+
+Performs exp behavior in `CalculationBuiltinRuntime`.
+
+Defined at line 279.
+
+##### `CalculationBuiltinRuntime.LOG`
+
+```python
+def LOG(self, value: Any) -> float
+```
+
+Performs log behavior in `CalculationBuiltinRuntime`.
+
+Defined at line 282.
+
+##### `CalculationBuiltinRuntime.SIN`
+
+```python
+def SIN(self, value: Any) -> float
+```
+
+Performs sin behavior in `CalculationBuiltinRuntime`.
+
+Defined at line 285.
+
+##### `CalculationBuiltinRuntime.COS`
+
+```python
+def COS(self, value: Any) -> float
+```
+
+Performs cos behavior in `CalculationBuiltinRuntime`.
+
+Defined at line 288.
+
+##### `CalculationBuiltinRuntime.TAN`
+
+```python
+def TAN(self, value: Any) -> float
+```
+
+Performs tan behavior in `CalculationBuiltinRuntime`.
+
+Defined at line 291.
+
+##### `CalculationBuiltinRuntime.REAL`
+
+```python
+def REAL(self, value: Any) -> Any
+```
+
+Performs real behavior in `CalculationBuiltinRuntime`.
+
+Defined at line 294.
+
+##### `CalculationBuiltinRuntime.IMAG`
+
+```python
+def IMAG(self, value: Any) -> Any
+```
+
+Performs imag behavior in `CalculationBuiltinRuntime`.
+
+Defined at line 297.
+
+##### `CalculationBuiltinRuntime.CONJG`
+
+```python
+def CONJG(self, value: Any) -> complex
+```
+
+Performs conjg behavior in `CalculationBuiltinRuntime`.
+
+Defined at line 300.
+
+##### `CalculationBuiltinRuntime.LENGTH`
+
+```python
+def LENGTH(self, value: Any) -> int
+```
+
+Performs length behavior in `CalculationBuiltinRuntime`.
+
+Defined at line 303.
+
+##### `CalculationBuiltinRuntime.SUBSTR`
+
+```python
+def SUBSTR(self, value: Any, start: Any, count: Any | None = None) -> str
+```
+
+Performs substr behavior in `CalculationBuiltinRuntime`.
+
+Defined at line 310.
+
+##### `CalculationBuiltinRuntime.INDEX`
+
+```python
+def INDEX(self, value: Any, needle: Any) -> int
+```
+
+Performs index behavior in `CalculationBuiltinRuntime`.
+
+Defined at line 315.
+
+##### `CalculationBuiltinRuntime.FIXED_DECIMAL`
+
+```python
+def FIXED_DECIMAL(self, value: Any, precision: Any, scale: Any = 0) -> FixedDecimal
+```
+
+Performs fixed decimal behavior in `CalculationBuiltinRuntime`.
+
+Defined at line 321.
+
+##### `CalculationBuiltinRuntime.DECIMAL_TO_PACKED`
+
+```python
+def DECIMAL_TO_PACKED(self, value: Any, precision: Any, scale: Any = 0) -> bytes
+```
+
+Performs decimal to packed behavior in `CalculationBuiltinRuntime`.
+
+Defined at line 324.
+
+##### `CalculationBuiltinRuntime.DECIMAL_FROM_PACKED`
+
+```python
+def DECIMAL_FROM_PACKED(self, value: Any, precision: Any, scale: Any = 0) -> FixedDecimal
+```
+
+Performs decimal from packed behavior in `CalculationBuiltinRuntime`.
+
+Defined at line 328.
+
+##### `CalculationBuiltinRuntime.DECIMAL_TO_ZONED`
+
+```python
+def DECIMAL_TO_ZONED(self, value: Any, precision: Any, scale: Any = 0) -> str
+```
+
+Performs decimal to zoned behavior in `CalculationBuiltinRuntime`.
+
+Defined at line 331.
+
+##### `CalculationBuiltinRuntime.DECIMAL_FROM_ZONED`
+
+```python
+def DECIMAL_FROM_ZONED(self, value: Any, precision: Any, scale: Any = 0) -> FixedDecimal
+```
+
+Performs decimal from zoned behavior in `CalculationBuiltinRuntime`.
+
+Defined at line 335.
+
+### Functions
+
+#### `to_decimal`
+
+```python
+def to_decimal(value: Any) -> Decimal
+```
+
+Performs to decimal behavior in `pl1compinpy.runtime.decimal`.
+
+Defined at line 215.
+
+#### `to_python_float`
+
+```python
+def to_python_float(value: Any) -> float
+```
+
+Performs to python float behavior in `pl1compinpy.runtime.decimal`.
+
+Defined at line 231.
 
 ## `pl1compinpy.runtime.function_table`
 
@@ -5240,6 +5830,36 @@ Performs allocate behavior in `StringRuntime`.
 
 Defined at line 37.
 
+##### `StringRuntime.assign`
+
+```python
+def assign(self, value: StringValue, data: bytes | str, encoding: str = 'utf-8') -> None
+```
+
+Performs assign behavior in `StringRuntime`.
+
+Defined at line 47.
+
+##### `StringRuntime.length`
+
+```python
+def length(self, value: StringValue) -> int
+```
+
+Performs length behavior in `StringRuntime`.
+
+Defined at line 56.
+
+##### `StringRuntime.index`
+
+```python
+def index(self, value: StringValue, needle: StringValue | bytes | str, encoding: str = 'utf-8') -> int
+```
+
+Performs index behavior in `StringRuntime`.
+
+Defined at line 59.
+
 ##### `StringRuntime.substr`
 
 ```python
@@ -5248,7 +5868,7 @@ def substr(self, value: StringValue, start: int, count: int | None = None) -> St
 
 Performs substr behavior in `StringRuntime`.
 
-Defined at line 47.
+Defined at line 64.
 
 ## `pl1compinpy.runtime.visitor`
 
@@ -5266,7 +5886,7 @@ class RuntimeVisitorError(ValueError)
 
 Exception type raised for runtime visitor errors.
 
-Defined at line 27.
+Defined at line 26.
 
 #### `RuntimeExecutionVisitor`
 
@@ -5276,7 +5896,7 @@ class RuntimeExecutionVisitor(AstVisitor)
 
 Class implementing runtime execution visitor behavior in the PL/I compiler.
 
-Defined at line 31.
+Defined at line 30.
 
 Methods:
 
@@ -5288,7 +5908,7 @@ def __init__(self, variables: dict[str, PL1Value | object] | None = None, max_lo
 
 Initializes an instance of `RuntimeExecutionVisitor`.
 
-Defined at line 32.
+Defined at line 31.
 
 ##### `RuntimeExecutionVisitor.visit_Program`
 
@@ -5438,57 +6058,7 @@ def _plain(self, value: PL1Value | object) -> object
 
 Internal helper in `RuntimeExecutionVisitor` for plain.
 
-Defined at line 161.
-
-##### `RuntimeExecutionVisitor._sign`
-
-```python
-def _sign(self, value: object) -> int
-```
-
-Internal helper in `RuntimeExecutionVisitor` for sign.
-
-Defined at line 164.
-
-##### `RuntimeExecutionVisitor._trunc`
-
-```python
-def _trunc(self, value: object, scale: object = 0) -> Decimal
-```
-
-Internal helper in `RuntimeExecutionVisitor` for trunc.
-
-Defined at line 168.
-
-##### `RuntimeExecutionVisitor._round`
-
-```python
-def _round(self, value: object, scale: object = 0) -> Decimal
-```
-
-Internal helper in `RuntimeExecutionVisitor` for round.
-
-Defined at line 172.
-
-##### `RuntimeExecutionVisitor._substr`
-
-```python
-def _substr(self, value: object, start: object, count: object | None = None) -> str
-```
-
-Internal helper in `RuntimeExecutionVisitor` for substr.
-
-Defined at line 176.
-
-##### `RuntimeExecutionVisitor._index`
-
-```python
-def _index(self, value: object, needle: object) -> int
-```
-
-Internal helper in `RuntimeExecutionVisitor` for index.
-
-Defined at line 181.
+Defined at line 169.
 
 ## `pl1compinpy.vsam`
 

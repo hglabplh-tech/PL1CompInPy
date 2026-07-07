@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from decimal import Decimal
-import math
 from typing import Any
 
 from ..core.ast import (
@@ -21,6 +19,7 @@ from ..core.ast import (
     Statement,
 )
 from .calculation import CalculationEngine, PL1Type, PL1Value
+from .decimal import CalculationBuiltinRuntime, FixedDecimal
 from .function_table import RUNTIME_FUNCTION_TABLE, FunctionTable, FunctionTableError, build_dynamic_function_table, declare_program_builtins
 
 
@@ -34,6 +33,7 @@ class RuntimeExecutionVisitor(AstVisitor):
         self.max_loop = max_loop
         self.output: list[object] = []
         self.function_table: FunctionTable = RUNTIME_FUNCTION_TABLE
+        self.builtins = CalculationBuiltinRuntime()
 
     def visit_Program(self, node: Program) -> Any:
         self.function_table = RUNTIME_FUNCTION_TABLE.merge(build_dynamic_function_table(node))
@@ -57,7 +57,7 @@ class RuntimeExecutionVisitor(AstVisitor):
             elif "BIT" in attributes:
                 self.variables[name] = PL1Value(False, PL1Type.BIT)
             elif "DECIMAL" in attributes or "DEC" in attributes:
-                self.variables[name] = PL1Value(Decimal(0), PL1Type.FIXED_DEC)
+                self.variables[name] = PL1Value(FixedDecimal.from_int(0, 15, 0), PL1Type.FIXED_DEC)
             else:
                 self.variables[name] = PL1Value(0, PL1Type.FIXED_BIN)
         return None
@@ -134,24 +134,32 @@ class RuntimeExecutionVisitor(AstVisitor):
             self.output.extend(arguments)
             return None
         handlers = {
-            "ABS": abs,
-            "SIGN": self._sign,
-            "MIN": min,
-            "MAX": max,
-            "MOD": lambda a, b: int(a) % int(b),
-            "TRUNC": self._trunc,
-            "ROUND": self._round,
-            "CEIL": lambda x: math.ceil(float(x)),
-            "FLOOR": lambda x: math.floor(float(x)),
-            "SQRT": lambda x: math.sqrt(float(x)),
-            "EXP": lambda x: math.exp(float(x)),
-            "LOG": lambda x: math.log(float(x)),
-            "SIN": lambda x: math.sin(float(x)),
-            "COS": lambda x: math.cos(float(x)),
-            "TAN": lambda x: math.tan(float(x)),
-            "LENGTH": lambda x: len(str(x)),
-            "SUBSTR": self._substr,
-            "INDEX": self._index,
+            "ABS": self.builtins.ABS,
+            "SIGN": self.builtins.SIGN,
+            "MIN": self.builtins.MIN,
+            "MAX": self.builtins.MAX,
+            "MOD": self.builtins.MOD,
+            "TRUNC": self.builtins.TRUNC,
+            "ROUND": self.builtins.ROUND,
+            "CEIL": self.builtins.CEIL,
+            "FLOOR": self.builtins.FLOOR,
+            "SQRT": self.builtins.SQRT,
+            "EXP": self.builtins.EXP,
+            "LOG": self.builtins.LOG,
+            "SIN": self.builtins.SIN,
+            "COS": self.builtins.COS,
+            "TAN": self.builtins.TAN,
+            "REAL": self.builtins.REAL,
+            "IMAG": self.builtins.IMAG,
+            "CONJG": self.builtins.CONJG,
+            "LENGTH": self.builtins.LENGTH,
+            "SUBSTR": self.builtins.SUBSTR,
+            "INDEX": self.builtins.INDEX,
+            "FIXED_DECIMAL": self.builtins.FIXED_DECIMAL,
+            "DECIMAL_TO_PACKED": self.builtins.DECIMAL_TO_PACKED,
+            "DECIMAL_FROM_PACKED": self.builtins.DECIMAL_FROM_PACKED,
+            "DECIMAL_TO_ZONED": self.builtins.DECIMAL_TO_ZONED,
+            "DECIMAL_FROM_ZONED": self.builtins.DECIMAL_FROM_ZONED,
         }
         try:
             return handlers[key](*arguments)
@@ -160,27 +168,5 @@ class RuntimeExecutionVisitor(AstVisitor):
 
     def _plain(self, value: PL1Value | object) -> object:
         return value.value if isinstance(value, PL1Value) else value
-
-    def _sign(self, value: object) -> int:
-        number = Decimal(str(value))
-        return -1 if number < 0 else 1 if number > 0 else 0
-
-    def _trunc(self, value: object, scale: object = 0) -> Decimal:
-        multiplier = Decimal(10) ** int(scale)
-        return Decimal(int(Decimal(str(value)) * multiplier)) / multiplier
-
-    def _round(self, value: object, scale: object = 0) -> Decimal:
-        quant = Decimal(1) / (Decimal(10) ** int(scale))
-        return Decimal(str(value)).quantize(quant)
-
-    def _substr(self, value: object, start: object, count: object | None = None) -> str:
-        text = str(value)
-        index = max(int(start) - 1, 0)
-        return text[index:] if count is None else text[index : index + max(int(count), 0)]
-
-    def _index(self, value: object, needle: object) -> int:
-        index = str(value).find(str(needle))
-        return 0 if index < 0 else index + 1
-
 
 __all__ = ["RuntimeExecutionVisitor", "RuntimeVisitorError"]

@@ -41,12 +41,17 @@ from pl1compinpy.runtime import (
     FunctionDescriptor,
     FunctionTable,
     FunctionTableError,
+    CalculationBuiltinRuntime,
+    DecimalRuntime,
     PictureRuntime,
     CalculationEngine,
+    FixedDecimal,
     ParameterDescriptor,
+    PackedDecimalCodec,
     RUNTIME_FUNCTION_TABLE,
     StdioRuntime,
     StringRuntime,
+    ZonedDecimalCodec,
     PL1Type,
     PL1Value,
     RuntimeExecutionVisitor,
@@ -697,6 +702,34 @@ class CompilerTests(unittest.TestCase):
         self.assertEqual(result.storage[:2], b"\x00\x03")
         self.assertEqual(result.text(), "ELL")
 
+    def test_string_runtime_length_index_and_assignment_use_two_byte_storage(self):
+        runtime = StringRuntime()
+        value = runtime.allocate("HELLO")
+
+        runtime.assign(value, "HELLO WORLD")
+
+        self.assertEqual(value.storage[:2], b"\x00\x0b")
+        self.assertEqual(runtime.length(value), 11)
+        self.assertEqual(runtime.index(value, "WORLD"), 7)
+
+    def test_fixed_decimal_packed_and_zoned_codecs_round_trip(self):
+        fixed = FixedDecimal.from_string("-123.45", precision=5, scale=2)
+        packed = PackedDecimalCodec.encode(fixed)
+        zoned = ZonedDecimalCodec.encode(fixed)
+
+        self.assertEqual(packed, bytes.fromhex("12345d"))
+        self.assertEqual(zoned, "1234N")
+        self.assertEqual(PackedDecimalCodec.decode(packed, 5, 2), Decimal("-123.45"))
+        self.assertEqual(ZonedDecimalCodec.decode(zoned, 5, 2), Decimal("-123.45"))
+
+    def test_decimal_runtime_conversions_are_accessible(self):
+        packed = DecimalRuntime.convert("42.50", "STRING", "PACKED", precision=4, scale=2)
+        zoned = DecimalRuntime.convert(packed, "PACKED", "ZONED", precision=4, scale=2)
+
+        self.assertEqual(packed, bytes.fromhex("04250c"))
+        self.assertEqual(zoned, "425{")
+        self.assertEqual(DecimalRuntime.convert(zoned, "ZONED", "STRING", precision=4, scale=2), "42.50")
+
     def test_picture_runtime_formats_and_parses_fixed_and_float_values(self):
         runtime = PictureRuntime()
 
@@ -720,6 +753,23 @@ class CompilerTests(unittest.TestCase):
         self.assertEqual(value.type, PL1Type.FIXED_DEC)
         self.assertEqual(engine.cast(PL1Value("42.9", PL1Type.CHARACTER), PL1Type.FIXED_BIN).value, 42)
         self.assertEqual(engine.cast(PL1Value(1, PL1Type.FIXED_BIN), PL1Type.FLOAT).value, 1.0)
+
+    def test_calculation_builtins_handle_fixed_decimal_and_strings(self):
+        builtins = CalculationBuiltinRuntime()
+        fixed = builtins.FIXED_DECIMAL("10.25", 4, 2)
+        text = StringRuntime().allocate("ABCDEFG")
+
+        self.assertEqual(builtins.ROUND(fixed, 1), Decimal("10.3"))
+        self.assertEqual(builtins.TRUNC(fixed, 1), Decimal("10.2"))
+        self.assertEqual(builtins.LENGTH(text), 7)
+        self.assertEqual(builtins.SUBSTR(text, 2, 3), "BCD")
+        self.assertEqual(builtins.INDEX(text, "DE"), 4)
+
+    def test_runtime_function_table_exposes_decimal_conversion_builtins(self):
+        for name in ("FIXED_DECIMAL", "DECIMAL_TO_PACKED", "DECIMAL_FROM_PACKED", "DECIMAL_TO_ZONED", "DECIMAL_FROM_ZONED"):
+            descriptor = RUNTIME_FUNCTION_TABLE.get(name)
+            self.assertEqual(descriptor.source, "builtin")
+            self.assertTrue(descriptor.requires_declaration)
 
     def test_calculation_engine_handles_float_character_and_bit_operators(self):
         engine = CalculationEngine({"X": PL1Value(1.5, PL1Type.FLOAT), "FLAG": PL1Value(True, PL1Type.BIT)})

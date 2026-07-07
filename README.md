@@ -175,7 +175,7 @@ The executable pipeline includes a first runtime calling convention:
 - user procedures are registered in a dynamic function table as they are detected
 - runtime services are registered in a static function table with PL/I-like names, pointer targets, parameter descriptions, return types, and call modes
 - PL/I builtins are also registered in the static table, but a source program must declare them with `DCL name BUILTIN;` before calls are accepted
-- declared static builtins now include `SUBSTR`, `LENGTH`, `INDEX`, `ABS`, `SIGN`, `MIN`, `MAX`, `MOD`, `ROUND`, `TRUNC`, `CEIL`, `FLOOR`, and starter math helpers
+- declared static builtins now include `SUBSTR`, `LENGTH`, `INDEX`, `ABS`, `SIGN`, `MIN`, `MAX`, `MOD`, `ROUND`, `TRUNC`, `CEIL`, `FLOOR`, starter math helpers, and fixed-decimal conversion helpers
 - `CALL` validation uses the merged runtime and dynamic tables before lowering
 - procedure definitions are emitted before main code and the entry path jumps over them, so procedures run only when called
 - native targets use a C-style runtime link model: generated objects reference `pl1rt_init`/`pl1rt_shutdown`, then the final executable is resolved against a PL/I runtime object/archive or shared/import library plus the platform C runtime
@@ -192,10 +192,11 @@ The runtime also includes starter storage and I/O services:
 - heap allocation helpers used by dynamic array storage
 - `FLOAT` declarations initialized as floating-point values in Python output
 - `PICTURE`/`PIC` decimal display patterns using digit positions such as `9`, zero-suppressed `Z`, stored decimal `.`, and implied decimal `V`
-- conversion helpers between fixed decimal, float, and picture-formatted storage
-- calculation engine with fixed binary, fixed decimal, float, bit, and character values plus explicit casts and numeric promotion
+- conversion helpers between fixed decimal, float, picture-formatted storage, packed decimal bytes, and zoned decimal text
+- calculation engine with fixed binary, scaled fixed decimal, float, bit, and character values plus explicit casts and numeric promotion
+- exported `FixedDecimal`, `PackedDecimalCodec`, `ZonedDecimalCodec`, `DecimalRuntime`, and `CalculationBuiltinRuntime` APIs for runtime callers
 - `POINTER` locator variables and `BASED(pointer)` record storage bound to heap blocks through pointer values
-- string storage as two bytes of big-endian length followed by sequential payload bytes
+- string storage as two bytes of big-endian length followed by sequential payload bytes, with runtime `LENGTH`, `SUBSTR`, and `INDEX` helpers over the stored payload
 - a first packaged PL/I builtin source file for `SUBSTR(string, start[, length])`
 - static builtin call checking for `DCL SUBSTR BUILTIN;`
 - examples for declared numeric/string builtins in `examples/builtins/numeric_string_builtins.pl1`
@@ -249,6 +250,7 @@ PL1CompInPy/
       based.py
       calculation.py
       calling.py
+      decimal.py
       function_table.py
       heap.py
       io.py

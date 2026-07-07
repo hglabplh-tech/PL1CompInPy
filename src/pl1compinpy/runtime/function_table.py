@@ -254,6 +254,11 @@ def runtime_function_table() -> FunctionTable:
     table.add_builtin("MOD", "builtins.mod", [ParameterDescriptor("LEFT", "ANY"), ParameterDescriptor("RIGHT", "ANY")], returns="FIXED BIN")
     table.add_builtin("TRUNC", "builtins.trunc", [ParameterDescriptor("VALUE", "ANY"), ParameterDescriptor("SCALE", "FIXED BIN", optional=True)], returns="FIXED DEC")
     table.add_builtin("ROUND", "builtins.round", [ParameterDescriptor("VALUE", "ANY"), ParameterDescriptor("SCALE", "FIXED BIN", optional=True)], returns="FIXED DEC")
+    table.add_builtin("FIXED_DECIMAL", "builtins.fixed_decimal", [ParameterDescriptor("VALUE", "ANY"), ParameterDescriptor("PRECISION", "FIXED BIN"), ParameterDescriptor("SCALE", "FIXED BIN", optional=True)], returns="FIXED DEC")
+    table.add_builtin("DECIMAL_TO_PACKED", "builtins.decimal_to_packed", [ParameterDescriptor("VALUE", "ANY"), ParameterDescriptor("PRECISION", "FIXED BIN"), ParameterDescriptor("SCALE", "FIXED BIN", optional=True)], returns="CHARACTER")
+    table.add_builtin("DECIMAL_FROM_PACKED", "builtins.decimal_from_packed", [ParameterDescriptor("VALUE", "ANY"), ParameterDescriptor("PRECISION", "FIXED BIN"), ParameterDescriptor("SCALE", "FIXED BIN", optional=True)], returns="FIXED DEC")
+    table.add_builtin("DECIMAL_TO_ZONED", "builtins.decimal_to_zoned", [ParameterDescriptor("VALUE", "ANY"), ParameterDescriptor("PRECISION", "FIXED BIN"), ParameterDescriptor("SCALE", "FIXED BIN", optional=True)], returns="CHARACTER")
+    table.add_builtin("DECIMAL_FROM_ZONED", "builtins.decimal_from_zoned", [ParameterDescriptor("VALUE", "ANY"), ParameterDescriptor("PRECISION", "FIXED BIN"), ParameterDescriptor("SCALE", "FIXED BIN", optional=True)], returns="FIXED DEC")
 
     for name in ("ALLOCATE", "ALLOC"):
         table.add_runtime(name, "runtime.heap.allocate", [ParameterDescriptor("SIZE", "FIXED BIN")], returns="POINTER")

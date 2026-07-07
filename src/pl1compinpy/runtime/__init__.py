@@ -4,6 +4,7 @@ from .arrays import ArrayRuntime, ArrayRuntimeError, ArrayValue
 from .based import BasedRecord, BasedRuntime, BasedRuntimeError, PointerValue
 from .calculation import CalculationEngine, CalculationError, NumericTower, PL1Type, PL1Value
 from .calling import RuntimeError, normalize_calls
+from .decimal import CalculationBuiltinRuntime, DecimalRuntime, FixedDecimal, PackedDecimalCodec, ZonedDecimalCodec
 from .heap import HeapBlock, HeapRuntime, HeapRuntimeError
 from .io import FileDescriptor, FileRuntimeError, StdioRuntime
 from .picture import PictureRuntime, PictureRuntimeError, PictureSpec
@@ -32,9 +33,12 @@ __all__ = [
     "BasedRuntime",
     "BasedRuntimeError",
     "CalculationEngine",
+    "CalculationBuiltinRuntime",
     "CalculationError",
+    "DecimalRuntime",
     "FileDescriptor",
     "FileRuntimeError",
+    "FixedDecimal",
     "HeapBlock",
     "HeapRuntime",
     "HeapRuntimeError",
@@ -51,6 +55,7 @@ __all__ = [
     "PL1Type",
     "PL1Value",
     "ParameterDescriptor",
+    "PackedDecimalCodec",
     "PointerValue",
     "RUNTIME_FUNCTION_TABLE",
     "RuntimeError",
@@ -67,6 +72,7 @@ __all__ = [
     "StringRuntime",
     "StringRuntimeError",
     "StringValue",
+    "ZonedDecimalCodec",
     "build_dynamic_function_table",
     "declare_program_builtins",
     "declared_builtins",
