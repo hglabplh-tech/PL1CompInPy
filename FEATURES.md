@@ -11,10 +11,11 @@
   - `runtime` for calling-convention normalization
   - `codegen` for assembly text, executable lowering, and binary containers
 - PL/1 lexer with contextual keyword metadata.
-- PL/1 parser producing an AST for assignments, declarations, calls, procedures, labels, `DO` groups, and `IF/THEN/ELSE`.
+- PL/1 parser producing an AST for assignments, declarations, calls, procedures, labels, `GOTO`/`GO TO`, `DO` groups, `IF/THEN/ELSE`, and preprocessor commands.
 - Visitor-enabled AST nodes and runtime execution visitor support for future compiler passes.
 - Parser support for `DO WHILE`, post-test `DO ... UNTIL`, and `SELECT`/`WHEN`/`OTHERWISE`.
-- Backend lowering for `DO` blocks, `DO WHILE`, post-test `DO ... UNTIL`, `IF/THEN/ELSE`, and `SELECT/WHEN/OTHERWISE` branch blocks.
+- Parser support for `%` preprocessor statements including declaration, include, replacement, conditional, loop, macro procedure, branch, and listing commands as preserved AST nodes.
+- Backend lowering for `DO` blocks, `DO WHILE`, post-test `DO ... UNTIL`, `IF/THEN/ELSE`, `SELECT/WHEN/OTHERWISE` branch blocks, and `GOTO` unconditional branches.
 - Example coverage for visitor-based runtime execution and structured backend control blocks.
 - PL/I-style expression precedence for power, unary operators, multiplication/division, addition/subtraction, concatenation, comparison, logical AND, and logical OR.
 - Keyword catalog covering PL/1 statements, declaration attributes, storage attributes, I/O words, conditions, and preprocessor/listing words.
@@ -112,6 +113,8 @@
 - `IF/THEN/ELSE` comparisons using `=`, `^=`, `¬=`, `~=`, `<>`, `<`, `<=`, `>`, `>=`, and `=>`.
 - `DO WHILE` and post-test `DO ... UNTIL` groups.
 - `SELECT` with `WHEN` and `OTHERWISE`.
+- Labels and `GOTO`/`GO TO`.
+- `%` preprocessor command parsing for forms such as `%DECLARE`, `%ACTIVATE`, `%DEACTIVATE`, `%REPLACE`, `%IF`, `%THEN`, `%ELSE`, `%DO`, `%END`, `%SELECT`, `%WHEN`, `%OTHERWISE`, `%INCLUDE`, `%XINCLUDE`, `%INSCAN`, `%XINSCAN`, `%PRINT`, `%NOPRINT`, `%PAGE`, `%SKIP`, `%PUSH`, `%POP`, `%GOTO`, `%LEAVE`, `%ITERATE`, `%PROCEDURE`, and `%RETURN`.
 - Labels and simple procedure bodies.
 - Simple `DO` groups.
 

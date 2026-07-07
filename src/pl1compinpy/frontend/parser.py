@@ -8,11 +8,13 @@ from ..core.ast import (
     DoGroup,
     Expression,
     GenericAlternative,
+    GotoStatement,
     Identifier,
     IfStatement,
     IOStatement,
     LabelledStatement,
     NumberLiteral,
+    PreprocessorStatement,
     Procedure,
     Program,
     RawStatement,
@@ -43,6 +45,9 @@ class Parser:
         return Program(statements)
 
     def _statement(self) -> Statement:
+        if self._match(TokenType.PERCENT):
+            return self._preprocessor_statement()
+
         if self._looks_like_label():
             label = self._advance().lexeme
             self._consume(TokenType.COLON, "Expected ':' after label")
@@ -68,6 +73,12 @@ class Parser:
             return self._io_statement()
         if self._match_keyword("SELECT"):
             return self._select_statement()
+        if self._match_keyword("GOTO"):
+            return self._goto_statement()
+        if self._match_keyword("GO"):
+            if not self._match_keyword("TO"):
+                raise self._error(self._peek(), "Expected TO after GO")
+            return self._goto_statement()
         if self._match_keyword("CALL"):
             statement = self._call_statement()
             self._consume(TokenType.SEMICOLON, "Expected ';' after CALL statement")
@@ -401,6 +412,26 @@ class Parser:
         keyword = self._advance().lexeme
         tokens = [token.lexeme for token in self._collect_until_semicolon()]
         return RawStatement(keyword, tokens)
+
+    def _goto_statement(self) -> GotoStatement:
+        label = self._consume_identifier("Expected label after GOTO")
+        self._consume(TokenType.SEMICOLON, "Expected ';' after GOTO statement")
+        return GotoStatement(label.lexeme)
+
+    def _preprocessor_statement(self) -> PreprocessorStatement:
+        tokens = self._collect_until_semicolon()
+        if not tokens:
+            return PreprocessorStatement("NULL", [], "%")
+        lexemes = [token.lexeme for token in tokens]
+        command_tokens = [token for token in tokens if token.type != TokenType.PERCENT]
+        if not command_tokens:
+            return PreprocessorStatement("NULL", lexemes, "% " + " ".join(lexemes))
+        command = command_tokens[0].lexeme.upper()
+        arguments = lexemes[1:]
+        if command == "GO" and len(command_tokens) > 1 and command_tokens[1].lexeme.upper() == "TO":
+            command = "GOTO"
+            arguments = lexemes[2:]
+        return PreprocessorStatement(command, arguments, "% " + " ".join(lexemes))
 
     def _expression(self) -> Expression:
         return self._logical_or()

@@ -10,6 +10,8 @@ These examples cover the compiler features currently implemented in PL1CompInPy.
 - `language/do_while_until.pl1`: `DO WHILE` and post-test `DO ... UNTIL`
 - `language/select_when.pl1`: `SELECT` with `WHEN` and `OTHERWISE`
 - `language/visitor_control_blocks.pl1`: visitor/backend control blocks with `DO`, `DO WHILE`, `DO ... UNTIL`, `IF`, `SELECT`, and condition aliases
+- `language/goto_labels.pl1`: labels plus `GOTO` and `GO TO`
+- `language/preprocessor_commands.pl1`: parsed `%` preprocessor command forms
 - `language/procedure_main.pl1`: `PROC OPTIONS(MAIN)` and `RETURNS`
 - `language/call_by_reference.pl1`: by-reference calls
 - `language/call_by_name.pl1`: by-name call normalization

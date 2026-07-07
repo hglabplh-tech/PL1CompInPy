@@ -1,6 +1,20 @@
 from __future__ import annotations
 
-from ..core.ast import Assignment, BinaryExpression, Call, Declaration, Identifier, LabelledStatement, NumberLiteral, Procedure, Program, RawStatement, StringLiteral
+from ..core.ast import (
+    Assignment,
+    BinaryExpression,
+    Call,
+    Declaration,
+    GotoStatement,
+    Identifier,
+    LabelledStatement,
+    NumberLiteral,
+    PreprocessorStatement,
+    Procedure,
+    Program,
+    RawStatement,
+    StringLiteral,
+)
 from .runtime_link import runtime_linkage
 
 
@@ -132,7 +146,11 @@ class DotNetILEmitter:
                 return self._int_constant(int(statement.tokens[0])) + ["    ret"]
             return ["    ldc.i4.0", "    ret"]
         if isinstance(statement, LabelledStatement):
-            return self._statement(statement.statement, locals_map, local_types)
+            return [f"  {statement.label}:"] + self._statement(statement.statement, locals_map, local_types)
+        if isinstance(statement, GotoStatement):
+            return [f"    br {statement.label}"]
+        if isinstance(statement, PreprocessorStatement):
+            return [f"    // preprocessor {statement.command} {' '.join(statement.arguments)}".rstrip()]
         return []
 
     def _expression(self, expression: object, locals_map: dict[str, int], local_types: list[str]) -> list[str]:

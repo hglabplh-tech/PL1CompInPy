@@ -9,10 +9,12 @@ from ..core.ast import (
     Declaration,
     DoGroup,
     Expression,
+    GotoStatement,
     Identifier,
     IfStatement,
     LabelledStatement,
     NumberLiteral,
+    PreprocessorStatement,
     Procedure,
     Program,
     RawStatement,
@@ -232,6 +234,10 @@ class X586AssemblyEmitter(AssemblyEmitter):
             return self._select(statement)
         if isinstance(statement, LabelledStatement):
             return [f"{statement.label}:"] + self._statement(statement.statement)
+        if isinstance(statement, GotoStatement):
+            return [f"    jmp {statement.label}"]
+        if isinstance(statement, PreprocessorStatement):
+            return [f"    ; preprocessor {statement.command} {' '.join(statement.arguments)}".rstrip()]
         if isinstance(statement, RawStatement):
             args = self._raw_put_arguments(statement)
             if args:
@@ -410,6 +416,10 @@ class X8664AssemblyEmitter(AssemblyEmitter):
             return self._select(statement)
         if isinstance(statement, LabelledStatement):
             return [f"{statement.label}:"] + self._statement(statement.statement)
+        if isinstance(statement, GotoStatement):
+            return [f"    jmp {statement.label}"]
+        if isinstance(statement, PreprocessorStatement):
+            return [f"    ; preprocessor {statement.command} {' '.join(statement.arguments)}".rstrip()]
         if isinstance(statement, RawStatement):
             args = self._raw_put_arguments(statement)
             if args:
@@ -606,6 +616,10 @@ class Arm64AssemblyEmitter(AssemblyEmitter):
             return self._select(statement)
         if isinstance(statement, LabelledStatement):
             return [f"{statement.label}:"] + self._statement(statement.statement)
+        if isinstance(statement, GotoStatement):
+            return [f"    b {statement.label}"]
+        if isinstance(statement, PreprocessorStatement):
+            return [f"    // preprocessor {statement.command} {' '.join(statement.arguments)}".rstrip()]
         if isinstance(statement, RawStatement):
             args = self._raw_put_arguments(statement)
             if args:

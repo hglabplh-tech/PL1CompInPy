@@ -7,11 +7,13 @@ from ..core.ast import (
     Declaration,
     DoGroup,
     Expression,
+    GotoStatement,
     Identifier,
     IfStatement,
     IOStatement,
     LabelledStatement,
     NumberLiteral,
+    PreprocessorStatement,
     Procedure,
     Program,
     RawStatement,
@@ -81,6 +83,10 @@ class PythonSourceEmitter:
             lines = [f"{prefix}# label {statement.label}"]
             lines.extend(self._statement(statement.statement, indent))
             return lines
+        if isinstance(statement, GotoStatement):
+            return [f"{prefix}# goto {statement.label}"]
+        if isinstance(statement, PreprocessorStatement):
+            return [f"{prefix}# preprocessor {statement.command} {' '.join(statement.arguments)}".rstrip()]
         if isinstance(statement, RawStatement):
             if statement.keyword.upper() == "RETURN":
                 value = " ".join(statement.tokens)

@@ -136,6 +136,18 @@ class LabelledStatement(Statement):
 
 
 @dataclass(frozen=True)
+class GotoStatement(Statement):
+    label: str
+
+
+@dataclass(frozen=True)
+class PreprocessorStatement(Statement):
+    command: str
+    arguments: list[str] = field(default_factory=list)
+    raw: str = ""
+
+
+@dataclass(frozen=True)
 class RawStatement(Statement):
     keyword: str
     tokens: list[str]

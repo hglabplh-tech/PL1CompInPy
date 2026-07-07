@@ -11,8 +11,10 @@ from ..core.ast import (
     Declaration,
     DoGroup,
     Expression,
+    GotoStatement,
     IfStatement,
     LabelledStatement,
+    PreprocessorStatement,
     Program,
     RawStatement,
     SelectStatement,
@@ -107,6 +109,12 @@ class RuntimeExecutionVisitor(AstVisitor):
 
     def visit_LabelledStatement(self, node: LabelledStatement) -> Any:
         return self.visit(node.statement)
+
+    def visit_GotoStatement(self, node: GotoStatement) -> Any:
+        raise RuntimeVisitorError(f"GOTO is parsed for backends but not executed by the direct runtime visitor: {node.label}")
+
+    def visit_PreprocessorStatement(self, node: PreprocessorStatement) -> Any:
+        return None
 
     def visit_RawStatement(self, node: RawStatement) -> Any:
         return None

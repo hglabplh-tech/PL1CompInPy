@@ -16,7 +16,21 @@ from pl1compinpy.codegen.jvm_classfile import JAVA_17_MAJOR_VERSION
 from pl1compinpy.codegen.executable_pipeline import lower_program
 from pl1compinpy.codegen.linkers import ELFLinker, MachOLinker, PELinker
 from pl1compinpy.codegen.runtime_link import runtime_linkage
-from pl1compinpy.ast import AstVisitor, BinaryExpression, Call, Declaration, DoGroup, Identifier, IOStatement, IfStatement, LabelledStatement, Procedure, SelectStatement
+from pl1compinpy.ast import (
+    AstVisitor,
+    BinaryExpression,
+    Call,
+    Declaration,
+    DoGroup,
+    GotoStatement,
+    Identifier,
+    IOStatement,
+    IfStatement,
+    LabelledStatement,
+    PreprocessorStatement,
+    Procedure,
+    SelectStatement,
+)
 from pl1compinpy.frontend.lexer import Lexer, TokenType
 from pl1compinpy.frontend.parser import Parser
 from pl1compinpy.runtime import (
@@ -172,6 +186,33 @@ class CompilerTests(unittest.TestCase):
         self.assertEqual(len(statement.when_branches), 2)
         self.assertEqual(len(statement.when_branches[1].expressions), 2)
         self.assertIsNotNone(statement.otherwise)
+
+    def test_parses_goto_labels_and_preprocessor_commands(self):
+        source = "%DECLARE FEATURE FIXED; GOTO SKIP; GO TO DONE; SKIP: CALL DISPLAY('SKIP');"
+        program = Parser(Lexer(source).tokenize()).parse()
+
+        self.assertIsInstance(program.statements[0], PreprocessorStatement)
+        self.assertEqual(program.statements[0].command, "DECLARE")
+        self.assertEqual(program.statements[0].arguments, ["FEATURE", "FIXED"])
+        self.assertIsInstance(program.statements[1], GotoStatement)
+        self.assertEqual(program.statements[1].label, "SKIP")
+        self.assertIsInstance(program.statements[2], GotoStatement)
+        self.assertEqual(program.statements[2].label, "DONE")
+        self.assertIsInstance(program.statements[3], LabelledStatement)
+        self.assertEqual(program.statements[3].label, "SKIP")
+
+    def test_goto_lowers_to_jump_mnemonic(self):
+        source = "GOTO DONE; DONE: CALL DISPLAY('DONE');"
+        mnemonics, _, _ = lower_program(Parser(Lexer(source).tokenize()).parse())
+
+        self.assertEqual(mnemonics[0].op, "JMP")
+        self.assertEqual(mnemonics[0].args, ("DONE",))
+        self.assertIn(type(mnemonics[0])("LABEL", ("DONE",)), mnemonics)
+
+    def test_preprocessor_emits_as_python_source_comment(self):
+        output = compile_source("%INCLUDE 'COMMON.PLI';", target="python-source")
+
+        self.assertIn("# preprocessor INCLUDE COMMON.PLI", output)
 
     def test_ast_accept_uses_visitor_pattern(self):
         class StatementCountingVisitor(AstVisitor):

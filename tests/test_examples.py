@@ -5,6 +5,7 @@ import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from pl1compinpy import compile_source
+from pl1compinpy.ast import GotoStatement, PreprocessorStatement
 from pl1compinpy.compiler import compile_binary
 from pl1compinpy.frontend.lexer import Lexer
 from pl1compinpy.frontend.parser import Parser
@@ -99,6 +100,15 @@ class ExampleTests(unittest.TestCase):
 
         self.assertEqual(visitor.variables["TOTAL"].value, 4)
         self.assertEqual(visitor.output, ["TOTAL IS NOT ZERO", "TOTAL REACHED FOUR"])
+
+    def test_goto_and_preprocessor_examples_compile(self):
+        goto_program = self.parse_example("language/goto_labels.pl1")
+        preprocessor_program = self.parse_example("language/preprocessor_commands.pl1")
+
+        self.assertTrue(any(isinstance(statement, GotoStatement) for statement in goto_program.statements))
+        self.assertTrue(any(isinstance(statement, PreprocessorStatement) for statement in preprocessor_program.statements))
+        self.assertIn("# goto SKIP_INITIAL_ASSIGNMENT", compile_source(self.example_source("language/goto_labels.pl1"), target="python-source"))
+        self.assertIn("# preprocessor DECLARE FEATURE FIXED", compile_source(self.example_source("language/preprocessor_commands.pl1"), target="python-source"))
 
     def test_numeric_string_builtins_example_uses_static_builtin_table(self):
         program = normalize_calls(self.parse_example("builtins/numeric_string_builtins.pl1"))

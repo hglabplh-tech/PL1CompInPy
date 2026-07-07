@@ -1,6 +1,19 @@
 from __future__ import annotations
 
-from ..core.ast import Assignment, BinaryExpression, Call, Declaration, Identifier, LabelledStatement, NumberLiteral, Procedure, Program, RawStatement
+from ..core.ast import (
+    Assignment,
+    BinaryExpression,
+    Call,
+    Declaration,
+    GotoStatement,
+    Identifier,
+    LabelledStatement,
+    NumberLiteral,
+    PreprocessorStatement,
+    Procedure,
+    Program,
+    RawStatement,
+)
 from .runtime_link import runtime_linkage
 
 
@@ -71,12 +84,59 @@ class JVMBytecodeEmitter:
                 else:
                     lines.append("    iconst_0")
                 lines.append("    ireturn")
+            elif isinstance(statement, LabelledStatement):
+                lines.append(f"{statement.label}:")
+                nested = Procedure(procedure.name, procedure.parameters, procedure.options, [statement.statement], procedure.returns, procedure.recursive)
+                nested_lines = self._procedure_body(nested, locals_map, next_local)
+                lines.extend(nested_lines[0])
+                next_local = nested_lines[1]
+            elif isinstance(statement, GotoStatement):
+                lines.append(f"    goto {statement.label}")
+            elif isinstance(statement, PreprocessorStatement):
+                lines.append(f"    ; preprocessor {statement.command} {' '.join(statement.arguments)}".rstrip())
         if procedure.returns:
             lines.extend(["    iconst_0", "    ireturn"])
         else:
             lines.append("    return")
         lines.append(".end method")
         return lines
+
+    def _procedure_body(self, procedure: Procedure, locals_map: dict[str, int], next_local: int) -> tuple[list[str], int]:
+        lines: list[str] = []
+        for statement in procedure.body:
+            if isinstance(statement, Declaration):
+                for var_name in statement.names:
+                    if var_name not in locals_map:
+                        locals_map[var_name] = next_local
+                        next_local += 1
+                        lines.extend(["    iconst_0", f"    istore {locals_map[var_name]}"])
+            elif isinstance(statement, Assignment):
+                lines.extend(self._expression(statement.expression, locals_map))
+                lines.append(f"    istore {locals_map.setdefault(statement.target, len(locals_map))}")
+            elif isinstance(statement, Call):
+                lines.extend(self._call(statement, locals_map))
+                lines.append("    pop")
+            elif isinstance(statement, RawStatement) and statement.keyword.upper() == "RETURN":
+                if statement.tokens and statement.tokens[0] in locals_map:
+                    lines.append(f"    iload {locals_map[statement.tokens[0]]}")
+                elif statement.tokens and statement.tokens[0].isdigit():
+                    lines.extend(self._int_constant(int(statement.tokens[0])))
+                else:
+                    lines.append("    iconst_0")
+                lines.append("    ireturn")
+            elif isinstance(statement, LabelledStatement):
+                lines.append(f"{statement.label}:")
+                nested_lines, next_local = self._procedure_body(
+                    Procedure(procedure.name, procedure.parameters, procedure.options, [statement.statement], procedure.returns, procedure.recursive),
+                    locals_map,
+                    next_local,
+                )
+                lines.extend(nested_lines)
+            elif isinstance(statement, GotoStatement):
+                lines.append(f"    goto {statement.label}")
+            elif isinstance(statement, PreprocessorStatement):
+                lines.append(f"    ; preprocessor {statement.command} {' '.join(statement.arguments)}".rstrip())
+        return lines, next_local
 
     def _expression(self, expression: object, locals_map: dict[str, int]) -> list[str]:
         if isinstance(expression, NumberLiteral):

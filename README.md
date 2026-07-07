@@ -12,10 +12,10 @@ PL1CompInPy is a starter Python project for a PL/1 compiler.
 The initial implementation provides a small compiler pipeline:
 
 - lexical analysis for a useful subset of PL/1-like syntax
-- parsing of simple assignment and `CALL` statements
+- parsing of assignments, declarations, calls, labels, `GOTO`/`GO TO`, control blocks, I/O statements, and preprocessor commands
 - contextual keyword recognition for PL/1 statement, attribute, condition, I/O, and preprocessor words
-- an intermediate representation
-- readable Python-like output for early testing
+- a visitor-enabled AST intermediate representation
+- readable Python-like/Python-source output plus starter native, JVM, and .NET backends
 
 ## PL/1 Keyword Model
 
@@ -121,6 +121,8 @@ Currently supported compiler features:
 - `IF/THEN/ELSE` comparisons with `=`, `^=`, `<>`, `<`, `<=`, `>`, and `>=`
 - `DO WHILE` pre-test loops and post-test `DO ... UNTIL` loops
 - `SELECT`/`WHEN`/`OTHERWISE` conditional groups
+- labels and `GOTO`/`GO TO` branch statements
+- parsed `%` preprocessor commands such as `%DECLARE`, `%IF`, `%DO`, `%INCLUDE`, `%REPLACE`, `%GOTO`, `%PROCEDURE`, `%RETURN`, and listing controls
 - labels and procedure bodies
 - `PROC OPTIONS(MAIN)` as a program entry point
 - `PROC RECURSIVE` metadata, with recursive calls lowered as ordinary calls that continue at the next statement after return
@@ -181,6 +183,8 @@ The executable pipeline includes a first runtime calling convention:
 - .NET IL links the runtime through the `PL1CompInPy.Runtime` managed assembly
 - AST nodes support a visitor pattern through `accept`, and runtime execution has a `RuntimeExecutionVisitor` for future compiler passes and runtime checks; see `examples/runtime/runtime_visitor.py`
 - backend control-flow lowering treats simple `DO` as a block, `DO WHILE` as a pre-test loop, `DO ... UNTIL` as a post-test loop, `IF/THEN/ELSE` as decisions, and `SELECT/WHEN/OTHERWISE` as branches
+- GOTO statements are parsed as AST nodes and lowered to unconditional branches for the native mnemonic/assembly backends, while Python, JVM text, and .NET IL outputs preserve the branch intent in their target form
+- PL/I preprocessor statements are parsed into `PreprocessorStatement` AST nodes so future macro expansion can use the visitor pipeline; current backends preserve them as target comments
 
 The runtime also includes starter storage and I/O services:
 

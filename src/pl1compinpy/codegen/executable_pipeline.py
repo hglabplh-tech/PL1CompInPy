@@ -10,10 +10,12 @@ from ..core.ast import (
     Declaration,
     DoGroup,
     Expression,
+    GotoStatement,
     Identifier,
     IfStatement,
     LabelledStatement,
     NumberLiteral,
+    PreprocessorStatement,
     Procedure,
     Program,
     RawStatement,
@@ -168,6 +170,8 @@ def _collect_data(statement: Statement, context: LoweringContext) -> None:
             _collect_data(statement.otherwise, context)
     elif isinstance(statement, LabelledStatement):
         _collect_data(statement.statement, context)
+    elif isinstance(statement, (GotoStatement, PreprocessorStatement)):
+        return
     elif isinstance(statement, Procedure):
         return
 
@@ -223,6 +227,10 @@ def _lower_statement(statement: Statement, context: LoweringContext) -> list[Mne
                 context,
             )
         return [Mnemonic("LABEL", (statement.label,))] + _lower_statement(statement.statement, context)
+    if isinstance(statement, GotoStatement):
+        return [Mnemonic("JMP", (statement.label,))]
+    if isinstance(statement, PreprocessorStatement):
+        return [Mnemonic("COMMENT", (f"preprocessor {statement.command} {' '.join(statement.arguments)}".rstrip(),))]
     if isinstance(statement, Procedure):
         return _lower_procedure(statement, context)
     if isinstance(statement, IfStatement):
