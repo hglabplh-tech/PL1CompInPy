@@ -4,6 +4,7 @@ from .arrays import ArrayRuntime, ArrayRuntimeError, ArrayValue
 from .based import BasedRecord, BasedRuntime, BasedRuntimeError, PointerValue
 from .calculation import CalculationEngine, CalculationError, NumericTower, PL1Type, PL1Value
 from .calling import RuntimeError, normalize_calls
+from .command_line import CommandLineRuntime
 from .decimal import CalculationBuiltinRuntime, DecimalRuntime, FixedDecimal, PackedDecimalCodec, ZonedDecimalCodec
 from .heap import HeapBlock, HeapRuntime, HeapRuntimeError
 from .io import FileDescriptor, FileRuntimeError, StdioRuntime
@@ -35,6 +36,7 @@ __all__ = [
     "CalculationEngine",
     "CalculationBuiltinRuntime",
     "CalculationError",
+    "CommandLineRuntime",
     "DecimalRuntime",
     "FileDescriptor",
     "FileRuntimeError",

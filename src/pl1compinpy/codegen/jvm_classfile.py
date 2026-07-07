@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 import struct
 
-from ..core.ast import Assignment, BinaryExpression, Call, Declaration, Identifier, LabelledStatement, NumberLiteral, Procedure, Program, RawStatement
+from ..core.ast import Assignment, BinaryExpression, Call, Declaration, Identifier, LabelledStatement, NumberLiteral, Procedure, Program, RawStatement, main_procedure_name, procedure_entry_name
 from .runtime_link import runtime_linkage
 
 
@@ -94,6 +94,8 @@ class JVMClassFileEmitter:
             target = next((procedure for procedure in procedures if procedure.name == main_name), None)
             if target:
                 main_code = b"\xb8" + struct.pack(">H", pool.method_ref(runtime_type, linkage.startup_symbol, "()V"))
+                for _ in target.parameters:
+                    main_code += self._iconst(0)
                 main_code += b"\xb8" + struct.pack(">H", pool.method_ref(class_name, target.name, target.descriptor))
                 if target.returns:
                     main_code += b"\x57"
@@ -120,7 +122,7 @@ class JVMClassFileEmitter:
         for statement in program.statements:
             procedure = statement.statement if isinstance(statement, LabelledStatement) and isinstance(statement.statement, Procedure) else statement
             if isinstance(procedure, Procedure):
-                name = procedure.name or (statement.label if isinstance(statement, LabelledStatement) else "anonymous")
+                name = procedure_entry_name(statement, "anonymous") or "anonymous"
                 results.append(self._procedure(name, procedure))
         return results
 
@@ -207,11 +209,7 @@ class JVMClassFileEmitter:
         return bytes([0x3B + index]) if 0 <= index <= 3 else b"\x36" + bytes([index])
 
     def _main_name(self, program: Program) -> str | None:
-        for statement in program.statements:
-            procedure = statement.statement if isinstance(statement, LabelledStatement) and isinstance(statement.statement, Procedure) else statement
-            if isinstance(procedure, Procedure) and "MAIN" in {option.upper() for option in procedure.options}:
-                return procedure.name or (statement.label if isinstance(statement, LabelledStatement) else None)
-        return None
+        return main_procedure_name(program)
 
 
 def emit_jvm_class(program: Program, class_name: str = "PL1Program") -> bytes:

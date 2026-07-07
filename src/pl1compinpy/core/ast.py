@@ -183,3 +183,41 @@ class BinaryExpression(Expression):
 class UnaryExpression(Expression):
     operator: str
     operand: Expression
+
+
+def is_main_procedure(procedure: Procedure) -> bool:
+    return "MAIN" in {option.upper() for option in procedure.options}
+
+
+def procedure_from_statement(statement: Statement) -> Procedure | None:
+    if isinstance(statement, LabelledStatement) and isinstance(statement.statement, Procedure):
+        return statement.statement
+    if isinstance(statement, Procedure):
+        return statement
+    return None
+
+
+def procedure_entry_name(statement: Statement, default: str | None = None) -> str | None:
+    if isinstance(statement, LabelledStatement) and isinstance(statement.statement, Procedure):
+        return statement.statement.name or statement.label
+    if isinstance(statement, Procedure):
+        if statement.name:
+            return statement.name
+        if is_main_procedure(statement):
+            return "MAIN"
+        return default
+    return default
+
+
+def main_procedure_entry(program: Program) -> tuple[str, Procedure] | None:
+    for statement in program.statements:
+        procedure = procedure_from_statement(statement)
+        if procedure and is_main_procedure(procedure):
+            name = procedure_entry_name(statement, "MAIN")
+            return (name or "MAIN", procedure)
+    return None
+
+
+def main_procedure_name(program: Program) -> str | None:
+    entry = main_procedure_entry(program)
+    return entry[0] if entry else None

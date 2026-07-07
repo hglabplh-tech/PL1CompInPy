@@ -22,6 +22,9 @@ from ..core.ast import (
     SelectStatement,
     Statement,
     StringLiteral,
+    main_procedure_entry,
+    main_procedure_name,
+    procedure_entry_name,
 )
 from .runtime_link import encoded_runtime_manifest
 
@@ -97,7 +100,9 @@ def lower_program(program: Program) -> tuple[list[Mnemonic], bytes, dict[str, in
     mnemonics: list[Mnemonic] = []
     procedure_statements = [statement for statement in program.statements if _is_procedure_definition(statement)]
     main_statements = [statement for statement in program.statements if not _is_procedure_definition(statement)]
-    main_procedure = _main_procedure_name(program)
+    main_entry = main_procedure_entry(program)
+    main_procedure = main_entry[0] if main_entry else None
+    main_parameters = main_entry[1].parameters if main_entry else []
 
     if procedure_statements:
         mnemonics.append(Mnemonic("JMP", ("__main",)))
@@ -105,7 +110,9 @@ def lower_program(program: Program) -> tuple[list[Mnemonic], bytes, dict[str, in
             mnemonics.extend(_lower_statement(statement, context))
         mnemonics.append(Mnemonic("LABEL", ("__main",)))
         if main_procedure:
-            mnemonics.append(Mnemonic("CALL_PROC", (main_procedure, 0)))
+            for _ in reversed(main_parameters):
+                mnemonics.extend([Mnemonic("MOV_EAX_IMM", (0,)), Mnemonic("PUSH_EAX"), Mnemonic("COMMENT", ("main command-line parameter placeholder",))])
+            mnemonics.append(Mnemonic("CALL_PROC", (main_procedure, len(main_parameters))))
         for statement in main_statements:
             mnemonics.extend(_lower_statement(statement, context))
     else:
@@ -193,11 +200,7 @@ def _is_procedure_definition(statement: Statement) -> bool:
 
 
 def _main_procedure_name(program: Program) -> str | None:
-    for statement in program.statements:
-        procedure = statement.statement if isinstance(statement, LabelledStatement) and isinstance(statement.statement, Procedure) else statement
-        if isinstance(procedure, Procedure) and "MAIN" in {option.upper() for option in procedure.options}:
-            return procedure.name or (statement.label if isinstance(statement, LabelledStatement) else None)
-    return None
+    return main_procedure_name(program)
 
 
 def _lower_statement(statement: Statement, context: LoweringContext) -> list[Mnemonic]:
@@ -310,7 +313,7 @@ def _lower_select(statement: SelectStatement, context: LoweringContext) -> list[
 
 
 def _lower_procedure(procedure: Procedure, context: LoweringContext) -> list[Mnemonic]:
-    name = procedure.name or "anonymous_procedure"
+    name = procedure.name or ("MAIN" if "MAIN" in {option.upper() for option in procedure.options} else "anonymous_procedure")
     parameter_scope = {parameter: 8 + index * 4 for index, parameter in enumerate(procedure.parameters)}
     context.parameter_scopes.append(parameter_scope)
     context.local_scopes.append({})

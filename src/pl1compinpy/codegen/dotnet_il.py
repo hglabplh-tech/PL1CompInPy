@@ -14,6 +14,9 @@ from ..core.ast import (
     Program,
     RawStatement,
     StringLiteral,
+    main_procedure_entry,
+    main_procedure_name,
+    procedure_entry_name,
 )
 from .runtime_link import runtime_linkage
 
@@ -46,7 +49,7 @@ class DotNetILEmitter:
         for statement in program.statements:
             procedure = statement.statement if isinstance(statement, LabelledStatement) and isinstance(statement.statement, Procedure) else statement
             if isinstance(procedure, Procedure):
-                name = procedure.name or (statement.label if isinstance(statement, LabelledStatement) else "anonymous")
+                name = procedure_entry_name(statement, "anonymous") or "anonymous"
                 procedures.append((name, procedure))
             else:
                 top_level.append(statement)
@@ -55,11 +58,11 @@ class DotNetILEmitter:
             lines.extend(self._procedure(name, procedure))
             lines.append("")
 
-        main_name = self._main_name(program)
-        if main_name:
-            main_procedure = next((procedure for name, procedure in procedures if name == main_name), None)
-            returns = bool(main_procedure and main_procedure.returns)
-            lines.extend(self._entrypoint_call(main_name, returns))
+        main_entry = main_procedure_entry(program)
+        if main_entry:
+            main_name, main_procedure = main_entry
+            returns = bool(main_procedure.returns)
+            lines.extend(self._entrypoint_call(main_name, main_procedure, returns))
         else:
             lines.extend(self._entrypoint_body(top_level))
         lines.append("}")
@@ -93,7 +96,7 @@ class DotNetILEmitter:
         lines.extend(["  }"])
         return lines
 
-    def _entrypoint_call(self, procedure_name: str, returns: bool) -> list[str]:
+    def _entrypoint_call(self, procedure_name: str, procedure: Procedure, returns: bool) -> list[str]:
         lines = [
             "  .method public hidebysig static void Main(string[] args) cil managed",
             "  {",
@@ -101,10 +104,15 @@ class DotNetILEmitter:
             "    .maxstack 8",
             "    call void [PL1CompInPy.Runtime]PL1CompInPy.Runtime.PL1Runtime::Init()",
         ]
+        if procedure.parameters:
+            lines.append("    // PL/I MAIN command-line parameter placeholder")
+        for _ in procedure.parameters:
+            lines.append("    ldc.i4.0")
+        descriptor = ", ".join("int32" for _ in procedure.parameters)
         if returns:
-            lines.extend([f"    call int32 PL1Program::{procedure_name}()", "    pop"])
+            lines.extend([f"    call int32 PL1Program::{procedure_name}({descriptor})", "    pop"])
         else:
-            lines.append(f"    call void PL1Program::{procedure_name}()")
+            lines.append(f"    call void PL1Program::{procedure_name}({descriptor})")
         lines.extend(["    call void [PL1CompInPy.Runtime]PL1CompInPy.Runtime.PL1Runtime::Shutdown()", "    ret", "  }"])
         return lines
 
@@ -198,11 +206,7 @@ class DotNetILEmitter:
         return [f"    ldc.i4 {value}"]
 
     def _main_name(self, program: Program) -> str | None:
-        for statement in program.statements:
-            procedure = statement.statement if isinstance(statement, LabelledStatement) and isinstance(statement.statement, Procedure) else statement
-            if isinstance(procedure, Procedure) and "MAIN" in {option.upper() for option in procedure.options}:
-                return procedure.name or (statement.label if isinstance(statement, LabelledStatement) else None)
-        return None
+        return main_procedure_name(program)
 
     def _quote(self, value: str) -> str:
         escaped = value.replace("\\", "\\\\").replace('"', '\\"')

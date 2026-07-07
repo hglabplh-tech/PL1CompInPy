@@ -30,6 +30,7 @@ from pl1compinpy.ast import (
     PreprocessorStatement,
     Procedure,
     SelectStatement,
+    main_procedure_name,
 )
 from pl1compinpy.frontend.lexer import Lexer, TokenType
 from pl1compinpy.frontend.parser import Parser
@@ -42,6 +43,7 @@ from pl1compinpy.runtime import (
     FunctionTable,
     FunctionTableError,
     CalculationBuiltinRuntime,
+    CommandLineRuntime,
     DecimalRuntime,
     PictureRuntime,
     CalculationEngine,
@@ -491,6 +493,37 @@ class CompilerTests(unittest.TestCase):
         main_label = mnemonics.index(type(mnemonics[0])("LABEL", ("__main",)))
 
         self.assertEqual(mnemonics[main_label + 1], type(mnemonics[0])("CALL_PROC", ("MAIN", 0)))
+
+    def test_unlabelled_proc_options_main_uses_main_entry_name(self):
+        source = "PROC OPTIONS(MAIN); END;"
+        program = Parser(Lexer(source).tokenize()).parse()
+        mnemonics, _, _ = lower_program(program)
+
+        self.assertEqual(main_procedure_name(program), "MAIN")
+        self.assertIn(type(mnemonics[0])("LABEL", ("MAIN",)), mnemonics)
+        self.assertIn(type(mnemonics[0])("CALL_PROC", ("MAIN", 0)), mnemonics)
+
+    def test_main_procedure_command_parameter_reaches_python_entry(self):
+        source = "MAIN: PROC(PARM) OPTIONS(MAIN); CALL DISPLAY(PARM); END MAIN;"
+        output = compile_source(source, target="python-source")
+
+        self.assertIn("import sys", output)
+        self.assertIn("def MAIN(PARM):", output)
+        self.assertIn('MAIN(" ".join(sys.argv[1:]))', output)
+
+    def test_command_line_runtime_binds_pl1_main_parameters(self):
+        runtime = CommandLineRuntime.from_argv(["prog", "ONE", "TWO"])
+
+        self.assertEqual(runtime.command(), "ONE TWO")
+        self.assertEqual(runtime.argc(), 2)
+        self.assertEqual(runtime.argv_value(1), "ONE")
+        self.assertEqual(runtime.bind_main_parameters(["PARM", "COUNT", "ARGS"]), ["ONE TWO", 2, ["ONE", "TWO"]])
+
+    def test_runtime_function_table_exposes_command_line_services(self):
+        for name in ("COMMAND", "ARGC", "ARGV"):
+            descriptor = RUNTIME_FUNCTION_TABLE.get(name)
+            self.assertEqual(descriptor.source, "runtime")
+            self.assertFalse(descriptor.requires_declaration)
 
     def test_parses_proc_main_recursive_returns(self):
         program = Parser(

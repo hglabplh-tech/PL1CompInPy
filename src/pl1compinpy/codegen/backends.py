@@ -21,6 +21,7 @@ from ..core.ast import (
     SelectStatement,
     Statement,
     StringLiteral,
+    procedure_entry_name,
 )
 from .runtime_link import runtime_linkage
 
@@ -221,7 +222,7 @@ class X586AssemblyEmitter(AssemblyEmitter):
         if isinstance(statement, Call):
             return self._call(statement)
         if isinstance(statement, Procedure):
-            lines = [f"{self._symbol(statement.name or 'anonymous_procedure')}:"]
+            lines = [f"{self._symbol(procedure_entry_name(statement, 'anonymous_procedure') or 'anonymous_procedure')}:"]
             for child in statement.body:
                 lines.extend(self._statement(child))
             lines.append("    ret")
@@ -403,7 +404,7 @@ class X8664AssemblyEmitter(AssemblyEmitter):
         if isinstance(statement, Call):
             return self._call(statement)
         if isinstance(statement, Procedure):
-            lines = [f"{self._symbol(statement.name or 'anonymous_procedure')}:"]
+            lines = [f"{self._symbol(procedure_entry_name(statement, 'anonymous_procedure') or 'anonymous_procedure')}:"]
             for child in statement.body:
                 lines.extend(self._statement(child))
             lines.append("    ret")
@@ -603,7 +604,7 @@ class Arm64AssemblyEmitter(AssemblyEmitter):
         if isinstance(statement, Call):
             return self._call(statement)
         if isinstance(statement, Procedure):
-            lines = [f"{self._symbol(statement.name or 'anonymous_procedure')}:"]
+            lines = [f"{self._symbol(procedure_entry_name(statement, 'anonymous_procedure') or 'anonymous_procedure')}:"]
             for child in statement.body:
                 lines.extend(self._statement(child))
             lines.append("    ret")

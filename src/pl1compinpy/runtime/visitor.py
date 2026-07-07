@@ -17,8 +17,10 @@ from ..core.ast import (
     RawStatement,
     SelectStatement,
     Statement,
+    main_procedure_entry,
 )
 from .calculation import CalculationEngine, PL1Type, PL1Value
+from .command_line import CommandLineRuntime
 from .decimal import CalculationBuiltinRuntime, FixedDecimal
 from .function_table import RUNTIME_FUNCTION_TABLE, FunctionTable, FunctionTableError, build_dynamic_function_table, declare_program_builtins
 
@@ -28,16 +30,23 @@ class RuntimeVisitorError(ValueError):
 
 
 class RuntimeExecutionVisitor(AstVisitor):
-    def __init__(self, variables: dict[str, PL1Value | object] | None = None, max_loop: int = 10000) -> None:
+    def __init__(self, variables: dict[str, PL1Value | object] | None = None, max_loop: int = 10000, argv: list[str] | tuple[str, ...] | None = None) -> None:
         self.variables: dict[str, PL1Value | object] = variables if variables is not None else {}
         self.max_loop = max_loop
         self.output: list[object] = []
         self.function_table: FunctionTable = RUNTIME_FUNCTION_TABLE
         self.builtins = CalculationBuiltinRuntime()
+        self.command_line = CommandLineRuntime.from_argv(argv)
 
     def visit_Program(self, node: Program) -> Any:
         self.function_table = RUNTIME_FUNCTION_TABLE.merge(build_dynamic_function_table(node))
         declare_program_builtins(node, self.function_table)
+        main_entry = main_procedure_entry(node)
+        if main_entry:
+            _, procedure = main_entry
+            for parameter, value in zip(procedure.parameters, self.command_line.bind_main_parameters(procedure.parameters)):
+                self.variables[parameter] = PL1Value(value, PL1Type.CHARACTER) if isinstance(value, str) else value
+            return self._execute_block(procedure.body)
         result = None
         for statement in node.statements:
             result = self.visit(statement)
@@ -160,6 +169,9 @@ class RuntimeExecutionVisitor(AstVisitor):
             "DECIMAL_FROM_PACKED": self.builtins.DECIMAL_FROM_PACKED,
             "DECIMAL_TO_ZONED": self.builtins.DECIMAL_TO_ZONED,
             "DECIMAL_FROM_ZONED": self.builtins.DECIMAL_FROM_ZONED,
+            "COMMAND": self.command_line.command,
+            "ARGC": self.command_line.argc,
+            "ARGV": self.command_line.argv_value,
         }
         try:
             return handlers[key](*arguments)

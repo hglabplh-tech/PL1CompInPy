@@ -42,6 +42,9 @@
 - Runtime calling convention:
   - local variables allocated in stack frames
   - parameters pushed right to left
+  - unnamed `PROC OPTIONS(MAIN)` resolved as entry name `MAIN`
+  - `PROC(PARM) OPTIONS(MAIN)` first-parameter command-tail binding
+  - runtime `COMMAND`, `ARGC`, and `ARGV` command-line services
   - call by reference
   - call by name normalized to sorted call by reference
   - dynamic function table for user procedures
@@ -110,7 +113,7 @@
 - Runtime `SUBSTR` behavior using one-based positions over two-byte-length string payloads, enabled in source with `DCL SUBSTR BUILTIN;`.
 - Declared static builtins for string and numeric helpers such as `LENGTH`, `INDEX`, `ABS`, `SIGN`, `MIN`, `MAX`, `MOD`, `ROUND`, `TRUNC`, `CEIL`, `FLOOR`, `SQRT`, `EXP`, `LOG`, `SIN`, `COS`, and `TAN`.
 - Declared static conversion builtins for `FIXED_DECIMAL`, `DECIMAL_TO_PACKED`, `DECIMAL_FROM_PACKED`, `DECIMAL_TO_ZONED`, and `DECIMAL_FROM_ZONED`.
-- `PROC OPTIONS(MAIN)` program entry point.
+- `PROC OPTIONS(MAIN)` program entry point, including unnamed main procedures and first-parameter command-line binding.
 - `PROC RECURSIVE` metadata and ordinary recursive-call continuation semantics.
 - `PROC RETURNS(...)` function return metadata.
 - `IF/THEN/ELSE` comparisons using `=`, `^=`, `¬=`, `~=`, `<>`, `<`, `<=`, `>`, `>=`, and `=>`.

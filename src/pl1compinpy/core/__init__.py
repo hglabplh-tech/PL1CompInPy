@@ -20,6 +20,11 @@ from .ast import (
     Statement,
     StringLiteral,
     UnaryExpression,
+    is_main_procedure,
+    main_procedure_entry,
+    main_procedure_name,
+    procedure_entry_name,
+    procedure_from_statement,
 )
 from .compiler import Compiler, available_binary_formats, available_targets, compile_binary, compile_jvm_classes, compile_source
 
@@ -44,6 +49,11 @@ __all__ = [
     "Statement",
     "StringLiteral",
     "UnaryExpression",
+    "is_main_procedure",
+    "main_procedure_entry",
+    "main_procedure_name",
+    "procedure_entry_name",
+    "procedure_from_statement",
     "available_binary_formats",
     "available_targets",
     "compile_binary",

@@ -13,6 +13,7 @@ These examples cover the compiler features currently implemented in PL1CompInPy.
 - `language/goto_labels.pl1`: labels plus `GOTO` and `GO TO`
 - `language/preprocessor_commands.pl1`: parsed `%` preprocessor command forms
 - `language/procedure_main.pl1`: `PROC OPTIONS(MAIN)` and `RETURNS`
+- `language/command_line_main.pl1`: `PROC(PARM) OPTIONS(MAIN)` command-line parameter binding
 - `language/call_by_reference.pl1`: by-reference calls
 - `language/call_by_name.pl1`: by-name call normalization
 - `language/recursive_proc.pl1`: recursive procedure metadata and ordinary call continuation

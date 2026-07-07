@@ -13,6 +13,9 @@ from ..core.ast import (
     Procedure,
     Program,
     RawStatement,
+    main_procedure_entry,
+    main_procedure_name,
+    procedure_entry_name,
 )
 from .runtime_link import runtime_linkage
 
@@ -36,17 +39,24 @@ class JVMBytecodeEmitter:
         for statement in program.statements:
             procedure = statement.statement if isinstance(statement, LabelledStatement) and isinstance(statement.statement, Procedure) else statement
             if isinstance(procedure, Procedure):
-                name = procedure.name or (statement.label if isinstance(statement, LabelledStatement) else "anonymous")
+                name = procedure_entry_name(statement, "anonymous") or "anonymous"
                 lines.extend(self._procedure(name, procedure))
                 lines.append("")
-        main = self._main_name(program)
-        if main:
+        main_entry = main_procedure_entry(program)
+        if main_entry:
+            main, procedure = main_entry
+            descriptor = "(" + ("I" * len(procedure.parameters)) + ")" + self._return_descriptor(procedure)
+            call_lines = ["    iconst_0" for _ in procedure.parameters]
+            if procedure.parameters:
+                call_lines.insert(0, "    ; PL/I MAIN command-line parameter placeholder")
+            call_lines.append("    invokestatic PL1Program/" + main + descriptor)
+            if procedure.returns:
+                call_lines.append("    pop")
             lines.extend(
                 [
                     ".method public static main([Ljava/lang/String;)V",
                     f"    invokestatic {runtime_type}/{linkage.startup_symbol}()V",
-                    "    invokestatic PL1Program/" + main + "()I",
-                    "    pop",
+                    *call_lines,
                     f"    invokestatic {runtime_type}/{linkage.shutdown_symbol}()V",
                     "    return",
                     ".end method",
@@ -178,11 +188,7 @@ class JVMBytecodeEmitter:
         return "I" if procedure.returns else "V"
 
     def _main_name(self, program: Program) -> str | None:
-        for statement in program.statements:
-            procedure = statement.statement if isinstance(statement, LabelledStatement) and isinstance(statement.statement, Procedure) else statement
-            if isinstance(procedure, Procedure) and "MAIN" in {option.upper() for option in procedure.options}:
-                return procedure.name or (statement.label if isinstance(statement, LabelledStatement) else None)
-        return None
+        return main_procedure_name(program)
 
 
 def emit_jvm_bytecode(program: Program) -> str:

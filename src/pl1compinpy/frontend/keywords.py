@@ -130,6 +130,10 @@ _add("UNTIL", "iteration keyword", "Terminates a loop after a condition becomes 
 _add("WHILE", "iteration keyword", "Continues a loop while a condition is true.")
 _add("WHEN", "generic keyword", "Associates a generic alternative with a parameter type list.")
 
+_add("COMMAND", "runtime function", "Returns the command tail supplied to the main procedure.")
+_add("ARGC", "runtime function", "Returns the number of command-line arguments.")
+_add("ARGV", "runtime function", "Returns one command-line argument by index.")
+
 _add("ANYCONDITION", "condition", "Matches any signaled condition.")
 _add("AREA", "condition", "Raised for area storage problems.")
 _add("ATTENTION", "condition", "Raised for attention interrupts.")

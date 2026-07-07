@@ -124,7 +124,8 @@ Currently supported compiler features:
 - labels and `GOTO`/`GO TO` branch statements
 - parsed `%` preprocessor commands such as `%DECLARE`, `%IF`, `%DO`, `%INCLUDE`, `%REPLACE`, `%GOTO`, `%PROCEDURE`, `%RETURN`, and listing controls
 - labels and procedure bodies
-- `PROC OPTIONS(MAIN)` as a program entry point
+- `PROC OPTIONS(MAIN)` as a program entry point, including unnamed `PROC OPTIONS(MAIN)` treated as entry name `MAIN`
+- `PROC(PARM) OPTIONS(MAIN)` command-line binding, where the first parameter receives the command tail
 - `PROC RECURSIVE` metadata, with recursive calls lowered as ordinary calls that continue at the next statement after return
 - `PROC RETURNS(...)` metadata for function return type
 - console output through `CALL DISPLAY(...)`, `CALL PRINT(...)`, and basic `PUT LIST(...)`
@@ -174,6 +175,7 @@ The executable pipeline includes a first runtime calling convention:
 - `CALL P(B,A) BY NAME;` is normalized by matching argument names to `P`'s parameter names, sorting them into parameter order, and lowering the result as a by-reference call
 - user procedures are registered in a dynamic function table as they are detected
 - runtime services are registered in a static function table with PL/I-like names, pointer targets, parameter descriptions, return types, and call modes
+- command-line runtime services expose `COMMAND`, `ARGC`, and `ARGV`, and direct runtime execution binds main procedure parameters from host `argv`
 - PL/I builtins are also registered in the static table, but a source program must declare them with `DCL name BUILTIN;` before calls are accepted
 - declared static builtins now include `SUBSTR`, `LENGTH`, `INDEX`, `ABS`, `SIGN`, `MIN`, `MAX`, `MOD`, `ROUND`, `TRUNC`, `CEIL`, `FLOOR`, starter math helpers, and fixed-decimal conversion helpers
 - `CALL` validation uses the merged runtime and dynamic tables before lowering
@@ -182,6 +184,7 @@ The executable pipeline includes a first runtime calling convention:
 - JVM output links the runtime through the `pl1compinpy/runtime/PL1Runtime` class on the classpath
 - .NET IL links the runtime through the `PL1CompInPy.Runtime` managed assembly
 - AST nodes support a visitor pattern through `accept`, and runtime execution has a `RuntimeExecutionVisitor` for future compiler passes and runtime checks; see `examples/runtime/runtime_visitor.py`
+- Python source output passes `" ".join(sys.argv[1:])` to the first `OPTIONS(MAIN)` procedure parameter; native/JVM/.NET backends now identify the same main entry and reserve argument slots for parameterized mains
 - backend control-flow lowering treats simple `DO` as a block, `DO WHILE` as a pre-test loop, `DO ... UNTIL` as a post-test loop, `IF/THEN/ELSE` as decisions, and `SELECT/WHEN/OTHERWISE` as branches
 - GOTO statements are parsed as AST nodes and lowered to unconditional branches for the native mnemonic/assembly backends, while Python, JVM text, and .NET IL outputs preserve the branch intent in their target form
 - PL/I preprocessor statements are parsed into `PreprocessorStatement` AST nodes so future macro expansion can use the visitor pipeline; current backends preserve them as target comments
@@ -250,6 +253,7 @@ PL1CompInPy/
       based.py
       calculation.py
       calling.py
+      command_line.py
       decimal.py
       function_table.py
       heap.py

@@ -20,17 +20,21 @@ from ..core.ast import (
     SelectStatement,
     StringLiteral,
     UnaryExpression,
+    main_procedure_entry,
 )
 
 
 class PythonSourceEmitter:
     def emit(self, program: Program) -> str:
         lines: list[str] = []
-        main_name = self._main_procedure_name(program)
+        main_entry = main_procedure_entry(program)
+        if main_entry and main_entry[1].parameters:
+            lines.extend(["import sys", ""])
         for statement in program.statements:
             lines.extend(self._statement(statement))
-        if main_name:
-            lines.extend(["", 'if __name__ == "__main__":', f"    {main_name}()"])
+        if main_entry:
+            main_name, procedure = main_entry
+            lines.extend(["", 'if __name__ == "__main__":', f"    {main_name}({self._main_arguments(procedure)})"])
         return "\n".join(lines) + ("\n" if lines else "")
 
     def _statement(self, statement: object, indent: int = 0) -> list[str]:
@@ -133,7 +137,11 @@ class PythonSourceEmitter:
 
     def _procedure(self, procedure: Procedure, indent: int) -> list[str]:
         prefix = " " * indent
-        name = procedure.name or "anonymous_procedure"
+        name = procedure.name or ("MAIN" if "MAIN" in {option.upper() for option in procedure.options} else "anonymous_procedure")
+        return self._procedure_named(name, procedure, indent)
+
+    def _procedure_named(self, name: str, procedure: Procedure, indent: int) -> list[str]:
+        prefix = " " * indent
         parameters = ", ".join(procedure.parameters)
         returns = f"  # returns {procedure.returns}" if procedure.returns else ""
         recursive = "  # recursive" if procedure.recursive else ""
@@ -191,12 +199,17 @@ class PythonSourceEmitter:
             return "0.0"
         return "0"
 
-    def _main_procedure_name(self, program: Program) -> str | None:
-        for statement in program.statements:
-            procedure = statement.statement if isinstance(statement, LabelledStatement) and isinstance(statement.statement, Procedure) else statement
-            if isinstance(procedure, Procedure) and "MAIN" in {option.upper() for option in procedure.options}:
-                return procedure.name or (statement.label if isinstance(statement, LabelledStatement) else None)
-        return None
+    def _main_arguments(self, procedure: Procedure) -> str:
+        arguments: list[str] = []
+        if procedure.parameters:
+            arguments.append('" ".join(sys.argv[1:])')
+        if len(procedure.parameters) > 1:
+            arguments.append("len(sys.argv) - 1")
+        if len(procedure.parameters) > 2:
+            arguments.append("sys.argv[1:]")
+        while len(arguments) < len(procedure.parameters):
+            arguments.append("None")
+        return ", ".join(arguments)
 
 
 def emit_python_source(program: Program) -> str:
