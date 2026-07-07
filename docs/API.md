@@ -4,9 +4,9 @@ This file is generated from the Python source tree. Regenerate it with `python s
 
 ## Summary
 
-- Modules: 44
-- Classes: 116
-- Functions and methods: 490
+- Modules: 47
+- Classes: 125
+- Functions and methods: 515
 
 ## `pl1compinpy`
 
@@ -126,7 +126,7 @@ def main(argv: list[str] | None = None) -> int
 
 Performs main behavior in `pl1compinpy.cli`.
 
-Defined at line 43.
+Defined at line 57.
 
 ## `pl1compinpy.codegen`
 
@@ -144,7 +144,7 @@ def emit_code(program, target: str) -> str
 
 Emits code output for the compiler.
 
-Defined at line 15.
+Defined at line 16.
 
 ## `pl1compinpy.codegen.backends`
 
@@ -1794,6 +1794,96 @@ Emits jvm classes output for the compiler.
 
 Defined at line 219.
 
+## `pl1compinpy.codegen.libraries`
+
+Source: `pl1compinpy/codegen/libraries.py`
+
+Module containing libraries support for the PL/I compiler.
+
+### Classes
+
+#### `LibraryFormatError`
+
+```python
+class LibraryFormatError(ValueError)
+```
+
+Exception type raised for library format errors.
+
+Defined at line 10.
+
+#### `LibraryImage`
+
+```python
+class LibraryImage
+```
+
+Data container describing library image values used by the compiler.
+
+Defined at line 24.
+
+### Functions
+
+#### `emit_library`
+
+```python
+def emit_library(format_name: str, program: Program | None = None, module_name: str = 'pl1module') -> bytes
+```
+
+Emits library output for the compiler.
+
+Defined at line 29.
+
+#### `_library_manifest`
+
+```python
+def _library_manifest(format_name: str, program: Program | None, module_name: str) -> bytes
+```
+
+Internal helper in `pl1compinpy.codegen.libraries` for library manifest.
+
+Defined at line 42.
+
+#### `_ar_archive`
+
+```python
+def _ar_archive(module_name: str, payload: bytes) -> bytes
+```
+
+Internal helper in `pl1compinpy.codegen.libraries` for ar archive.
+
+Defined at line 56.
+
+#### `_elf_shared`
+
+```python
+def _elf_shared(payload: bytes) -> bytes
+```
+
+Internal helper in `pl1compinpy.codegen.libraries` for elf shared.
+
+Defined at line 62.
+
+#### `_macho_dylib`
+
+```python
+def _macho_dylib(payload: bytes) -> bytes
+```
+
+Internal helper in `pl1compinpy.codegen.libraries` for macho dylib.
+
+Defined at line 70.
+
+#### `_pe_dll`
+
+```python
+def _pe_dll(payload: bytes) -> bytes
+```
+
+Internal helper in `pl1compinpy.codegen.libraries` for pe dll.
+
+Defined at line 75.
+
 ## `pl1compinpy.codegen.linkers`
 
 Source: `pl1compinpy/codegen/linkers.py`
@@ -2597,24 +2687,84 @@ Methods:
 ##### `Compiler.compile`
 
 ```python
-def compile(self, source: str, target: str = 'python-source', builtins: list[str] | None = None) -> str
+def compile(self, source: str, target: str = 'python-source', builtins: list[str] | None = None, include_dirs: list[str | Path] | None = None, base_dir: str | Path | None = None) -> str
 ```
 
 Performs compile behavior in `Compiler`.
 
 Defined at line 12.
 
+##### `Compiler.compile_sources`
+
+```python
+def compile_sources(self, sources: list[str], target: str = 'python-source', builtins: list[str] | None = None, include_dirs: list[str | Path] | None = None, base_dir: str | Path | None = None) -> str
+```
+
+Compiles PL/I input into sources output.
+
+Defined at line 16.
+
+##### `Compiler.compile_paths`
+
+```python
+def compile_paths(self, paths: list[str | Path], target: str = 'python-source', builtins: list[str] | None = None, include_dirs: list[str | Path] | None = None) -> str
+```
+
+Compiles PL/I input into paths output.
+
+Defined at line 20.
+
+##### `Compiler.program_from_sources`
+
+```python
+def program_from_sources(self, sources: list[str], builtins: list[str] | None = None, include_dirs: list[str | Path] | None = None, base_dir: str | Path | None = None)
+```
+
+Performs program from sources behavior in `Compiler`.
+
+Defined at line 24.
+
+##### `Compiler.program_from_paths`
+
+```python
+def program_from_paths(self, paths: list[str | Path], builtins: list[str] | None = None, include_dirs: list[str | Path] | None = None)
+```
+
+Performs program from paths behavior in `Compiler`.
+
+Defined at line 30.
+
 ### Functions
 
 #### `compile_source`
 
 ```python
-def compile_source(source: str, target: str = 'python-source', builtins: list[str] | None = None) -> str
+def compile_source(source: str, target: str = 'python-source', builtins: list[str] | None = None, include_dirs: list[str | Path] | None = None, base_dir: str | Path | None = None) -> str
 ```
 
 Compiles PL/I input into source output.
 
-Defined at line 18.
+Defined at line 37.
+
+#### `compile_sources`
+
+```python
+def compile_sources(sources: list[str], target: str = 'python-source', builtins: list[str] | None = None, include_dirs: list[str | Path] | None = None, base_dir: str | Path | None = None) -> str
+```
+
+Compiles PL/I input into sources output.
+
+Defined at line 41.
+
+#### `compile_paths`
+
+```python
+def compile_paths(paths: list[str | Path], target: str = 'python-source', builtins: list[str] | None = None, include_dirs: list[str | Path] | None = None) -> str
+```
+
+Compiles PL/I input into paths output.
+
+Defined at line 45.
 
 #### `available_targets`
 
@@ -2624,7 +2774,7 @@ def available_targets() -> tuple[str, ...]
 
 Performs available targets behavior in `pl1compinpy.core.compiler`.
 
-Defined at line 22.
+Defined at line 49.
 
 #### `available_binary_formats`
 
@@ -2634,43 +2784,165 @@ def available_binary_formats() -> tuple[str, ...]
 
 Performs available binary formats behavior in `pl1compinpy.core.compiler`.
 
-Defined at line 26.
+Defined at line 53.
+
+#### `available_library_formats`
+
+```python
+def available_library_formats() -> tuple[str, ...]
+```
+
+Performs available library formats behavior in `pl1compinpy.core.compiler`.
+
+Defined at line 57.
 
 #### `compile_binary`
 
 ```python
-def compile_binary(format_name: str, source: str | None = None, builtins: list[str] | None = None) -> bytes
+def compile_binary(format_name: str, source: str | None = None, builtins: list[str] | None = None, include_dirs: list[str | Path] | None = None, base_dir: str | Path | None = None) -> bytes
 ```
 
 Compiles PL/I input into binary output.
 
-Defined at line 30.
+Defined at line 61.
 
 #### `compile_jvm_classes`
 
 ```python
-def compile_jvm_classes(source: str, builtins: list[str] | None = None) -> dict[str, bytes]
+def compile_jvm_classes(source: str, builtins: list[str] | None = None, include_dirs: list[str | Path] | None = None, base_dir: str | Path | None = None) -> dict[str, bytes]
 ```
 
 Compiles PL/I input into jvm classes output.
 
-Defined at line 36.
+Defined at line 66.
 
 #### `compile_dotnet_executable`
 
 ```python
-def compile_dotnet_executable(source: str, output: str | Path, builtins: list[str] | None = None, ilasm: str | None = None) -> Path
+def compile_dotnet_executable(source: str, output: str | Path, builtins: list[str] | None = None, ilasm: str | None = None, include_dirs: list[str | Path] | None = None, base_dir: str | Path | None = None) -> Path
 ```
 
 Compiles PL/I input into dotnet executable output.
 
-Defined at line 42.
+Defined at line 71.
+
+#### `compile_library`
+
+```python
+def compile_library(format_name: str, source: str | None = None, builtins: list[str] | None = None, include_dirs: list[str | Path] | None = None, base_dir: str | Path | None = None, module_name: str = 'pl1module') -> bytes
+```
+
+Compiles PL/I input into library output.
+
+Defined at line 76.
 
 ## `pl1compinpy.frontend`
 
 Source: `pl1compinpy/frontend/__init__.py`
 
 Lexing, keyword metadata, and parsing for PL1CompInPy.
+
+## `pl1compinpy.frontend.include`
+
+Source: `pl1compinpy/frontend/include.py`
+
+Module containing include support for the PL/I compiler.
+
+### Classes
+
+#### `IncludeError`
+
+```python
+class IncludeError(ValueError)
+```
+
+Exception type raised for include errors.
+
+Defined at line 8.
+
+#### `IncludeExpander`
+
+```python
+class IncludeExpander
+```
+
+Data container describing include expander values used by the compiler.
+
+Defined at line 13.
+
+Methods:
+
+##### `IncludeExpander.expand`
+
+```python
+def expand(self, source: str, *, base_dir: Path | None = None) -> str
+```
+
+Performs expand behavior in `IncludeExpander`.
+
+Defined at line 19.
+
+##### `IncludeExpander.expand_file`
+
+```python
+def expand_file(self, path: Path) -> str
+```
+
+Performs expand file behavior in `IncludeExpander`.
+
+Defined at line 23.
+
+##### `IncludeExpander._expand_source`
+
+```python
+def _expand_source(self, source: str, base_dir: Path, stack: list[Path]) -> str
+```
+
+Internal helper in `IncludeExpander` for expand source.
+
+Defined at line 27.
+
+##### `IncludeExpander._include_directive`
+
+```python
+def _include_directive(self, line: str) -> tuple[str, str] | None
+```
+
+Internal helper in `IncludeExpander` for include directive.
+
+Defined at line 49.
+
+##### `IncludeExpander._resolve_member`
+
+```python
+def _resolve_member(self, member: str, base_dir: Path) -> Path | None
+```
+
+Internal helper in `IncludeExpander` for resolve member.
+
+Defined at line 63.
+
+### Functions
+
+#### `expand_includes`
+
+```python
+def expand_includes(source: str, include_dirs: list[str | Path] | None = None, *, base_dir: str | Path | None = None) -> str
+```
+
+Performs expand includes behavior in `pl1compinpy.frontend.include`.
+
+Defined at line 78.
+
+#### `expand_include_file`
+
+```python
+def expand_include_file(path: str | Path, include_dirs: list[str | Path] | None = None) -> str
+```
+
+Performs expand include file behavior in `pl1compinpy.frontend.include`.
+
+Defined at line 83.
 
 ## `pl1compinpy.frontend.keywords`
 
@@ -4738,6 +5010,106 @@ Performs to python float behavior in `pl1compinpy.runtime.decimal`.
 
 Defined at line 231.
 
+## `pl1compinpy.runtime.dynload`
+
+Source: `pl1compinpy/runtime/dynload.py`
+
+Module containing dynload support for the PL/I compiler.
+
+### Classes
+
+#### `DynamicLoadError`
+
+```python
+class DynamicLoadError(ValueError)
+```
+
+Exception type raised for dynamic load errors.
+
+Defined at line 9.
+
+#### `DynamicLibraryHandle`
+
+```python
+class DynamicLibraryHandle
+```
+
+Data container describing dynamic library handle values used by the compiler.
+
+Defined at line 14.
+
+#### `JavaClassLoadRequest`
+
+```python
+class JavaClassLoadRequest
+```
+
+Data container describing java class load request values used by the compiler.
+
+Defined at line 20.
+
+#### `DotNetAssemblyLoadRequest`
+
+```python
+class DotNetAssemblyLoadRequest
+```
+
+Data container describing dot net assembly load request values used by the compiler.
+
+Defined at line 26.
+
+#### `DynamicLoadRuntime`
+
+```python
+class DynamicLoadRuntime
+```
+
+Class implementing dynamic load runtime behavior in the PL/I compiler.
+
+Defined at line 31.
+
+Methods:
+
+##### `DynamicLoadRuntime.dynload`
+
+```python
+def dynload(self, path: str | Path) -> DynamicLibraryHandle
+```
+
+Performs dynload behavior in `DynamicLoadRuntime`.
+
+Defined at line 32.
+
+##### `DynamicLoadRuntime.symbol`
+
+```python
+def symbol(self, library: DynamicLibraryHandle, name: str) -> Any
+```
+
+Performs symbol behavior in `DynamicLoadRuntime`.
+
+Defined at line 39.
+
+##### `DynamicLoadRuntime.java_class`
+
+```python
+def java_class(self, class_name: str, classpath: list[str] | tuple[str, ...] | None = None) -> JavaClassLoadRequest
+```
+
+Performs java class behavior in `DynamicLoadRuntime`.
+
+Defined at line 45.
+
+##### `DynamicLoadRuntime.dotnet_assembly`
+
+```python
+def dotnet_assembly(self, assembly_name: str, type_name: str | None = None) -> DotNetAssemblyLoadRequest
+```
+
+Performs dotnet assembly behavior in `DynamicLoadRuntime`.
+
+Defined at line 48.
+
 ## `pl1compinpy.runtime.function_table`
 
 Source: `pl1compinpy/runtime/function_table.py`
@@ -6038,7 +6410,7 @@ class RuntimeVisitorError(ValueError)
 
 Exception type raised for runtime visitor errors.
 
-Defined at line 28.
+Defined at line 29.
 
 #### `RuntimeExecutionVisitor`
 
@@ -6048,7 +6420,7 @@ class RuntimeExecutionVisitor(AstVisitor)
 
 Class implementing runtime execution visitor behavior in the PL/I compiler.
 
-Defined at line 32.
+Defined at line 33.
 
 Methods:
 
@@ -6060,7 +6432,7 @@ def __init__(self, variables: dict[str, PL1Value | object] | None = None, max_lo
 
 Initializes an instance of `RuntimeExecutionVisitor`.
 
-Defined at line 33.
+Defined at line 34.
 
 ##### `RuntimeExecutionVisitor.visit_Program`
 
@@ -6070,7 +6442,7 @@ def visit_Program(self, node: Program) -> Any
 
 Performs visit program behavior in `RuntimeExecutionVisitor`.
 
-Defined at line 41.
+Defined at line 43.
 
 ##### `RuntimeExecutionVisitor.visit_Declaration`
 
@@ -6080,7 +6452,7 @@ def visit_Declaration(self, node: Declaration) -> None
 
 Performs visit declaration behavior in `RuntimeExecutionVisitor`.
 
-Defined at line 55.
+Defined at line 57.
 
 ##### `RuntimeExecutionVisitor.visit_Assignment`
 
@@ -6090,7 +6462,7 @@ def visit_Assignment(self, node: Assignment) -> PL1Value
 
 Performs visit assignment behavior in `RuntimeExecutionVisitor`.
 
-Defined at line 74.
+Defined at line 76.
 
 ##### `RuntimeExecutionVisitor.visit_Call`
 
@@ -6100,7 +6472,7 @@ def visit_Call(self, node: Call) -> Any
 
 Performs visit call behavior in `RuntimeExecutionVisitor`.
 
-Defined at line 79.
+Defined at line 81.
 
 ##### `RuntimeExecutionVisitor.visit_DoGroup`
 
@@ -6110,7 +6482,7 @@ def visit_DoGroup(self, node: DoGroup) -> Any
 
 Performs visit do group behavior in `RuntimeExecutionVisitor`.
 
-Defined at line 87.
+Defined at line 89.
 
 ##### `RuntimeExecutionVisitor.visit_IfStatement`
 
@@ -6120,7 +6492,7 @@ def visit_IfStatement(self, node: IfStatement) -> Any
 
 Performs visit if statement behavior in `RuntimeExecutionVisitor`.
 
-Defined at line 103.
+Defined at line 105.
 
 ##### `RuntimeExecutionVisitor.visit_SelectStatement`
 
@@ -6130,7 +6502,7 @@ def visit_SelectStatement(self, node: SelectStatement) -> Any
 
 Performs visit select statement behavior in `RuntimeExecutionVisitor`.
 
-Defined at line 108.
+Defined at line 110.
 
 ##### `RuntimeExecutionVisitor.visit_LabelledStatement`
 
@@ -6140,7 +6512,7 @@ def visit_LabelledStatement(self, node: LabelledStatement) -> Any
 
 Performs visit labelled statement behavior in `RuntimeExecutionVisitor`.
 
-Defined at line 119.
+Defined at line 121.
 
 ##### `RuntimeExecutionVisitor.visit_GotoStatement`
 
@@ -6150,7 +6522,7 @@ def visit_GotoStatement(self, node: GotoStatement) -> Any
 
 Performs visit goto statement behavior in `RuntimeExecutionVisitor`.
 
-Defined at line 122.
+Defined at line 124.
 
 ##### `RuntimeExecutionVisitor.visit_PreprocessorStatement`
 
@@ -6160,7 +6532,7 @@ def visit_PreprocessorStatement(self, node: PreprocessorStatement) -> Any
 
 Performs visit preprocessor statement behavior in `RuntimeExecutionVisitor`.
 
-Defined at line 125.
+Defined at line 127.
 
 ##### `RuntimeExecutionVisitor.visit_RawStatement`
 
@@ -6170,7 +6542,7 @@ def visit_RawStatement(self, node: RawStatement) -> Any
 
 Performs visit raw statement behavior in `RuntimeExecutionVisitor`.
 
-Defined at line 128.
+Defined at line 130.
 
 ##### `RuntimeExecutionVisitor.evaluate`
 
@@ -6180,7 +6552,7 @@ def evaluate(self, expression: Expression) -> PL1Value
 
 Performs evaluate behavior in `RuntimeExecutionVisitor`.
 
-Defined at line 131.
+Defined at line 133.
 
 ##### `RuntimeExecutionVisitor._execute_block`
 
@@ -6190,7 +6562,7 @@ def _execute_block(self, statements: list[Statement]) -> Any
 
 Internal helper in `RuntimeExecutionVisitor` for execute block.
 
-Defined at line 134.
+Defined at line 136.
 
 ##### `RuntimeExecutionVisitor._dispatch_call`
 
@@ -6200,7 +6572,7 @@ def _dispatch_call(self, name: str, arguments: list[object]) -> Any
 
 Internal helper in `RuntimeExecutionVisitor` for dispatch call.
 
-Defined at line 140.
+Defined at line 142.
 
 ##### `RuntimeExecutionVisitor._plain`
 
@@ -6210,7 +6582,7 @@ def _plain(self, value: PL1Value | object) -> object
 
 Internal helper in `RuntimeExecutionVisitor` for plain.
 
-Defined at line 181.
+Defined at line 187.
 
 ## `pl1compinpy.vsam`
 

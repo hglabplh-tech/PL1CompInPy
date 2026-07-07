@@ -8,9 +8,9 @@ import tempfile
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from pl1compinpy import compile_source
+from pl1compinpy import compile_paths, compile_source, compile_sources
 from pl1compinpy.builtins import BuiltinLibrary
-from pl1compinpy.compiler import compile_binary, compile_jvm_classes
+from pl1compinpy.compiler import compile_binary, compile_jvm_classes, compile_library
 from pl1compinpy.codegen.dotnet_executable import DotNetExecutableError
 from pl1compinpy.codegen.jvm_classfile import JAVA_17_MAJOR_VERSION
 from pl1compinpy.codegen.executable_pipeline import lower_program
@@ -32,6 +32,7 @@ from pl1compinpy.ast import (
     SelectStatement,
     main_procedure_name,
 )
+from pl1compinpy.frontend.include import IncludeExpander
 from pl1compinpy.frontend.lexer import Lexer, TokenType
 from pl1compinpy.frontend.parser import Parser
 from pl1compinpy.runtime import (
@@ -45,6 +46,7 @@ from pl1compinpy.runtime import (
     CalculationBuiltinRuntime,
     CommandLineRuntime,
     DecimalRuntime,
+    DynamicLoadRuntime,
     PictureRuntime,
     CalculationEngine,
     FixedDecimal,
@@ -98,6 +100,32 @@ class CompilerTests(unittest.TestCase):
         self.assertEqual(tokens[0].type, TokenType.IDENTIFIER)
         self.assertEqual(tokens[0].keyword.word, "IF")
         self.assertEqual(compile_source("IF = THEN;"), "IF = THEN\n")
+
+    def test_include_expander_resolves_include_and_xinclude_members(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "common.inc").write_text("DCL SHARED FIXED BIN(31);\n", encoding="utf-8")
+            source = "%INCLUDE 'common';\n%XINCLUDE 'common';\n%XINCLUDE 'common';\nSHARED = 7;"
+
+            expanded = IncludeExpander([root]).expand(source, base_dir=root)
+
+            self.assertEqual(expanded.count("DCL SHARED"), 1)
+            self.assertIn("SHARED = 7;", expanded)
+
+    def test_compile_paths_compiles_included_and_multiple_sources(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "decls.pli").write_text("DCL SHARED FIXED BIN(31);\n", encoding="utf-8")
+            main = root / "main.pl1"
+            helper = root / "helper.pl1"
+            main.write_text("%INCLUDE 'decls';\nMAIN: PROC OPTIONS(MAIN); CALL HELPER(); END MAIN;\n", encoding="utf-8")
+            helper.write_text("HELPER: PROC; SHARED = 1; END HELPER;\n", encoding="utf-8")
+
+            output = compile_paths([main, helper], target="python-source", include_dirs=[root])
+
+            self.assertIn("SHARED = 0", output)
+            self.assertIn("def MAIN():", output)
+            self.assertIn("def HELPER():", output)
 
     def test_skips_comments(self):
         tokens = Lexer("A = 1; /* comment */ B = 2;").tokenize()
@@ -310,6 +338,15 @@ class CompilerTests(unittest.TestCase):
     def test_creates_macho_for_apple_intel_and_m2(self):
         self.assertEqual(compile_binary("macho64-x86_64-macos")[:4], b"\xcf\xfa\xed\xfe")
         self.assertEqual(compile_binary("macho64-arm64-macos")[:4], b"\xcf\xfa\xed\xfe")
+
+    def test_creates_static_and_shared_library_artifacts(self):
+        source = "MAIN: PROC OPTIONS(MAIN); END MAIN;"
+
+        self.assertTrue(compile_library("static-ar", source).startswith(b"!<arch>\n"))
+        self.assertTrue(compile_library("static-lib-windows", source).startswith(b"!<arch>\n"))
+        self.assertEqual(compile_library("shared-elf64", source)[:4], b"\x7fELF")
+        self.assertEqual(compile_library("shared-macho64", source)[:4], b"\xcf\xfa\xed\xfe")
+        self.assertEqual(compile_library("shared-pe64", source)[:2], b"MZ")
 
     def test_linkers_expose_pe_elf_and_macho_formats(self):
         pe64 = PELinker().link_pe64_x86_64_windows()
@@ -524,6 +561,17 @@ class CompilerTests(unittest.TestCase):
             descriptor = RUNTIME_FUNCTION_TABLE.get(name)
             self.assertEqual(descriptor.source, "runtime")
             self.assertFalse(descriptor.requires_declaration)
+
+    def test_dynamic_load_runtime_and_function_table_services(self):
+        runtime = DynamicLoadRuntime()
+        java_request = runtime.java_class("pl1compinpy.runtime.PL1Runtime", ["pl1rt.jar"])
+        dotnet_request = runtime.dotnet_assembly("PL1CompInPy.Runtime.dll", "PL1Runtime")
+
+        self.assertEqual(java_request.class_name, "pl1compinpy.runtime.PL1Runtime")
+        self.assertEqual(java_request.classpath, ("pl1rt.jar",))
+        self.assertEqual(dotnet_request.assembly_name, "PL1CompInPy.Runtime.dll")
+        for name in ("DYNLOAD", "DYNSYM", "JAVA_LOAD_CLASS", "DOTNET_LOAD_ASSEMBLY"):
+            self.assertEqual(RUNTIME_FUNCTION_TABLE.get(name).source, "runtime")
 
     def test_parses_proc_main_recursive_returns(self):
         program = Parser(

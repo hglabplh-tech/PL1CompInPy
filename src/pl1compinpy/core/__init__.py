@@ -26,7 +26,18 @@ from .ast import (
     procedure_entry_name,
     procedure_from_statement,
 )
-from .compiler import Compiler, available_binary_formats, available_targets, compile_binary, compile_jvm_classes, compile_source
+from .compiler import (
+    Compiler,
+    available_binary_formats,
+    available_library_formats,
+    available_targets,
+    compile_binary,
+    compile_jvm_classes,
+    compile_library,
+    compile_paths,
+    compile_source,
+    compile_sources,
+)
 
 __all__ = [
     "Assignment",
@@ -55,8 +66,12 @@ __all__ = [
     "procedure_entry_name",
     "procedure_from_statement",
     "available_binary_formats",
+    "available_library_formats",
     "available_targets",
     "compile_binary",
     "compile_jvm_classes",
+    "compile_library",
+    "compile_paths",
     "compile_source",
+    "compile_sources",
 ]

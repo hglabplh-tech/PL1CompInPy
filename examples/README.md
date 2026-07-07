@@ -12,6 +12,8 @@ These examples cover the compiler features currently implemented in PL1CompInPy.
 - `language/visitor_control_blocks.pl1`: visitor/backend control blocks with `DO`, `DO WHILE`, `DO ... UNTIL`, `IF`, `SELECT`, and condition aliases
 - `language/goto_labels.pl1`: labels plus `GOTO` and `GO TO`
 - `language/preprocessor_commands.pl1`: parsed `%` preprocessor command forms
+- `language/include_main.pl1` and `language/include_common.pli`: `%INCLUDE` source expansion
+- `language/multi_source_main.pl1` and `language/module_helper.pl1`: separate source modules compiled together
 - `language/procedure_main.pl1`: `PROC OPTIONS(MAIN)` and `RETURNS`
 - `language/command_line_main.pl1`: `PROC(PARM) OPTIONS(MAIN)` command-line parameter binding
 - `language/call_by_reference.pl1`: by-reference calls
@@ -30,6 +32,7 @@ These examples cover the compiler features currently implemented in PL1CompInPy.
 - `runtime/file_read_write.pl1`: `OPEN`, `READ`, `WRITE`, and `CLOSE` file statements
 - `runtime/function_table.py`: dynamic user function table and static runtime function table lookup
 - `runtime/fixed_decimal_packed_zoned.py`: fixed decimal, packed decimal, zoned decimal, and two-byte string runtime APIs
+- `runtime/dynload.py`: native/managed dynamic loading descriptor usage
 - `runtime/runtime_visitor.py`: direct use of the AST `RuntimeExecutionVisitor`
 - `runtime/socket_io.py`: primitive runtime TCP socket send/receive example
 - `runtime/socket_stream.py`: file-like socket payload records above primitive sockets

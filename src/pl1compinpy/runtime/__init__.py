@@ -6,6 +6,7 @@ from .calculation import CalculationEngine, CalculationError, NumericTower, PL1T
 from .calling import RuntimeError, normalize_calls
 from .command_line import CommandLineRuntime
 from .decimal import CalculationBuiltinRuntime, DecimalRuntime, FixedDecimal, PackedDecimalCodec, ZonedDecimalCodec
+from .dynload import DotNetAssemblyLoadRequest, DynamicLibraryHandle, DynamicLoadError, DynamicLoadRuntime, JavaClassLoadRequest
 from .heap import HeapBlock, HeapRuntime, HeapRuntimeError
 from .io import FileDescriptor, FileRuntimeError, StdioRuntime
 from .picture import PictureRuntime, PictureRuntimeError, PictureSpec
@@ -38,12 +39,17 @@ __all__ = [
     "CalculationError",
     "CommandLineRuntime",
     "DecimalRuntime",
+    "DotNetAssemblyLoadRequest",
+    "DynamicLibraryHandle",
+    "DynamicLoadError",
+    "DynamicLoadRuntime",
     "FileDescriptor",
     "FileRuntimeError",
     "FixedDecimal",
     "HeapBlock",
     "HeapRuntime",
     "HeapRuntimeError",
+    "JavaClassLoadRequest",
     "GenericFunction",
     "GenericRuntime",
     "GenericRuntimeError",

@@ -7,6 +7,7 @@ from .dotnet_il import emit_dotnet_il
 from .executable_pipeline import ExecutableImage, Mnemonic, assemble_executable, lower_program
 from .jvm_bytecode import emit_jvm_bytecode
 from .jvm_classfile import JAVA_17_MAJOR_VERSION, emit_jvm_class, emit_jvm_classes
+from .libraries import LIBRARY_FORMATS, LibraryFormatError, LibraryImage, emit_library
 from .linkers import ELFLinker, ExecutableLinker, LinkRequest, MachOLinker, PELinker, link_executable
 from .python_source import emit_python_source
 from .runtime_link import RuntimeLinkage, RuntimeLinkManifest, encoded_runtime_manifest, runtime_linkage, runtime_manifest
@@ -29,7 +30,10 @@ __all__ = [
     "ExecutableImage",
     "ExecutableLinker",
     "ELFLinker",
+    "LIBRARY_FORMATS",
     "LinkRequest",
+    "LibraryFormatError",
+    "LibraryImage",
     "MachOLinker",
     "Mnemonic",
     "PELinker",
@@ -45,6 +49,7 @@ __all__ = [
     "emit_jvm_bytecode",
     "emit_jvm_class",
     "emit_jvm_classes",
+    "emit_library",
     "emit_python_source",
     "encoded_runtime_manifest",
     "JAVA_17_MAJOR_VERSION",

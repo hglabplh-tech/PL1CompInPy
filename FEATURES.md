@@ -12,6 +12,8 @@
   - `codegen` for assembly text, executable lowering, and binary containers
 - PL/1 lexer with contextual keyword metadata.
 - PL/1 parser producing an AST for assignments, declarations, calls, procedures, labels, `GOTO`/`GO TO`, `DO` groups, `IF/THEN/ELSE`, and preprocessor commands.
+- PL/I source inclusion with `%INCLUDE`, `%XINCLUDE`, `%INSCAN`, and `%XINSCAN`, including include directories and duplicate suppression for X-include forms.
+- Multi-source compilation where all provided sources are parsed as one program and `PROC OPTIONS(MAIN)` selects the main module.
 - Visitor-enabled AST nodes and runtime execution visitor support for future compiler passes.
 - Parser support for `DO WHILE`, post-test `DO ... UNTIL`, and `SELECT`/`WHEN`/`OTHERWISE`.
 - Parser support for `%` preprocessor statements including declaration, include, replacement, conditional, loop, macro procedure, branch, and listing commands as preserved AST nodes.
@@ -49,6 +51,7 @@
   - call by name normalized to sorted call by reference
   - dynamic function table for user procedures
   - static runtime function table for runtime functions, I/O, allocation, VSAM, TCP/IP, SSL, and TLS helpers
+  - dynamic loading helpers for native DLL/shared libraries, Java class loading descriptors, and .NET assembly loading descriptors
   - static builtin function table entries for `SUBSTR`, `LENGTH`, `INDEX`, `ABS`, `SIGN`, `MIN`, `MAX`, `MOD`, `ROUND`, `TRUNC`, `CEIL`, `FLOOR`, and starter math/complex helpers
   - call validation against function parameter and return descriptions
 - Runtime storage and I/O:
@@ -81,6 +84,12 @@
   - `elf64-aarch64`
   - `macho64-x86_64-macos`
   - `macho64-arm64-macos`
+- Library/container writers for:
+  - `static-ar`
+  - `static-lib-windows`
+  - `shared-elf64`
+  - `shared-macho64`
+  - `shared-pe64`
 - Public linker facade classes for PE, ELF, and Mach-O executable containers.
 - C-style runtime linkage plans for PE, ELF, Mach-O, JVM, and .NET targets.
 - Native runtime startup/shutdown symbol references plus embedded runtime link manifests.
@@ -101,6 +110,7 @@
 - Power, concatenation, comparison, unary, and logical expression evaluation through the calculation engine.
 - Procedure calls.
 - Function calls resolved and checked through runtime and dynamic function tables.
+- Multi-source translation using PL/I `%INCLUDE` text inclusion and separate module source files.
 - Basic output through `CALL DISPLAY(...)`, `CALL PRINT(...)`, and basic `PUT LIST(...)`.
 - Record I/O statements using forms such as `OPEN FILE(F);`, `READ FILE(F) INTO(BUF);`, `WRITE FILE(F) FROM(BUF);`, and `CLOSE FILE(F);`.
 - Primitive runtime socket I/O for plain TCP, SSL, and TLS sockets.
@@ -121,6 +131,7 @@
 - `SELECT` with `WHEN` and `OTHERWISE`.
 - Labels and `GOTO`/`GO TO`.
 - `%` preprocessor command parsing for forms such as `%DECLARE`, `%ACTIVATE`, `%DEACTIVATE`, `%REPLACE`, `%IF`, `%THEN`, `%ELSE`, `%DO`, `%END`, `%SELECT`, `%WHEN`, `%OTHERWISE`, `%INCLUDE`, `%XINCLUDE`, `%INSCAN`, `%XINSCAN`, `%PRINT`, `%NOPRINT`, `%PAGE`, `%SKIP`, `%PUSH`, `%POP`, `%GOTO`, `%LEAVE`, `%ITERATE`, `%PROCEDURE`, and `%RETURN`.
+- Runtime `DYNLOAD`, `DYNSYM`, `JAVA_LOAD_CLASS`, and `DOTNET_LOAD_ASSEMBLY` linkage helpers.
 - Labels and simple procedure bodies.
 - Simple `DO` groups.
 

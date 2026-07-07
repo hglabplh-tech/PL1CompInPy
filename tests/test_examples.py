@@ -4,7 +4,7 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from pl1compinpy import compile_source
+from pl1compinpy import compile_paths, compile_source
 from pl1compinpy.ast import GotoStatement, PreprocessorStatement
 from pl1compinpy.compiler import compile_binary
 from pl1compinpy.frontend.lexer import Lexer
@@ -109,6 +109,14 @@ class ExampleTests(unittest.TestCase):
         self.assertTrue(any(isinstance(statement, PreprocessorStatement) for statement in preprocessor_program.statements))
         self.assertIn("# goto SKIP_INITIAL_ASSIGNMENT", compile_source(self.example_source("language/goto_labels.pl1"), target="python-source"))
         self.assertIn("# preprocessor DECLARE FEATURE FIXED", compile_source(self.example_source("language/preprocessor_commands.pl1"), target="python-source"))
+
+    def test_include_and_multi_source_examples_compile(self):
+        include_output = compile_paths([EXAMPLES / "language/include_main.pl1"], target="python-source", include_dirs=[EXAMPLES / "language"])
+        multi_output = compile_paths([EXAMPLES / "language/multi_source_main.pl1", EXAMPLES / "language/module_helper.pl1"], target="python-source")
+
+        self.assertIn("INCLUDED_TOTAL = 0", include_output)
+        self.assertIn("def MAIN():", multi_output)
+        self.assertIn("def HELPER():", multi_output)
 
     def test_numeric_string_builtins_example_uses_static_builtin_table(self):
         program = normalize_calls(self.parse_example("builtins/numeric_string_builtins.pl1"))

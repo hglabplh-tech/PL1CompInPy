@@ -50,6 +50,13 @@ Compile a file:
 python -m pl1compinpy examples/hello.pl1
 ```
 
+Compile several source modules with PL/I include members:
+
+```bash
+python -m pl1compinpy examples/language/multi_source_main.pl1 examples/language/module_helper.pl1
+python -m pl1compinpy examples/language/include_main.pl1 -I examples/language
+```
+
 Emit assembly instead of the default Python-like output:
 
 ```bash
@@ -78,6 +85,14 @@ python -m pl1compinpy examples/hello.pl1 --emit binary --binary-format elf64-x86
 python -m pl1compinpy examples/hello.pl1 --emit binary --binary-format elf64-aarch64 -o hello-aarch64.elf
 python -m pl1compinpy examples/hello.pl1 --emit binary --binary-format macho64-x86_64-macos -o hello-intel-macos
 python -m pl1compinpy examples/hello.pl1 --emit binary --binary-format macho64-arm64-macos -o hello-m2-macos
+```
+
+Create a static or dynamic-library style artifact:
+
+```bash
+python -m pl1compinpy examples/language/multi_source_main.pl1 examples/language/module_helper.pl1 --emit library --library-format static-ar -o libmulti.a
+python -m pl1compinpy examples/language/multi_source_main.pl1 examples/language/module_helper.pl1 --emit library --library-format shared-elf64 -o libmulti.so
+python -m pl1compinpy examples/language/multi_source_main.pl1 examples/language/module_helper.pl1 --emit library --library-format shared-pe64 -o multi.dll
 ```
 
 Create a JVM `.class` file using Java 17 classfile version 61:
@@ -123,6 +138,8 @@ Currently supported compiler features:
 - `SELECT`/`WHEN`/`OTHERWISE` conditional groups
 - labels and `GOTO`/`GO TO` branch statements
 - parsed `%` preprocessor commands such as `%DECLARE`, `%IF`, `%DO`, `%INCLUDE`, `%REPLACE`, `%GOTO`, `%PROCEDURE`, `%RETURN`, and listing controls
+- `%INCLUDE`, `%XINCLUDE`, `%INSCAN`, and `%XINSCAN` source expansion before lexing, with include directories and recursive include protection
+- multi-source compilation where the module containing `PROC OPTIONS(MAIN)` is treated as the main module
 - labels and procedure bodies
 - `PROC OPTIONS(MAIN)` as a program entry point, including unnamed `PROC OPTIONS(MAIN)` treated as entry name `MAIN`
 - `PROC(PARM) OPTIONS(MAIN)` command-line binding, where the first parameter receives the command tail
@@ -181,8 +198,10 @@ The executable pipeline includes a first runtime calling convention:
 - `CALL` validation uses the merged runtime and dynamic tables before lowering
 - procedure definitions are emitted before main code and the entry path jumps over them, so procedures run only when called
 - native targets use a C-style runtime link model: generated objects reference `pl1rt_init`/`pl1rt_shutdown`, then the final executable is resolved against a PL/I runtime object/archive or shared/import library plus the platform C runtime
+- library emission supports static archive-style artifacts and starter shared-library containers for ELF `.so`, Mach-O dynamic libraries, and Windows DLL/COFF-linkage workflows
 - JVM output links the runtime through the `pl1compinpy/runtime/PL1Runtime` class on the classpath
 - .NET IL links the runtime through the `PL1CompInPy.Runtime` managed assembly
+- dynamic-load runtime services include `DYNLOAD`/`DYNSYM` for native libraries plus Java class-load and .NET assembly-load descriptors
 - AST nodes support a visitor pattern through `accept`, and runtime execution has a `RuntimeExecutionVisitor` for future compiler passes and runtime checks; see `examples/runtime/runtime_visitor.py`
 - Python source output passes `" ".join(sys.argv[1:])` to the first `OPTIONS(MAIN)` procedure parameter; native/JVM/.NET backends now identify the same main entry and reserve argument slots for parameterized mains
 - backend control-flow lowering treats simple `DO` as a block, `DO WHILE` as a pre-test loop, `DO ... UNTIL` as a post-test loop, `IF/THEN/ELSE` as decisions, and `SELECT/WHEN/OTHERWISE` as branches
@@ -239,12 +258,14 @@ PL1CompInPy/
       dotnet_il.py
       executable_pipeline.py
       jvm_bytecode.py
+      libraries.py
       python_source.py
     compiler.py
     core/
       ast.py
       compiler.py
     frontend/
+      include.py
       keywords.py
       lexer.py
       parser.py
@@ -255,6 +276,7 @@ PL1CompInPy/
       calling.py
       command_line.py
       decimal.py
+      dynload.py
       function_table.py
       heap.py
       io.py

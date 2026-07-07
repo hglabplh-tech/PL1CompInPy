@@ -22,6 +22,7 @@ from ..core.ast import (
 from .calculation import CalculationEngine, PL1Type, PL1Value
 from .command_line import CommandLineRuntime
 from .decimal import CalculationBuiltinRuntime, FixedDecimal
+from .dynload import DynamicLoadRuntime
 from .function_table import RUNTIME_FUNCTION_TABLE, FunctionTable, FunctionTableError, build_dynamic_function_table, declare_program_builtins
 
 
@@ -37,6 +38,7 @@ class RuntimeExecutionVisitor(AstVisitor):
         self.function_table: FunctionTable = RUNTIME_FUNCTION_TABLE
         self.builtins = CalculationBuiltinRuntime()
         self.command_line = CommandLineRuntime.from_argv(argv)
+        self.dynamic_loader = DynamicLoadRuntime()
 
     def visit_Program(self, node: Program) -> Any:
         self.function_table = RUNTIME_FUNCTION_TABLE.merge(build_dynamic_function_table(node))
@@ -172,6 +174,10 @@ class RuntimeExecutionVisitor(AstVisitor):
             "COMMAND": self.command_line.command,
             "ARGC": self.command_line.argc,
             "ARGV": self.command_line.argv_value,
+            "DYNLOAD": self.dynamic_loader.dynload,
+            "DYNSYM": self.dynamic_loader.symbol,
+            "JAVA_LOAD_CLASS": self.dynamic_loader.java_class,
+            "DOTNET_LOAD_ASSEMBLY": self.dynamic_loader.dotnet_assembly,
         }
         try:
             return handlers[key](*arguments)
