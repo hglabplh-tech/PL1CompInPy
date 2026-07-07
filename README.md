@@ -229,7 +229,7 @@ The runtime also includes starter storage and I/O services:
 - string storage as two bytes of big-endian length followed by sequential payload bytes, with runtime `LENGTH`, `SUBSTR`, and `INDEX` helpers over the stored payload
 - a first packaged PL/I builtin source file for `SUBSTR(string, start[, length])`
 - static builtin call checking for `DCL SUBSTR BUILTIN;`
-- examples for declared numeric/string builtins in `examples/builtins/numeric_string_builtins.pl1`
+- examples for declared numeric, string, and pointer builtins in `examples/builtins/numeric_string_builtins.pl1` and `examples/builtins/pointer.pl1`
 - PL/I-style file declarations such as `DCL F FILE RECORD OUTPUT ENVIRONMENT(RECFM(V), LRECL(80), PATH('out.dat')) BINARY;`
 - PL/I-style file statements: `OPEN FILE(F);`, `READ FILE(F) INTO(BUF);`, `WRITE FILE(F) FROM(BUF);`, and `CLOSE FILE(F);`
 - normal Unix-style stream files

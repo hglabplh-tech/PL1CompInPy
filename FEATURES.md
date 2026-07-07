@@ -97,7 +97,7 @@
 - C-style runtime linkage plans for PE, ELF, Mach-O, JVM, and .NET targets.
 - Native runtime startup/shutdown symbol references plus embedded runtime link manifests.
 - Managed runtime references for JVM classpath and .NET assembly linkage.
-- Unit tests for lexer, parser, compiler output, assembly output, structures/records, runtime field access, and binary signatures.
+- Unit tests for lexer, parser, compiler output, assembly output, structures/records, runtime field access, declared pointer builtins, and binary signatures.
 - Unit tests for include expansion, strict include diagnostics, recursive include protection, multi-source main selection, CLI library output, library manifests, dynamic-load runtime dispatch, and generated API documentation.
 - Packaged PL/I builtin source inclusion with a first `SUBSTR` builtin.
 - Static PL/I builtin function table entries that require `DCL name BUILTIN;` before use.
@@ -127,6 +127,7 @@
 - VSAM declarations using `ENVIRONMENT(VSAM(...), KEYOFFSET(...), KEYLENGTH(...))`.
 - VSAM I/O statements using `OPEN FILE(...)`, `WRITE FILE(...) FROM(...)`, `READ FILE(...) KEY(...) INTO(...)`, ESDS `RBA(...)`, RRDS `RRN(...)`, LDS `RBA(...) LENGTH(...)`, and `CLOSE FILE(...)`.
 - Runtime `SUBSTR` behavior using one-based positions over two-byte-length string payloads, enabled in source with `DCL SUBSTR BUILTIN;`.
+- Runtime `POINTER` builtin behavior enabled in source with `DCL POINTER BUILTIN;`.
 - Declared static builtins for string, pointer, and numeric helpers such as `LENGTH`, `INDEX`, `POINTER`, `ABS`, `SIGN`, `MIN`, `MAX`, `MOD`, `ROUND`, `TRUNC`, `CEIL`, `FLOOR`, `SQRT`, `EXP`, `LOG`, `SIN`, `COS`, and `TAN`.
 - Declared static conversion builtins for `FIXED_DECIMAL`, `DECIMAL_TO_PACKED`, `DECIMAL_FROM_PACKED`, `DECIMAL_TO_ZONED`, and `DECIMAL_FROM_ZONED`.
 - `PROC OPTIONS(MAIN)` program entry point, including unnamed main procedures and first-parameter command-line binding.
