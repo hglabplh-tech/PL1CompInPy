@@ -52,6 +52,7 @@ These examples cover the compiler features currently implemented in PL1CompInPy.
 - `backend/jvm_bytecode.pl1`: JVM bytecode-style backend
 - `backend/dotnet_il.pl1`: .NET ILAsm-compatible backend
 - `backend/binary_entry.pl1`: binary executable/container entry-point example
+- `backend/library_artifacts.py`: static archive and shared-library artifact creation
 
 ## VSAM
 

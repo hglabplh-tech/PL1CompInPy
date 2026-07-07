@@ -95,6 +95,8 @@ python -m pl1compinpy examples/language/multi_source_main.pl1 examples/language/
 python -m pl1compinpy examples/language/multi_source_main.pl1 examples/language/module_helper.pl1 --emit library --library-format shared-pe64 -o multi.dll
 ```
 
+The companion script `examples/backend/library_artifacts.py` shows the same static archive and shared-library artifact flow from the Python API.
+
 Create a JVM `.class` file using Java 17 classfile version 61:
 
 ```bash
@@ -112,6 +114,8 @@ Run tests:
 ```bash
 python -m unittest discover -s tests
 ```
+
+The test suite covers include expansion, strict include errors, recursive include protection, multi-source compilation, CLI library output, library manifests, dynamic-load runtime dispatch, and generated API documentation for the public compiler surface.
 
 ## Assembly Back Ends
 

@@ -16,6 +16,7 @@ from pl1compinpy.codegen.jvm_classfile import JAVA_17_MAJOR_VERSION
 from pl1compinpy.codegen.executable_pipeline import lower_program
 from pl1compinpy.codegen.linkers import ELFLinker, MachOLinker, PELinker
 from pl1compinpy.codegen.runtime_link import runtime_linkage
+from pl1compinpy.cli import main as cli_main
 from pl1compinpy.ast import (
     AstVisitor,
     BinaryExpression,
@@ -32,7 +33,7 @@ from pl1compinpy.ast import (
     SelectStatement,
     main_procedure_name,
 )
-from pl1compinpy.frontend.include import IncludeExpander
+from pl1compinpy.frontend.include import IncludeError, IncludeExpander
 from pl1compinpy.frontend.lexer import Lexer, TokenType
 from pl1compinpy.frontend.parser import Parser
 from pl1compinpy.runtime import (
@@ -126,6 +127,31 @@ class CompilerTests(unittest.TestCase):
             self.assertIn("SHARED = 0", output)
             self.assertIn("def MAIN():", output)
             self.assertIn("def HELPER():", output)
+
+    def test_compile_sources_combines_modules_and_selects_options_main(self):
+        output = compile_sources(
+            [
+                "HELPER: PROC; CALL DISPLAY('HELPER'); END HELPER;",
+                "MAIN: PROC OPTIONS(MAIN); CALL HELPER(); END MAIN;",
+            ],
+            target="python-source",
+        )
+
+        self.assertIn("def HELPER():", output)
+        self.assertIn("def MAIN():", output)
+        self.assertIn("    MAIN()", output)
+
+    def test_include_expander_strict_mode_reports_missing_member_and_recursion(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "a.inc").write_text("%INCLUDE 'b';\n", encoding="utf-8")
+            (root / "b.inc").write_text("%INCLUDE 'a';\n", encoding="utf-8")
+            expander = IncludeExpander([root], strict=True)
+
+            with self.assertRaises(IncludeError):
+                expander.expand("%INCLUDE 'missing';", base_dir=root)
+            with self.assertRaises(IncludeError):
+                expander.expand_file(root / "a.inc")
 
     def test_skips_comments(self):
         tokens = Lexer("A = 1; /* comment */ B = 2;").tokenize()
@@ -347,6 +373,28 @@ class CompilerTests(unittest.TestCase):
         self.assertEqual(compile_library("shared-elf64", source)[:4], b"\x7fELF")
         self.assertEqual(compile_library("shared-macho64", source)[:4], b"\xcf\xfa\xed\xfe")
         self.assertEqual(compile_library("shared-pe64", source)[:2], b"MZ")
+
+    def test_library_artifacts_embed_module_and_runtime_manifest(self):
+        library = compile_library("static-ar", "MAIN: PROC OPTIONS(MAIN); END MAIN;", module_name="accounts")
+
+        self.assertIn(b"module=accounts", library)
+        self.assertIn(b"main=MAIN", library)
+        self.assertIn(b"PL1RTLINK", library)
+
+    def test_cli_emits_library_from_multiple_sources_and_include_dir(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "decls.pli").write_text("DCL VALUE FIXED BIN(31);\n", encoding="utf-8")
+            main = root / "main.pl1"
+            helper = root / "helper.pl1"
+            output = root / "libsample.a"
+            main.write_text("%INCLUDE 'decls';\nMAIN: PROC OPTIONS(MAIN); CALL HELPER(); END MAIN;\n", encoding="utf-8")
+            helper.write_text("HELPER: PROC; VALUE = 1; END HELPER;\n", encoding="utf-8")
+
+            result = cli_main([str(main), str(helper), "-I", str(root), "--emit", "library", "--library-format", "static-ar", "-o", str(output)])
+
+            self.assertEqual(result, 0)
+            self.assertTrue(output.read_bytes().startswith(b"!<arch>\n"))
 
     def test_linkers_expose_pe_elf_and_macho_formats(self):
         pe64 = PELinker().link_pe64_x86_64_windows()
@@ -572,6 +620,14 @@ class CompilerTests(unittest.TestCase):
         self.assertEqual(dotnet_request.assembly_name, "PL1CompInPy.Runtime.dll")
         for name in ("DYNLOAD", "DYNSYM", "JAVA_LOAD_CLASS", "DOTNET_LOAD_ASSEMBLY"):
             self.assertEqual(RUNTIME_FUNCTION_TABLE.get(name).source, "runtime")
+
+    def test_runtime_visitor_dispatches_managed_dynamic_load_helpers(self):
+        visitor = RuntimeExecutionVisitor()
+        java_result = visitor.visit(Parser(Lexer("CALL JAVA_LOAD_CLASS('pl1compinpy.runtime.PL1Runtime');").tokenize()).parse())
+        dotnet_result = visitor.visit(Parser(Lexer("CALL DOTNET_LOAD_ASSEMBLY('PL1CompInPy.Runtime.dll');").tokenize()).parse())
+
+        self.assertEqual(java_result.class_name, "pl1compinpy.runtime.PL1Runtime")
+        self.assertEqual(dotnet_result.assembly_name, "PL1CompInPy.Runtime.dll")
 
     def test_parses_proc_main_recursive_returns(self):
         program = Parser(

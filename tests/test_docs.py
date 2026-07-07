@@ -32,6 +32,9 @@ class DocumentationTests(unittest.TestCase):
         self.assertIn("`RuntimeLinkage`", text)
         self.assertIn("`Parser.parse`", text)
         self.assertIn("`compile_source`", text)
+        self.assertIn("`IncludeExpander`", text)
+        self.assertIn("`DynamicLoadRuntime`", text)
+        self.assertIn("`emit_library`", text)
 
 
 if __name__ == "__main__":

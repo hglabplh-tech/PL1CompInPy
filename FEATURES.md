@@ -19,6 +19,7 @@
 - Parser support for `%` preprocessor statements including declaration, include, replacement, conditional, loop, macro procedure, branch, and listing commands as preserved AST nodes.
 - Backend lowering for `DO` blocks, `DO WHILE`, post-test `DO ... UNTIL`, `IF/THEN/ELSE`, `SELECT/WHEN/OTHERWISE` branch blocks, and `GOTO` unconditional branches.
 - Example coverage for visitor-based runtime execution and structured backend control blocks.
+- Example coverage for `%INCLUDE`, multi-source compilation, static/shared library artifacts, and native/managed dynamic loading descriptors.
 - PL/I-style expression precedence for power, unary operators, multiplication/division, addition/subtraction, concatenation, comparison, logical AND, and logical OR.
 - Keyword catalog covering PL/1 statements, declaration attributes, storage attributes, I/O words, conditions, and preprocessor/listing words.
 - Python-like text emitter for early compiler validation.
@@ -95,6 +96,7 @@
 - Native runtime startup/shutdown symbol references plus embedded runtime link manifests.
 - Managed runtime references for JVM classpath and .NET assembly linkage.
 - Unit tests for lexer, parser, compiler output, assembly output, and binary signatures.
+- Unit tests for include expansion, strict include diagnostics, recursive include protection, multi-source main selection, CLI library output, library manifests, dynamic-load runtime dispatch, and generated API documentation.
 - Packaged PL/I builtin source inclusion with a first `SUBSTR` builtin.
 - Static PL/I builtin function table entries that require `DCL name BUILTIN;` before use.
 
