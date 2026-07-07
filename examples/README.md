@@ -46,6 +46,7 @@ These examples cover the compiler features currently implemented in PL1CompInPy.
 - `builtins/substr.pl1`: compile with `--builtin SUBSTR`
 - `builtins/declared_substr.pl1`: `DCL SUBSTR BUILTIN;` enables a static PL/I builtin call
 - `builtins/numeric_string_builtins.pl1`: declared static numeric and string builtins through the function table
+- `builtins/pointer.pl1`: declared static `POINTER` builtin for pointer value normalization
 
 ## Backends
 

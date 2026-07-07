@@ -10,6 +10,7 @@ from .dynload import DotNetAssemblyLoadRequest, DynamicLibraryHandle, DynamicLoa
 from .heap import HeapBlock, HeapRuntime, HeapRuntimeError
 from .io import FileDescriptor, FileRuntimeError, StdioRuntime
 from .picture import PictureRuntime, PictureRuntimeError, PictureSpec
+from .pointers import PointerBuiltinRuntime, PointerBuiltinRuntimeError
 from .socket_io import SocketDescriptor, SocketFileDescriptor, SocketHandle, SocketRuntime, SocketRuntimeError, SocketSecureMode, SocketStreamRuntime
 from .strings import StringRuntime, StringRuntimeError, StringValue
 from .structures import StructureFieldLayout, StructureRuntime, StructureRuntimeError, StructureValue, flattened_structure_fields
@@ -60,6 +61,8 @@ __all__ = [
     "PictureRuntime",
     "PictureRuntimeError",
     "PictureSpec",
+    "PointerBuiltinRuntime",
+    "PointerBuiltinRuntimeError",
     "NumericTower",
     "PL1Type",
     "PL1Value",

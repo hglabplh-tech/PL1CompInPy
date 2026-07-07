@@ -149,6 +149,8 @@ class Parser:
             index += 1
 
         file_options = self._file_options_from_tokens(tokens)
+        if not names:
+            names = self._builtin_names_from_tokens(tokens)
         generic_options = self._generic_options_from_tokens(names, tokens)
         picture_options = self._picture_options_from_tokens(names, tokens)
         based_options = self._based_options_from_tokens(names, tokens)
@@ -270,8 +272,18 @@ class Parser:
     def _pointer_names_from_tokens(self, names: list[str], tokens: list[Token]) -> list[str]:
         if not names:
             return []
+        if any(token.lexeme.upper() == "BUILTIN" for token in tokens):
+            return []
         if any(token.lexeme.upper() in {"POINTER", "PTR"} for token in tokens):
             return names.copy()
+        return []
+
+    def _builtin_names_from_tokens(self, tokens: list[Token]) -> list[str]:
+        if not any(token.lexeme.upper() == "BUILTIN" for token in tokens):
+            return []
+        for token in tokens:
+            if token.type == TokenType.IDENTIFIER and token.lexeme.upper() != "BUILTIN":
+                return [token.lexeme]
         return []
 
     def _structures_from_tokens(self, tokens: list[Token]) -> dict[str, StructureField]:

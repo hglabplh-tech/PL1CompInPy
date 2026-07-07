@@ -11,6 +11,7 @@ from ..core.ast import (
     Expression,
     FieldReference,
     GotoStatement,
+    Identifier,
     IfStatement,
     LabelledStatement,
     PreprocessorStatement,
@@ -25,6 +26,7 @@ from .command_line import CommandLineRuntime
 from .decimal import CalculationBuiltinRuntime, FixedDecimal
 from .dynload import DynamicLoadRuntime
 from .function_table import RUNTIME_FUNCTION_TABLE, FunctionTable, FunctionTableError, build_dynamic_function_table, declare_program_builtins
+from .pointers import PointerBuiltinRuntime
 from .structures import StructureRuntime
 
 
@@ -39,6 +41,7 @@ class RuntimeExecutionVisitor(AstVisitor):
         self.output: list[object] = []
         self.function_table: FunctionTable = RUNTIME_FUNCTION_TABLE
         self.builtins = CalculationBuiltinRuntime()
+        self.pointer_builtins = PointerBuiltinRuntime()
         self.command_line = CommandLineRuntime.from_argv(argv)
         self.dynamic_loader = DynamicLoadRuntime()
         self.structures = StructureRuntime()
@@ -146,6 +149,10 @@ class RuntimeExecutionVisitor(AstVisitor):
         if isinstance(expression, FieldReference):
             if expression.base in self.variables and hasattr(self.variables[expression.base], "get_field"):
                 return self.variables[expression.base].get_field(expression.fields)
+        if isinstance(expression, Identifier) and expression.name in self.variables:
+            value = self.variables[expression.name]
+            if value is None or hasattr(value, "handle"):
+                return value
         return CalculationEngine(self.variables).evaluate(expression)
 
     def _execute_block(self, statements: list[Statement]) -> Any:
@@ -181,6 +188,7 @@ class RuntimeExecutionVisitor(AstVisitor):
             "LENGTH": self.builtins.LENGTH,
             "SUBSTR": self.builtins.SUBSTR,
             "INDEX": self.builtins.INDEX,
+            "POINTER": self.pointer_builtins.POINTER,
             "FIXED_DECIMAL": self.builtins.FIXED_DECIMAL,
             "DECIMAL_TO_PACKED": self.builtins.DECIMAL_TO_PACKED,
             "DECIMAL_FROM_PACKED": self.builtins.DECIMAL_FROM_PACKED,

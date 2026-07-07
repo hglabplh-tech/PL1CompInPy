@@ -37,6 +37,7 @@ class DocumentationTests(unittest.TestCase):
         self.assertIn("`emit_library`", text)
         self.assertIn("`StructureRuntime`", text)
         self.assertIn("`FieldReference`", text)
+        self.assertIn("`PointerBuiltinRuntime`", text)
 
 
 if __name__ == "__main__":

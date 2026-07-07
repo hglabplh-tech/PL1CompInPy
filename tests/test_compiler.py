@@ -55,6 +55,8 @@ from pl1compinpy.runtime import (
     FixedDecimal,
     ParameterDescriptor,
     PackedDecimalCodec,
+    PointerBuiltinRuntime,
+    PointerValue,
     RUNTIME_FUNCTION_TABLE,
     StdioRuntime,
     StringRuntime,
@@ -548,6 +550,12 @@ class CompilerTests(unittest.TestCase):
         self.assertTrue(descriptor.requires_declaration)
         self.assertEqual([parameter.name for parameter in descriptor.parameters], ["S", "START", "COUNT"])
 
+        pointer = RUNTIME_FUNCTION_TABLE.get("POINTER")
+        self.assertEqual(pointer.source, "builtin")
+        self.assertTrue(pointer.requires_declaration)
+        self.assertEqual(pointer.returns, "POINTER")
+        self.assertEqual([parameter.name for parameter in pointer.parameters], ["VALUE", "OFFSET"])
+
     def test_builtin_declaration_enables_static_builtin_call(self):
         source = "DCL SUBSTR BUILTIN; CALL SUBSTR(S, START, COUNT);"
         program = Parser(Lexer(source).tokenize()).parse()
@@ -571,6 +579,14 @@ class CompilerTests(unittest.TestCase):
         self.assertIsInstance(call, Call)
         self.assertEqual(call.mode, "reference")
         self.assertEqual([argument.name for argument in call.arguments], ["S", "START", "COUNT"])
+
+    def test_pointer_builtin_keyword_declaration_enables_call(self):
+        source = "DCL POINTER BUILTIN; CALL POINTER(VALUE, OFFSET) BY NAME;"
+        program = normalize_calls(Parser(Lexer(source).tokenize()).parse())
+
+        self.assertEqual(declared_builtins(program), {"POINTER"})
+        self.assertEqual(program.statements[1].name, "POINTER")
+        self.assertEqual([argument.name for argument in program.statements[1].arguments], ["VALUE", "OFFSET"])
 
     def test_runtime_execution_visitor_uses_function_table_and_control_blocks(self):
         source = (
@@ -972,6 +988,20 @@ class CompilerTests(unittest.TestCase):
         self.assertEqual(builtins.LENGTH(text), 7)
         self.assertEqual(builtins.SUBSTR(text, 2, 3), "BCD")
         self.assertEqual(builtins.INDEX(text, "DE"), 4)
+
+    def test_pointer_builtin_runtime_normalizes_handles_offsets_and_nulls(self):
+        builtins = PointerBuiltinRuntime()
+
+        self.assertEqual(builtins.POINTER(42), PointerValue(42, 0))
+        self.assertEqual(builtins.POINTER(42, 8), PointerValue(42, 8))
+        self.assertEqual(builtins.POINTER(PointerValue(42, 4), 8), PointerValue(42, 12))
+        self.assertEqual(builtins.POINTER(None), PointerValue(None, 0))
+
+    def test_runtime_visitor_dispatches_pointer_builtin(self):
+        program = normalize_calls(Parser(Lexer("DCL POINTER BUILTIN; CALL POINTER(42, 8);").tokenize()).parse())
+        result = RuntimeExecutionVisitor().visit(program)
+
+        self.assertEqual(result, PointerValue(42, 8))
 
     def test_runtime_function_table_exposes_decimal_conversion_builtins(self):
         for name in ("FIXED_DECIMAL", "DECIMAL_TO_PACKED", "DECIMAL_FROM_PACKED", "DECIMAL_TO_ZONED", "DECIMAL_FROM_ZONED"):
