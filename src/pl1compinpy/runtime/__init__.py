@@ -9,6 +9,7 @@ from .io import FileDescriptor, FileRuntimeError, StdioRuntime
 from .picture import PictureRuntime, PictureRuntimeError, PictureSpec
 from .socket_io import SocketDescriptor, SocketFileDescriptor, SocketHandle, SocketRuntime, SocketRuntimeError, SocketSecureMode, SocketStreamRuntime
 from .strings import StringRuntime, StringRuntimeError, StringValue
+from .visitor import RuntimeExecutionVisitor, RuntimeVisitorError
 from .generics import GenericFunction, GenericRuntime, GenericRuntimeError, pl1_type
 from .function_table import (
     FunctionDescriptor,
@@ -53,6 +54,8 @@ __all__ = [
     "PointerValue",
     "RUNTIME_FUNCTION_TABLE",
     "RuntimeError",
+    "RuntimeExecutionVisitor",
+    "RuntimeVisitorError",
     "SocketDescriptor",
     "SocketFileDescriptor",
     "SocketHandle",

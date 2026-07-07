@@ -16,6 +16,7 @@ from ..core.ast import (
     Procedure,
     Program,
     RawStatement,
+    SelectStatement,
     Statement,
     StringLiteral,
 )
@@ -155,11 +156,14 @@ class AssemblyEmitter:
         jumps = {
             "=": ("jne", "je"),
             "^=": ("je", "jne"),
+            "¬=": ("je", "jne"),
+            "~=": ("je", "jne"),
             "<>": ("je", "jne"),
             "<": ("jge", "jl"),
             "<=": ("jg", "jle"),
             ">": ("jle", "jg"),
             ">=": ("jl", "jge"),
+            "=>": ("jl", "jge"),
         }
         return jumps.get(operator, ("je", "jne"))[0 if if_false else 1]
 
@@ -221,14 +225,11 @@ class X586AssemblyEmitter(AssemblyEmitter):
             lines.append("    ret")
             return lines
         if isinstance(statement, DoGroup):
-            start = self._new_label("do")
-            lines = [f"{start}:"]
-            for child in statement.body:
-                lines.extend(self._statement(child))
-            lines.append(f"    jmp {start}")
-            return lines
+            return self._do_group(statement)
         if isinstance(statement, IfStatement):
             return self._if(statement)
+        if isinstance(statement, SelectStatement):
+            return self._select(statement)
         if isinstance(statement, LabelledStatement):
             return [f"{statement.label}:"] + self._statement(statement.statement)
         if isinstance(statement, RawStatement):
@@ -237,6 +238,26 @@ class X586AssemblyEmitter(AssemblyEmitter):
                 return self._print_arguments(args)
             return [f"    ; unsupported statement preserved: {statement.keyword} {' '.join(statement.tokens)}".rstrip()]
         raise BackendError(f"Unsupported statement for x586 backend: {statement!r}")
+
+    def _do_group(self, statement: DoGroup) -> list[str]:
+        if statement.while_condition is None and statement.until_condition is None:
+            lines: list[str] = []
+            for child in statement.body:
+                lines.extend(self._statement(child))
+            return lines
+        start = self._new_label("do")
+        end = self._new_label("enddo")
+        lines = [f"{start}:"]
+        if statement.while_condition:
+            lines.extend(self._comparison(statement.while_condition, end))
+        for child in statement.body:
+            lines.extend(self._statement(child))
+        if statement.until_condition:
+            lines.extend(self._comparison(statement.until_condition, start))
+        else:
+            lines.append(f"    jmp {start}")
+        lines.append(f"{end}:")
+        return lines
 
     def _if(self, statement: IfStatement) -> list[str]:
         else_label = self._new_label("else")
@@ -248,6 +269,34 @@ class X586AssemblyEmitter(AssemblyEmitter):
         if statement.else_branch:
             lines.extend(self._statement(statement.else_branch))
         lines.append(f"{end_label}:")
+        return lines
+
+    def _select(self, statement: SelectStatement) -> list[str]:
+        end = self._new_label("select_end")
+        lines: list[str] = []
+        for branch in statement.when_branches:
+            next_branch = self._new_label("select_next")
+            matched = self._new_label("select_matched")
+            for expression in branch.expressions:
+                value_next = self._new_label("select_value_next")
+                if statement.expression:
+                    lines.extend(self._expression(statement.expression))
+                    lines.append("    push eax")
+                    lines.extend(self._expression(expression))
+                    lines.extend(["    mov ebx, eax", "    pop eax", "    cmp eax, ebx"])
+                    lines.append(f"    {self._condition_jump('=', if_false=True)} {value_next}")
+                else:
+                    lines.extend(self._comparison(expression, value_next))
+                lines.append(f"    jmp {matched}")
+                lines.append(f"{value_next}:")
+            lines.append(f"    jmp {next_branch}")
+            lines.append(f"{matched}:")
+            lines.extend(self._statement(branch.statement))
+            lines.append(f"    jmp {end}")
+            lines.append(f"{next_branch}:")
+        if statement.otherwise:
+            lines.extend(self._statement(statement.otherwise))
+        lines.append(f"{end}:")
         return lines
 
     def _call(self, statement: Call) -> list[str]:
@@ -274,7 +323,7 @@ class X586AssemblyEmitter(AssemblyEmitter):
         return lines
 
     def _comparison(self, expression: Expression, false_label: str) -> list[str]:
-        if isinstance(expression, BinaryExpression) and expression.operator in {"=", "^=", "<>", "<", "<=", ">", ">="}:
+        if isinstance(expression, BinaryExpression) and expression.operator in {"=", "^=", "¬=", "~=", "<>", "<", "<=", ">", ">=", "=>"}:
             lines = self._expression(expression.left)
             lines.append("    push eax")
             lines.extend(self._expression(expression.right))
@@ -354,14 +403,11 @@ class X8664AssemblyEmitter(AssemblyEmitter):
             lines.append("    ret")
             return lines
         if isinstance(statement, DoGroup):
-            start = self._new_label("do")
-            lines = [f"{start}:"]
-            for child in statement.body:
-                lines.extend(self._statement(child))
-            lines.append(f"    jmp {start}")
-            return lines
+            return self._do_group(statement)
         if isinstance(statement, IfStatement):
             return self._if(statement)
+        if isinstance(statement, SelectStatement):
+            return self._select(statement)
         if isinstance(statement, LabelledStatement):
             return [f"{statement.label}:"] + self._statement(statement.statement)
         if isinstance(statement, RawStatement):
@@ -370,6 +416,26 @@ class X8664AssemblyEmitter(AssemblyEmitter):
                 return self._print_arguments(args)
             return [f"    ; unsupported statement preserved: {statement.keyword} {' '.join(statement.tokens)}".rstrip()]
         raise BackendError(f"Unsupported x86_64 backend statement: {statement!r}")
+
+    def _do_group(self, statement: DoGroup) -> list[str]:
+        if statement.while_condition is None and statement.until_condition is None:
+            lines: list[str] = []
+            for child in statement.body:
+                lines.extend(self._statement(child))
+            return lines
+        start = self._new_label("do")
+        end = self._new_label("enddo")
+        lines = [f"{start}:"]
+        if statement.while_condition:
+            lines.extend(self._comparison(statement.while_condition, end))
+        for child in statement.body:
+            lines.extend(self._statement(child))
+        if statement.until_condition:
+            lines.extend(self._comparison(statement.until_condition, start))
+        else:
+            lines.append(f"    jmp {start}")
+        lines.append(f"{end}:")
+        return lines
 
     def _if(self, statement: IfStatement) -> list[str]:
         else_label = self._new_label("else")
@@ -381,6 +447,34 @@ class X8664AssemblyEmitter(AssemblyEmitter):
         if statement.else_branch:
             lines.extend(self._statement(statement.else_branch))
         lines.append(f"{end_label}:")
+        return lines
+
+    def _select(self, statement: SelectStatement) -> list[str]:
+        end = self._new_label("select_end")
+        lines: list[str] = []
+        for branch in statement.when_branches:
+            next_branch = self._new_label("select_next")
+            matched = self._new_label("select_matched")
+            for expression in branch.expressions:
+                value_next = self._new_label("select_value_next")
+                if statement.expression:
+                    lines.extend(self._expression(statement.expression))
+                    lines.append("    push rax")
+                    lines.extend(self._expression(expression))
+                    lines.extend(["    mov rbx, rax", "    pop rax", "    cmp rax, rbx"])
+                    lines.append(f"    {self._condition_jump('=', if_false=True)} {value_next}")
+                else:
+                    lines.extend(self._comparison(expression, value_next))
+                lines.append(f"    jmp {matched}")
+                lines.append(f"{value_next}:")
+            lines.append(f"    jmp {next_branch}")
+            lines.append(f"{matched}:")
+            lines.extend(self._statement(branch.statement))
+            lines.append(f"    jmp {end}")
+            lines.append(f"{next_branch}:")
+        if statement.otherwise:
+            lines.extend(self._statement(statement.otherwise))
+        lines.append(f"{end}:")
         return lines
 
     def _call(self, statement: Call) -> list[str]:
@@ -423,7 +517,7 @@ class X8664AssemblyEmitter(AssemblyEmitter):
         return lines
 
     def _comparison(self, expression: Expression, false_label: str) -> list[str]:
-        if isinstance(expression, BinaryExpression) and expression.operator in {"=", "^=", "<>", "<", "<=", ">", ">="}:
+        if isinstance(expression, BinaryExpression) and expression.operator in {"=", "^=", "¬=", "~=", "<>", "<", "<=", ">", ">=", "=>"}:
             lines = self._expression(expression.left)
             lines.append("    push rax")
             lines.extend(self._expression(expression.right))
@@ -505,14 +599,11 @@ class Arm64AssemblyEmitter(AssemblyEmitter):
             lines.append("    ret")
             return lines
         if isinstance(statement, DoGroup):
-            start = self._new_label("do")
-            lines = [f"{start}:"]
-            for child in statement.body:
-                lines.extend(self._statement(child))
-            lines.append(f"    b {start}")
-            return lines
+            return self._do_group(statement)
         if isinstance(statement, IfStatement):
             return self._if(statement)
+        if isinstance(statement, SelectStatement):
+            return self._select(statement)
         if isinstance(statement, LabelledStatement):
             return [f"{statement.label}:"] + self._statement(statement.statement)
         if isinstance(statement, RawStatement):
@@ -521,6 +612,26 @@ class Arm64AssemblyEmitter(AssemblyEmitter):
                 return self._print_arguments(args)
             return [f"    // unsupported statement preserved: {statement.keyword} {' '.join(statement.tokens)}".rstrip()]
         raise BackendError(f"Unsupported ARM64 backend statement: {statement!r}")
+
+    def _do_group(self, statement: DoGroup) -> list[str]:
+        if statement.while_condition is None and statement.until_condition is None:
+            lines: list[str] = []
+            for child in statement.body:
+                lines.extend(self._statement(child))
+            return lines
+        start = self._new_label("do")
+        end = self._new_label("enddo")
+        lines = [f"{start}:"]
+        if statement.while_condition:
+            lines.extend(self._comparison(statement.while_condition, end))
+        for child in statement.body:
+            lines.extend(self._statement(child))
+        if statement.until_condition:
+            lines.extend(self._comparison(statement.until_condition, start))
+        else:
+            lines.append(f"    b {start}")
+        lines.append(f"{end}:")
+        return lines
 
     def _if(self, statement: IfStatement) -> list[str]:
         else_label = self._new_label("else")
@@ -532,6 +643,34 @@ class Arm64AssemblyEmitter(AssemblyEmitter):
         if statement.else_branch:
             lines.extend(self._statement(statement.else_branch))
         lines.append(f"{end_label}:")
+        return lines
+
+    def _select(self, statement: SelectStatement) -> list[str]:
+        end = self._new_label("select_end")
+        lines: list[str] = []
+        for branch in statement.when_branches:
+            next_branch = self._new_label("select_next")
+            matched = self._new_label("select_matched")
+            for expression in branch.expressions:
+                value_next = self._new_label("select_value_next")
+                if statement.expression:
+                    lines.extend(self._expression(statement.expression))
+                    lines.append("    mov w8, w0")
+                    lines.extend(self._expression(expression))
+                    lines.append("    cmp w8, w0")
+                    lines.append(f"    b.ne {value_next}")
+                else:
+                    lines.extend(self._comparison(expression, value_next))
+                lines.append(f"    b {matched}")
+                lines.append(f"{value_next}:")
+            lines.append(f"    b {next_branch}")
+            lines.append(f"{matched}:")
+            lines.extend(self._statement(branch.statement))
+            lines.append(f"    b {end}")
+            lines.append(f"{next_branch}:")
+        if statement.otherwise:
+            lines.extend(self._statement(statement.otherwise))
+        lines.append(f"{end}:")
         return lines
 
     def _call(self, statement: Call) -> list[str]:
@@ -571,7 +710,7 @@ class Arm64AssemblyEmitter(AssemblyEmitter):
         return lines
 
     def _comparison(self, expression: Expression, false_label: str) -> list[str]:
-        if isinstance(expression, BinaryExpression) and expression.operator in {"=", "^=", "<>", "<", "<=", ">", ">="}:
+        if isinstance(expression, BinaryExpression) and expression.operator in {"=", "^=", "¬=", "~=", "<>", "<", "<=", ">", ">=", "=>"}:
             lines = self._expression(expression.left)
             lines.append("    mov w8, w0")
             lines.extend(self._expression(expression.right))
@@ -579,11 +718,14 @@ class Arm64AssemblyEmitter(AssemblyEmitter):
             branch = {
                 "=": "b.ne",
                 "^=": "b.eq",
+                "¬=": "b.eq",
+                "~=": "b.eq",
                 "<>": "b.eq",
                 "<": "b.ge",
                 "<=": "b.gt",
                 ">": "b.le",
                 ">=": "b.lt",
+                "=>": "b.lt",
             }[expression.operator]
             lines.append(f"    {branch} {false_label}")
             return lines

@@ -178,6 +178,8 @@ The executable pipeline includes a first runtime calling convention:
 - native targets use a C-style runtime link model: generated objects reference `pl1rt_init`/`pl1rt_shutdown`, then the final executable is resolved against a PL/I runtime object/archive or shared/import library plus the platform C runtime
 - JVM output links the runtime through the `pl1compinpy/runtime/PL1Runtime` class on the classpath
 - .NET IL links the runtime through the `PL1CompInPy.Runtime` managed assembly
+- AST nodes support a visitor pattern through `accept`, and runtime execution has a `RuntimeExecutionVisitor` for future compiler passes and runtime checks
+- backend control-flow lowering treats simple `DO` as a block, `DO WHILE` as a pre-test loop, `DO ... UNTIL` as a post-test loop, `IF/THEN/ELSE` as decisions, and `SELECT/WHEN/OTHERWISE` as branches
 
 The runtime also includes starter storage and I/O services:
 

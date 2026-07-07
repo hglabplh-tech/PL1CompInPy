@@ -166,9 +166,12 @@ class Lexer:
             "**": TokenType.POWER,
             "||": TokenType.CONCAT,
             "^=": TokenType.NE,
+            "¬=": TokenType.NE,
+            "~=": TokenType.NE,
             "<>": TokenType.NE,
             "<=": TokenType.LE,
             ">=": TokenType.GE,
+            "=>": TokenType.GE,
         }
         pair = char + self._peek() if not self._at_end else char
         if pair in two_char_symbols:

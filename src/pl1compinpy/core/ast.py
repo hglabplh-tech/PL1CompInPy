@@ -1,14 +1,53 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, fields, field
+from typing import Any
+
+
+class AstNode:
+    def accept(self, visitor: "AstVisitor") -> Any:
+        return visitor.visit(self)
+
+
+class AstVisitor:
+    def visit(self, node: AstNode | None) -> Any:
+        if node is None:
+            return None
+        method = getattr(self, f"visit_{node.__class__.__name__}", self.generic_visit)
+        return method(node)
+
+    def visit_children(self, node: AstNode) -> list[Any]:
+        results: list[Any] = []
+        for item in fields(node):
+            value = getattr(node, item.name)
+            results.extend(self._visit_value(value))
+        return results
+
+    def generic_visit(self, node: AstNode) -> Any:
+        return self.visit_children(node)
+
+    def _visit_value(self, value: object) -> list[Any]:
+        if isinstance(value, AstNode):
+            return [self.visit(value)]
+        if isinstance(value, list):
+            results: list[Any] = []
+            for item in value:
+                results.extend(self._visit_value(item))
+            return results
+        if isinstance(value, dict):
+            results: list[Any] = []
+            for item in value.values():
+                results.extend(self._visit_value(item))
+            return results
+        return []
 
 
 @dataclass(frozen=True)
-class Program:
+class Program(AstNode):
     statements: list["Statement"]
 
 
-class Statement:
+class Statement(AstNode):
     pass
 
 
@@ -31,7 +70,7 @@ class Declaration(Statement):
 
 
 @dataclass(frozen=True)
-class GenericAlternative:
+class GenericAlternative(AstNode):
     procedure: str
     parameter_types: list[str]
 
@@ -85,7 +124,7 @@ class SelectStatement(Statement):
 
 
 @dataclass(frozen=True)
-class WhenBranch:
+class WhenBranch(AstNode):
     expressions: list["Expression"]
     statement: Statement
 
@@ -102,7 +141,7 @@ class RawStatement(Statement):
     tokens: list[str]
 
 
-class Expression:
+class Expression(AstNode):
     pass
 
 

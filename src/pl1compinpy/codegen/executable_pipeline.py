@@ -8,6 +8,7 @@ from ..core.ast import (
     BinaryExpression,
     Call,
     Declaration,
+    DoGroup,
     Expression,
     Identifier,
     IfStatement,
@@ -16,6 +17,7 @@ from ..core.ast import (
     Procedure,
     Program,
     RawStatement,
+    SelectStatement,
     Statement,
     StringLiteral,
 )
@@ -148,6 +150,22 @@ def _collect_data(statement: Statement, context: LoweringContext) -> None:
         _collect_data(statement.then_branch, context)
         if statement.else_branch:
             _collect_data(statement.else_branch, context)
+    elif isinstance(statement, DoGroup):
+        if statement.while_condition:
+            _collect_expression_data(statement.while_condition, context)
+        if statement.until_condition:
+            _collect_expression_data(statement.until_condition, context)
+        for child in statement.body:
+            _collect_data(child, context)
+    elif isinstance(statement, SelectStatement):
+        if statement.expression:
+            _collect_expression_data(statement.expression, context)
+        for branch in statement.when_branches:
+            for expression in branch.expressions:
+                _collect_expression_data(expression, context)
+            _collect_data(branch.statement, context)
+        if statement.otherwise:
+            _collect_data(statement.otherwise, context)
     elif isinstance(statement, LabelledStatement):
         _collect_data(statement.statement, context)
     elif isinstance(statement, Procedure):
@@ -218,6 +236,10 @@ def _lower_statement(statement: Statement, context: LoweringContext) -> list[Mne
             lines.extend(_lower_statement(statement.else_branch, context))
         lines.append(Mnemonic("LABEL", (end_label,)))
         return lines
+    if isinstance(statement, DoGroup):
+        return _lower_do_group(statement, context)
+    if isinstance(statement, SelectStatement):
+        return _lower_select(statement, context)
     if isinstance(statement, RawStatement) and statement.keyword.upper() == "RETURN":
         if statement.tokens:
             if statement.tokens[0].isdigit():
@@ -225,6 +247,58 @@ def _lower_statement(statement: Statement, context: LoweringContext) -> list[Mne
             return [_load_name(statement.tokens[0], context)]
         return [Mnemonic("MOV_EAX_IMM", (0,))]
     return [Mnemonic("COMMENT", (statement.__class__.__name__,))]
+
+
+def _lower_do_group(statement: DoGroup, context: LoweringContext) -> list[Mnemonic]:
+    if statement.while_condition is None and statement.until_condition is None:
+        lines: list[Mnemonic] = []
+        for child in statement.body:
+            lines.extend(_lower_statement(child, context))
+        return lines
+    start_label = context.label("do")
+    end_label = context.label("enddo")
+    lines = [Mnemonic("LABEL", (start_label,))]
+    if statement.while_condition is not None:
+        lines.extend(_lower_condition_false_jump(statement.while_condition, end_label, context))
+    for child in statement.body:
+        lines.extend(_lower_statement(child, context))
+    if statement.until_condition is not None:
+        lines.extend(_lower_condition_false_jump(statement.until_condition, start_label, context))
+    else:
+        lines.append(Mnemonic("JMP", (start_label,)))
+    lines.append(Mnemonic("LABEL", (end_label,)))
+    return lines
+
+
+def _lower_select(statement: SelectStatement, context: LoweringContext) -> list[Mnemonic]:
+    end_label = context.label("select_end")
+    lines: list[Mnemonic] = []
+    for branch in statement.when_branches:
+        next_label = context.label("select_next")
+        matched_label = context.label("select_matched")
+        for expression in branch.expressions:
+            value_next_label = context.label("select_value_next")
+            if statement.expression is not None:
+                lines.extend(_lower_expression(statement.expression, context))
+                lines.append(Mnemonic("PUSH_EAX"))
+                lines.extend(_lower_expression(expression, context))
+                lines.extend([Mnemonic("POP_EBX"), Mnemonic("CMP_EBX_EAX"), Mnemonic("JFALSE", ("=", value_next_label))])
+            else:
+                lines.extend(_lower_condition_false_jump(expression, value_next_label, context))
+            lines.append(Mnemonic("JMP", (matched_label,)))
+            lines.append(Mnemonic("LABEL", (value_next_label,)))
+        if not branch.expressions:
+            lines.append(Mnemonic("JMP", (next_label,)))
+        else:
+            lines.append(Mnemonic("JMP", (next_label,)))
+            lines.append(Mnemonic("LABEL", (matched_label,)))
+        lines.extend(_lower_statement(branch.statement, context))
+        lines.append(Mnemonic("JMP", (end_label,)))
+        lines.append(Mnemonic("LABEL", (next_label,)))
+    if statement.otherwise:
+        lines.extend(_lower_statement(statement.otherwise, context))
+    lines.append(Mnemonic("LABEL", (end_label,)))
+    return lines
 
 
 def _lower_procedure(procedure: Procedure, context: LoweringContext) -> list[Mnemonic]:
@@ -284,7 +358,7 @@ def _lower_expression(expression: Expression, context: LoweringContext) -> list[
 
 
 def _lower_condition_false_jump(expression: Expression, false_label: str, context: LoweringContext) -> list[Mnemonic]:
-    if isinstance(expression, BinaryExpression) and expression.operator in {"=", "^=", "<>", "<", "<=", ">", ">="}:
+    if isinstance(expression, BinaryExpression) and expression.operator in {"=", "^=", "¬=", "~=", "<>", "<", "<=", ">", ">=", "=>"}:
         lines = _lower_expression(expression.left, context)
         lines.append(Mnemonic("PUSH_EAX"))
         lines.extend(_lower_expression(expression.right, context))
@@ -475,11 +549,14 @@ class X586MnemonicAssembler:
         return {
             "=": b"\x0F\x85",
             "^=": b"\x0F\x84",
+            "¬=": b"\x0F\x84",
+            "~=": b"\x0F\x84",
             "<>": b"\x0F\x84",
             "<": b"\x0F\x8D",
             "<=": b"\x0F\x8F",
             ">": b"\x0F\x8E",
             ">=": b"\x0F\x8C",
+            "=>": b"\x0F\x8C",
         }[operator]
 
 

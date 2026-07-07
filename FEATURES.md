@@ -12,7 +12,9 @@
   - `codegen` for assembly text, executable lowering, and binary containers
 - PL/1 lexer with contextual keyword metadata.
 - PL/1 parser producing an AST for assignments, declarations, calls, procedures, labels, `DO` groups, and `IF/THEN/ELSE`.
+- Visitor-enabled AST nodes and runtime execution visitor support for future compiler passes.
 - Parser support for `DO WHILE`, post-test `DO ... UNTIL`, and `SELECT`/`WHEN`/`OTHERWISE`.
+- Backend lowering for `DO` blocks, `DO WHILE`, post-test `DO ... UNTIL`, `IF/THEN/ELSE`, and `SELECT/WHEN/OTHERWISE` branch blocks.
 - PL/I-style expression precedence for power, unary operators, multiplication/division, addition/subtraction, concatenation, comparison, logical AND, and logical OR.
 - Keyword catalog covering PL/1 statements, declaration attributes, storage attributes, I/O words, conditions, and preprocessor/listing words.
 - Python-like text emitter for early compiler validation.

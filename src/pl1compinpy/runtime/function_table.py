@@ -245,6 +245,15 @@ def runtime_function_table() -> FunctionTable:
     table.add_runtime("PUT", "runtime.put", [any_value("VALUE")], variadic=True)
     table.add_runtime("GET", "runtime.get", [any_ref("TARGET")], variadic=True)
     table.add_builtin("SUBSTR", "builtins.substr", [ParameterDescriptor("S", "CHARACTER"), ParameterDescriptor("START", "FIXED BIN"), ParameterDescriptor("COUNT", "FIXED BIN", optional=True)], returns="CHARACTER")
+    table.add_builtin("LENGTH", "builtins.length", [ParameterDescriptor("VALUE", "ANY")], returns="FIXED BIN")
+    table.add_builtin("INDEX", "builtins.index", [ParameterDescriptor("SOURCE", "CHARACTER"), ParameterDescriptor("NEEDLE", "CHARACTER")], returns="FIXED BIN")
+    for name in ("ABS", "SIGN", "CEIL", "FLOOR", "SQRT", "EXP", "LOG", "SIN", "COS", "TAN", "REAL", "IMAG", "CONJG"):
+        table.add_builtin(name, f"builtins.{name.lower()}", [ParameterDescriptor("VALUE", "ANY")], returns="ANY")
+    for name in ("MIN", "MAX"):
+        table.add_builtin(name, f"builtins.{name.lower()}", [ParameterDescriptor("VALUE", "ANY")], returns="ANY", variadic=True)
+    table.add_builtin("MOD", "builtins.mod", [ParameterDescriptor("LEFT", "ANY"), ParameterDescriptor("RIGHT", "ANY")], returns="FIXED BIN")
+    table.add_builtin("TRUNC", "builtins.trunc", [ParameterDescriptor("VALUE", "ANY"), ParameterDescriptor("SCALE", "FIXED BIN", optional=True)], returns="FIXED DEC")
+    table.add_builtin("ROUND", "builtins.round", [ParameterDescriptor("VALUE", "ANY"), ParameterDescriptor("SCALE", "FIXED BIN", optional=True)], returns="FIXED DEC")
 
     for name in ("ALLOCATE", "ALLOC"):
         table.add_runtime(name, "runtime.heap.allocate", [ParameterDescriptor("SIZE", "FIXED BIN")], returns="POINTER")

@@ -16,7 +16,7 @@ from pl1compinpy.codegen.jvm_classfile import JAVA_17_MAJOR_VERSION
 from pl1compinpy.codegen.executable_pipeline import lower_program
 from pl1compinpy.codegen.linkers import ELFLinker, MachOLinker, PELinker
 from pl1compinpy.codegen.runtime_link import runtime_linkage
-from pl1compinpy.ast import BinaryExpression, Call, Declaration, DoGroup, Identifier, IOStatement, IfStatement, LabelledStatement, Procedure, SelectStatement
+from pl1compinpy.ast import AstVisitor, BinaryExpression, Call, Declaration, DoGroup, Identifier, IOStatement, IfStatement, LabelledStatement, Procedure, SelectStatement
 from pl1compinpy.frontend.lexer import Lexer, TokenType
 from pl1compinpy.frontend.parser import Parser
 from pl1compinpy.runtime import (
@@ -35,6 +35,7 @@ from pl1compinpy.runtime import (
     StringRuntime,
     PL1Type,
     PL1Value,
+    RuntimeExecutionVisitor,
     SocketDescriptor,
     SocketFileDescriptor,
     SocketRuntime,
@@ -172,6 +173,29 @@ class CompilerTests(unittest.TestCase):
         self.assertEqual(len(statement.when_branches[1].expressions), 2)
         self.assertIsNotNone(statement.otherwise)
 
+    def test_ast_accept_uses_visitor_pattern(self):
+        class StatementCountingVisitor(AstVisitor):
+            def visit_Program(self, node):
+                return sum(1 for statement in node.statements if self.visit(statement))
+
+            def visit_Declaration(self, node):
+                return True
+
+            def visit_Assignment(self, node):
+                return True
+
+        program = Parser(Lexer("DCL X FIXED BIN(31); X = 1;").tokenize()).parse()
+
+        self.assertEqual(program.accept(StatementCountingVisitor()), 2)
+
+    def test_condition_aliases_parse_and_execute_with_runtime_visitor(self):
+        source = "DCL X FIXED BIN(31); X = 1; IF X ~= 2 THEN X = X + 1; IF X => 2 THEN X = X + 1;"
+        visitor = RuntimeExecutionVisitor()
+
+        visitor.visit(Parser(Lexer(source).tokenize()).parse())
+
+        self.assertEqual(visitor.variables["X"].value, 3)
+
     def test_expression_parser_uses_pl1_operator_precedence(self):
         expression = Parser(Lexer("RESULT = A | B & C = D || E + F * G ** H;").tokenize()).parse().statements[0].expression
 
@@ -265,6 +289,22 @@ class CompilerTests(unittest.TestCase):
             "ADD_EAX_EBX",
         ])
 
+    def test_lowers_structured_control_blocks_to_branch_mnemonics(self):
+        source = (
+            "DCL TOTAL FIXED BIN(31); TOTAL = 0; "
+            "DO WHILE TOTAL < 2; TOTAL = TOTAL + 1; END; "
+            "DO; TOTAL = TOTAL + 1; UNTIL TOTAL = 4; END; "
+            "SELECT(TOTAL); WHEN(4) TOTAL = 10; OTHERWISE TOTAL = 20; END;"
+        )
+        mnemonics, _, _ = lower_program(Parser(Lexer(source).tokenize()).parse())
+        ops = [mnemonic.op for mnemonic in mnemonics]
+        labels = [mnemonic.args[0] for mnemonic in mnemonics if mnemonic.op == "LABEL"]
+
+        self.assertIn("JFALSE", ops)
+        self.assertIn("JMP", ops)
+        self.assertTrue(any(str(label).startswith("do_") for label in labels))
+        self.assertTrue(any(str(label).startswith("select_") for label in labels))
+
     def test_binary_output_uses_source_generated_machine_code(self):
         binary = compile_binary("pe32-x586-windows", "DCL TOTAL FIXED BIN(31); TOTAL = 40 + 2;")
         code = binary[0x200:0x240]
@@ -327,6 +367,23 @@ class CompilerTests(unittest.TestCase):
         self.assertIsInstance(call, Call)
         self.assertEqual(call.mode, "reference")
         self.assertEqual([argument.name for argument in call.arguments], ["S", "START", "COUNT"])
+
+    def test_runtime_execution_visitor_uses_function_table_and_control_blocks(self):
+        source = (
+            "DCL LENGTH BUILTIN; DCL X FIXED BIN(31); DCL TEXT CHARACTER; "
+            "TEXT = 'HELLO'; X = 0; "
+            "DO WHILE X < 2; X = X + 1; END; "
+            "DO; X = X + 1; UNTIL X = 4; END; "
+            "SELECT(X); WHEN(4) CALL DISPLAY('FOUR'); OTHERWISE CALL DISPLAY('OTHER'); END; "
+            "CALL LENGTH(TEXT);"
+        )
+        program = normalize_calls(Parser(Lexer(source).tokenize()).parse())
+        visitor = RuntimeExecutionVisitor()
+
+        visitor.visit(program)
+
+        self.assertEqual(visitor.variables["X"].value, 4)
+        self.assertEqual(visitor.output, ["FOUR"])
 
     def test_function_table_validates_call_descriptions(self):
         table = FunctionTable()

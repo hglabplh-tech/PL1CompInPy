@@ -4,9 +4,9 @@ This file is generated from the Python source tree. Regenerate it with `python s
 
 ## Summary
 
-- Modules: 41
-- Classes: 104
-- Functions and methods: 390
+- Modules: 42
+- Classes: 108
+- Functions and methods: 422
 
 ## `pl1compinpy`
 
@@ -162,7 +162,7 @@ class AssemblyTarget
 
 Data container describing assembly target values used by the compiler.
 
-Defined at line 26.
+Defined at line 27.
 
 #### `BackendError`
 
@@ -172,7 +172,7 @@ class BackendError(ValueError)
 
 Exception type raised for backend errors.
 
-Defined at line 49.
+Defined at line 50.
 
 #### `SymbolTable`
 
@@ -182,7 +182,7 @@ class SymbolTable
 
 Data container describing symbol table values used by the compiler.
 
-Defined at line 67.
+Defined at line 68.
 
 Methods:
 
@@ -194,7 +194,7 @@ def add_string(self, value: str) -> str
 
 Performs add string behavior in `SymbolTable`.
 
-Defined at line 72.
+Defined at line 73.
 
 #### `AssemblyEmitter`
 
@@ -204,7 +204,7 @@ class AssemblyEmitter
 
 Class implementing assembly emitter behavior in the PL/I compiler.
 
-Defined at line 79.
+Defined at line 80.
 
 Methods:
 
@@ -216,7 +216,7 @@ def __init__(self, target: AssemblyTarget) -> None
 
 Initializes an instance of `AssemblyEmitter`.
 
-Defined at line 80.
+Defined at line 81.
 
 ##### `AssemblyEmitter._collect_symbols`
 
@@ -226,7 +226,7 @@ def _collect_symbols(self, program: Program) -> None
 
 Internal helper in `AssemblyEmitter` for collect symbols.
 
-Defined at line 86.
+Defined at line 87.
 
 ##### `AssemblyEmitter._collect_statement`
 
@@ -236,7 +236,7 @@ def _collect_statement(self, statement: Statement) -> None
 
 Internal helper in `AssemblyEmitter` for collect statement.
 
-Defined at line 90.
+Defined at line 91.
 
 ##### `AssemblyEmitter._collect_expression`
 
@@ -246,7 +246,7 @@ def _collect_expression(self, expression: Expression) -> None
 
 Internal helper in `AssemblyEmitter` for collect expression.
 
-Defined at line 117.
+Defined at line 118.
 
 ##### `AssemblyEmitter._new_label`
 
@@ -256,7 +256,7 @@ def _new_label(self, stem: str) -> str
 
 Internal helper in `AssemblyEmitter` for new label.
 
-Defined at line 126.
+Defined at line 127.
 
 ##### `AssemblyEmitter._symbol`
 
@@ -266,7 +266,7 @@ def _symbol(self, name: str) -> str
 
 Internal helper in `AssemblyEmitter` for symbol.
 
-Defined at line 131.
+Defined at line 132.
 
 ##### `AssemblyEmitter._runtime_symbol`
 
@@ -276,7 +276,7 @@ def _runtime_symbol(self, name: str) -> str
 
 Internal helper in `AssemblyEmitter` for runtime symbol.
 
-Defined at line 134.
+Defined at line 135.
 
 ##### `AssemblyEmitter._runtime_externs`
 
@@ -286,7 +286,7 @@ def _runtime_externs(self) -> list[str]
 
 Internal helper in `AssemblyEmitter` for runtime externs.
 
-Defined at line 137.
+Defined at line 138.
 
 ##### `AssemblyEmitter._runtime_link_comments`
 
@@ -296,7 +296,7 @@ def _runtime_link_comments(self, comment: str) -> list[str]
 
 Internal helper in `AssemblyEmitter` for runtime link comments.
 
-Defined at line 140.
+Defined at line 141.
 
 ##### `AssemblyEmitter._escaped_bytes`
 
@@ -306,7 +306,7 @@ def _escaped_bytes(self, value: str) -> str
 
 Internal helper in `AssemblyEmitter` for escaped bytes.
 
-Defined at line 150.
+Defined at line 151.
 
 ##### `AssemblyEmitter._condition_jump`
 
@@ -316,7 +316,7 @@ def _condition_jump(self, operator: str, if_false: bool) -> str
 
 Internal helper in `AssemblyEmitter` for condition jump.
 
-Defined at line 154.
+Defined at line 155.
 
 ##### `AssemblyEmitter._raw_put_arguments`
 
@@ -326,7 +326,7 @@ def _raw_put_arguments(self, statement: RawStatement) -> list[Expression]
 
 Internal helper in `AssemblyEmitter` for raw put arguments.
 
-Defined at line 166.
+Defined at line 170.
 
 #### `X586AssemblyEmitter`
 
@@ -336,7 +336,7 @@ class X586AssemblyEmitter(AssemblyEmitter)
 
 Class implementing x586 assembly emitter behavior in the PL/I compiler.
 
-Defined at line 183.
+Defined at line 187.
 
 Methods:
 
@@ -348,7 +348,7 @@ def emit(self, program: Program) -> str
 
 Performs emit behavior in `X586AssemblyEmitter`.
 
-Defined at line 184.
+Defined at line 188.
 
 ##### `X586AssemblyEmitter._statement`
 
@@ -358,7 +358,17 @@ def _statement(self, statement: Statement) -> list[str]
 
 Internal helper in `X586AssemblyEmitter` for statement.
 
-Defined at line 208.
+Defined at line 212.
+
+##### `X586AssemblyEmitter._do_group`
+
+```python
+def _do_group(self, statement: DoGroup) -> list[str]
+```
+
+Internal helper in `X586AssemblyEmitter` for do group.
+
+Defined at line 242.
 
 ##### `X586AssemblyEmitter._if`
 
@@ -368,7 +378,17 @@ def _if(self, statement: IfStatement) -> list[str]
 
 Internal helper in `X586AssemblyEmitter` for if.
 
-Defined at line 241.
+Defined at line 262.
+
+##### `X586AssemblyEmitter._select`
+
+```python
+def _select(self, statement: SelectStatement) -> list[str]
+```
+
+Internal helper in `X586AssemblyEmitter` for select.
+
+Defined at line 274.
 
 ##### `X586AssemblyEmitter._call`
 
@@ -378,7 +398,7 @@ def _call(self, statement: Call) -> list[str]
 
 Internal helper in `X586AssemblyEmitter` for call.
 
-Defined at line 253.
+Defined at line 302.
 
 ##### `X586AssemblyEmitter._print_arguments`
 
@@ -388,7 +408,7 @@ def _print_arguments(self, arguments: list[Expression]) -> list[str]
 
 Internal helper in `X586AssemblyEmitter` for print arguments.
 
-Defined at line 265.
+Defined at line 314.
 
 ##### `X586AssemblyEmitter._comparison`
 
@@ -398,7 +418,7 @@ def _comparison(self, expression: Expression, false_label: str) -> list[str]
 
 Internal helper in `X586AssemblyEmitter` for comparison.
 
-Defined at line 276.
+Defined at line 325.
 
 ##### `X586AssemblyEmitter._expression`
 
@@ -408,7 +428,7 @@ def _expression(self, expression: Expression) -> list[str]
 
 Internal helper in `X586AssemblyEmitter` for expression.
 
-Defined at line 288.
+Defined at line 337.
 
 #### `X8664AssemblyEmitter`
 
@@ -418,7 +438,7 @@ class X8664AssemblyEmitter(AssemblyEmitter)
 
 Class implementing x8664 assembly emitter behavior in the PL/I compiler.
 
-Defined at line 314.
+Defined at line 363.
 
 Methods:
 
@@ -430,7 +450,7 @@ def emit(self, program: Program) -> str
 
 Performs emit behavior in `X8664AssemblyEmitter`.
 
-Defined at line 315.
+Defined at line 364.
 
 ##### `X8664AssemblyEmitter._statement`
 
@@ -440,7 +460,17 @@ def _statement(self, statement: Statement) -> list[str]
 
 Internal helper in `X8664AssemblyEmitter` for statement.
 
-Defined at line 341.
+Defined at line 390.
+
+##### `X8664AssemblyEmitter._do_group`
+
+```python
+def _do_group(self, statement: DoGroup) -> list[str]
+```
+
+Internal helper in `X8664AssemblyEmitter` for do group.
+
+Defined at line 420.
 
 ##### `X8664AssemblyEmitter._if`
 
@@ -450,7 +480,17 @@ def _if(self, statement: IfStatement) -> list[str]
 
 Internal helper in `X8664AssemblyEmitter` for if.
 
-Defined at line 374.
+Defined at line 440.
+
+##### `X8664AssemblyEmitter._select`
+
+```python
+def _select(self, statement: SelectStatement) -> list[str]
+```
+
+Internal helper in `X8664AssemblyEmitter` for select.
+
+Defined at line 452.
 
 ##### `X8664AssemblyEmitter._call`
 
@@ -460,7 +500,7 @@ def _call(self, statement: Call) -> list[str]
 
 Internal helper in `X8664AssemblyEmitter` for call.
 
-Defined at line 386.
+Defined at line 480.
 
 ##### `X8664AssemblyEmitter._print_arguments`
 
@@ -470,7 +510,7 @@ def _print_arguments(self, arguments: list[Expression]) -> list[str]
 
 Internal helper in `X8664AssemblyEmitter` for print arguments.
 
-Defined at line 398.
+Defined at line 492.
 
 ##### `X8664AssemblyEmitter._comparison`
 
@@ -480,7 +520,7 @@ def _comparison(self, expression: Expression, false_label: str) -> list[str]
 
 Internal helper in `X8664AssemblyEmitter` for comparison.
 
-Defined at line 425.
+Defined at line 519.
 
 ##### `X8664AssemblyEmitter._expression`
 
@@ -490,7 +530,7 @@ def _expression(self, expression: Expression) -> list[str]
 
 Internal helper in `X8664AssemblyEmitter` for expression.
 
-Defined at line 437.
+Defined at line 531.
 
 #### `Arm64AssemblyEmitter`
 
@@ -500,7 +540,7 @@ class Arm64AssemblyEmitter(AssemblyEmitter)
 
 Class implementing arm64 assembly emitter behavior in the PL/I compiler.
 
-Defined at line 463.
+Defined at line 557.
 
 Methods:
 
@@ -512,7 +552,7 @@ def emit(self, program: Program) -> str
 
 Performs emit behavior in `Arm64AssemblyEmitter`.
 
-Defined at line 464.
+Defined at line 558.
 
 ##### `Arm64AssemblyEmitter._statement`
 
@@ -522,7 +562,17 @@ def _statement(self, statement: Statement) -> list[str]
 
 Internal helper in `Arm64AssemblyEmitter` for statement.
 
-Defined at line 492.
+Defined at line 586.
+
+##### `Arm64AssemblyEmitter._do_group`
+
+```python
+def _do_group(self, statement: DoGroup) -> list[str]
+```
+
+Internal helper in `Arm64AssemblyEmitter` for do group.
+
+Defined at line 616.
 
 ##### `Arm64AssemblyEmitter._if`
 
@@ -532,7 +582,17 @@ def _if(self, statement: IfStatement) -> list[str]
 
 Internal helper in `Arm64AssemblyEmitter` for if.
 
-Defined at line 525.
+Defined at line 636.
+
+##### `Arm64AssemblyEmitter._select`
+
+```python
+def _select(self, statement: SelectStatement) -> list[str]
+```
+
+Internal helper in `Arm64AssemblyEmitter` for select.
+
+Defined at line 648.
 
 ##### `Arm64AssemblyEmitter._call`
 
@@ -542,7 +602,7 @@ def _call(self, statement: Call) -> list[str]
 
 Internal helper in `Arm64AssemblyEmitter` for call.
 
-Defined at line 537.
+Defined at line 676.
 
 ##### `Arm64AssemblyEmitter._print_arguments`
 
@@ -552,7 +612,7 @@ def _print_arguments(self, arguments: list[Expression]) -> list[str]
 
 Internal helper in `Arm64AssemblyEmitter` for print arguments.
 
-Defined at line 547.
+Defined at line 686.
 
 ##### `Arm64AssemblyEmitter._comparison`
 
@@ -562,7 +622,7 @@ def _comparison(self, expression: Expression, false_label: str) -> list[str]
 
 Internal helper in `Arm64AssemblyEmitter` for comparison.
 
-Defined at line 573.
+Defined at line 712.
 
 ##### `Arm64AssemblyEmitter._expression`
 
@@ -572,7 +632,7 @@ def _expression(self, expression: Expression) -> list[str]
 
 Internal helper in `Arm64AssemblyEmitter` for expression.
 
-Defined at line 594.
+Defined at line 736.
 
 ##### `Arm64AssemblyEmitter._escape_asciz`
 
@@ -582,7 +642,7 @@ def _escape_asciz(self, value: str) -> str
 
 Internal helper in `Arm64AssemblyEmitter` for escape asciz.
 
-Defined at line 619.
+Defined at line 761.
 
 ### Functions
 
@@ -594,7 +654,7 @@ def emit_assembly(program: Program, target_name: str) -> str
 
 Emits assembly output for the compiler.
 
-Defined at line 53.
+Defined at line 54.
 
 ## `pl1compinpy.codegen.binary_formats`
 
@@ -914,7 +974,7 @@ class Mnemonic
 
 Data container describing mnemonic values used by the compiler.
 
-Defined at line 26.
+Defined at line 28.
 
 #### `ExecutableImage`
 
@@ -924,7 +984,7 @@ class ExecutableImage
 
 Data container describing executable image values used by the compiler.
 
-Defined at line 32.
+Defined at line 34.
 
 #### `LoweringContext`
 
@@ -934,7 +994,7 @@ class LoweringContext
 
 Data container describing lowering context values used by the compiler.
 
-Defined at line 38.
+Defined at line 40.
 
 Methods:
 
@@ -946,7 +1006,7 @@ def variable(self, name: str) -> int
 
 Performs variable behavior in `LoweringContext`.
 
-Defined at line 46.
+Defined at line 48.
 
 ##### `LoweringContext.local`
 
@@ -956,7 +1016,7 @@ def local(self, name: str) -> int
 
 Performs local behavior in `LoweringContext`.
 
-Defined at line 52.
+Defined at line 54.
 
 ##### `LoweringContext.local_bytes`
 
@@ -966,7 +1026,7 @@ def local_bytes(self) -> int
 
 Performs local bytes behavior in `LoweringContext`.
 
-Defined at line 60.
+Defined at line 62.
 
 ##### `LoweringContext.is_local`
 
@@ -976,7 +1036,7 @@ def is_local(self, name: str) -> bool
 
 Performs is local behavior in `LoweringContext`.
 
-Defined at line 63.
+Defined at line 65.
 
 ##### `LoweringContext.is_parameter`
 
@@ -986,7 +1046,7 @@ def is_parameter(self, name: str) -> bool
 
 Performs is parameter behavior in `LoweringContext`.
 
-Defined at line 66.
+Defined at line 68.
 
 ##### `LoweringContext.stack_offset`
 
@@ -996,7 +1056,7 @@ def stack_offset(self, name: str) -> int
 
 Performs stack offset behavior in `LoweringContext`.
 
-Defined at line 69.
+Defined at line 71.
 
 ##### `LoweringContext.string`
 
@@ -1006,7 +1066,7 @@ def string(self, value: str) -> tuple[int, int]
 
 Performs string behavior in `LoweringContext`.
 
-Defined at line 76.
+Defined at line 78.
 
 ##### `LoweringContext.label`
 
@@ -1016,7 +1076,7 @@ def label(self, stem: str) -> str
 
 Performs label behavior in `LoweringContext`.
 
-Defined at line 82.
+Defined at line 84.
 
 #### `X586MnemonicAssembler`
 
@@ -1026,7 +1086,7 @@ class X586MnemonicAssembler
 
 Class implementing x586 mnemonic assembler behavior in the PL/I compiler.
 
-Defined at line 335.
+Defined at line 409.
 
 Methods:
 
@@ -1038,7 +1098,7 @@ def __init__(self, image_base: int, code_rva: int, data: bytes, variables: dict[
 
 Initializes an instance of `X586MnemonicAssembler`.
 
-Defined at line 336.
+Defined at line 410.
 
 ##### `X586MnemonicAssembler.assemble`
 
@@ -1048,7 +1108,7 @@ def assemble(self, mnemonics: list[Mnemonic]) -> bytes
 
 Performs assemble behavior in `X586MnemonicAssembler`.
 
-Defined at line 343.
+Defined at line 417.
 
 ##### `X586MnemonicAssembler._var_addr`
 
@@ -1058,7 +1118,7 @@ def _var_addr(self, name: str) -> int
 
 Internal helper in `X586MnemonicAssembler` for var addr.
 
-Defined at line 351.
+Defined at line 425.
 
 ##### `X586MnemonicAssembler._data_addr`
 
@@ -1068,7 +1128,7 @@ def _data_addr(self, offset: int) -> int
 
 Internal helper in `X586MnemonicAssembler` for data addr.
 
-Defined at line 354.
+Defined at line 428.
 
 ##### `X586MnemonicAssembler._code_size`
 
@@ -1078,7 +1138,7 @@ def _code_size(self, mnemonics: list[Mnemonic]) -> int
 
 Internal helper in `X586MnemonicAssembler` for code size.
 
-Defined at line 357.
+Defined at line 431.
 
 ##### `X586MnemonicAssembler._label_offsets`
 
@@ -1088,7 +1148,7 @@ def _label_offsets(self, mnemonics: list[Mnemonic]) -> dict[str, int]
 
 Internal helper in `X586MnemonicAssembler` for label offsets.
 
-Defined at line 360.
+Defined at line 434.
 
 ##### `X586MnemonicAssembler._size`
 
@@ -1098,7 +1158,7 @@ def _size(self, mnemonic: Mnemonic) -> int
 
 Internal helper in `X586MnemonicAssembler` for size.
 
-Defined at line 369.
+Defined at line 443.
 
 ##### `X586MnemonicAssembler._encode`
 
@@ -1108,7 +1168,7 @@ def _encode(self, mnemonic: Mnemonic, offset: int, labels: dict[str, int]) -> by
 
 Internal helper in `X586MnemonicAssembler` for encode.
 
-Defined at line 405.
+Defined at line 479.
 
 ##### `X586MnemonicAssembler._jfalse_opcode`
 
@@ -1118,7 +1178,7 @@ def _jfalse_opcode(self, operator: str) -> bytes
 
 Internal helper in `X586MnemonicAssembler` for jfalse opcode.
 
-Defined at line 474.
+Defined at line 548.
 
 #### `X8664MnemonicAssembler`
 
@@ -1128,7 +1188,7 @@ class X8664MnemonicAssembler
 
 Class implementing x8664 mnemonic assembler behavior in the PL/I compiler.
 
-Defined at line 486.
+Defined at line 563.
 
 Methods:
 
@@ -1140,7 +1200,7 @@ def __init__(self, image_base: int, code_rva: int, data: bytes, variables: dict[
 
 Initializes an instance of `X8664MnemonicAssembler`.
 
-Defined at line 487.
+Defined at line 564.
 
 ##### `X8664MnemonicAssembler.assemble`
 
@@ -1150,7 +1210,7 @@ def assemble(self, mnemonics: list[Mnemonic]) -> bytes
 
 Performs assemble behavior in `X8664MnemonicAssembler`.
 
-Defined at line 495.
+Defined at line 572.
 
 #### `Arm64MnemonicAssembler`
 
@@ -1160,7 +1220,7 @@ class Arm64MnemonicAssembler
 
 Class implementing arm64 mnemonic assembler behavior in the PL/I compiler.
 
-Defined at line 517.
+Defined at line 594.
 
 Methods:
 
@@ -1172,7 +1232,7 @@ def __init__(self, macos: bool = False) -> None
 
 Initializes an instance of `Arm64MnemonicAssembler`.
 
-Defined at line 518.
+Defined at line 595.
 
 ##### `Arm64MnemonicAssembler.assemble`
 
@@ -1182,7 +1242,7 @@ def assemble(self, mnemonics: list[Mnemonic]) -> bytes
 
 Performs assemble behavior in `Arm64MnemonicAssembler`.
 
-Defined at line 521.
+Defined at line 598.
 
 ##### `Arm64MnemonicAssembler._mov_w0_imm`
 
@@ -1192,7 +1252,7 @@ def _mov_w0_imm(self, value: int) -> bytes
 
 Internal helper in `Arm64MnemonicAssembler` for mov w0 imm.
 
-Defined at line 534.
+Defined at line 611.
 
 ##### `Arm64MnemonicAssembler._mov_x16_or_x8`
 
@@ -1202,7 +1262,7 @@ def _mov_x16_or_x8(self, value: int) -> bytes
 
 Internal helper in `Arm64MnemonicAssembler` for mov x16 or x8.
 
-Defined at line 539.
+Defined at line 616.
 
 ### Functions
 
@@ -1214,7 +1274,7 @@ def lower_program(program: Program) -> tuple[list[Mnemonic], bytes, dict[str, in
 
 Performs lower program behavior in `pl1compinpy.codegen.executable_pipeline`.
 
-Defined at line 88.
+Defined at line 90.
 
 #### `assemble_executable`
 
@@ -1224,7 +1284,7 @@ def assemble_executable(program: Program, binary_format: str, *, image_base: int
 
 Performs assemble executable behavior in `pl1compinpy.codegen.executable_pipeline`.
 
-Defined at line 114.
+Defined at line 116.
 
 #### `_collect_data`
 
@@ -1234,7 +1294,7 @@ def _collect_data(statement: Statement, context: LoweringContext) -> None
 
 Internal helper in `pl1compinpy.codegen.executable_pipeline` for collect data.
 
-Defined at line 136.
+Defined at line 138.
 
 #### `_collect_expression_data`
 
@@ -1244,7 +1304,7 @@ def _collect_expression_data(expression: Expression, context: LoweringContext) -
 
 Internal helper in `pl1compinpy.codegen.executable_pipeline` for collect expression data.
 
-Defined at line 157.
+Defined at line 175.
 
 #### `_is_procedure_definition`
 
@@ -1254,7 +1314,7 @@ def _is_procedure_definition(statement: Statement) -> bool
 
 Internal helper in `pl1compinpy.codegen.executable_pipeline` for is procedure definition.
 
-Defined at line 167.
+Defined at line 185.
 
 #### `_main_procedure_name`
 
@@ -1264,7 +1324,7 @@ def _main_procedure_name(program: Program) -> str | None
 
 Internal helper in `pl1compinpy.codegen.executable_pipeline` for main procedure name.
 
-Defined at line 173.
+Defined at line 191.
 
 #### `_lower_statement`
 
@@ -1274,7 +1334,27 @@ def _lower_statement(statement: Statement, context: LoweringContext) -> list[Mne
 
 Internal helper in `pl1compinpy.codegen.executable_pipeline` for lower statement.
 
-Defined at line 181.
+Defined at line 199.
+
+#### `_lower_do_group`
+
+```python
+def _lower_do_group(statement: DoGroup, context: LoweringContext) -> list[Mnemonic]
+```
+
+Internal helper in `pl1compinpy.codegen.executable_pipeline` for lower do group.
+
+Defined at line 252.
+
+#### `_lower_select`
+
+```python
+def _lower_select(statement: SelectStatement, context: LoweringContext) -> list[Mnemonic]
+```
+
+Internal helper in `pl1compinpy.codegen.executable_pipeline` for lower select.
+
+Defined at line 273.
 
 #### `_lower_procedure`
 
@@ -1284,7 +1364,7 @@ def _lower_procedure(procedure: Procedure, context: LoweringContext) -> list[Mne
 
 Internal helper in `pl1compinpy.codegen.executable_pipeline` for lower procedure.
 
-Defined at line 230.
+Defined at line 304.
 
 #### `_lower_call`
 
@@ -1294,7 +1374,7 @@ def _lower_call(call: Call, context: LoweringContext) -> list[Mnemonic]
 
 Internal helper in `pl1compinpy.codegen.executable_pipeline` for lower call.
 
-Defined at line 250.
+Defined at line 324.
 
 #### `_lower_expression`
 
@@ -1304,7 +1384,7 @@ def _lower_expression(expression: Expression, context: LoweringContext) -> list[
 
 Internal helper in `pl1compinpy.codegen.executable_pipeline` for lower expression.
 
-Defined at line 264.
+Defined at line 338.
 
 #### `_lower_condition_false_jump`
 
@@ -1314,7 +1394,7 @@ def _lower_condition_false_jump(expression: Expression, false_label: str, contex
 
 Internal helper in `pl1compinpy.codegen.executable_pipeline` for lower condition false jump.
 
-Defined at line 286.
+Defined at line 360.
 
 #### `_lower_display`
 
@@ -1324,7 +1404,7 @@ def _lower_display(arguments: list[Expression], context: LoweringContext) -> lis
 
 Internal helper in `pl1compinpy.codegen.executable_pipeline` for lower display.
 
-Defined at line 296.
+Defined at line 370.
 
 #### `_load_name`
 
@@ -1334,7 +1414,7 @@ def _load_name(name: str, context: LoweringContext) -> Mnemonic
 
 Internal helper in `pl1compinpy.codegen.executable_pipeline` for load name.
 
-Defined at line 308.
+Defined at line 382.
 
 #### `_store_name`
 
@@ -1344,7 +1424,7 @@ def _store_name(name: str, context: LoweringContext) -> Mnemonic
 
 Internal helper in `pl1compinpy.codegen.executable_pipeline` for store name.
 
-Defined at line 317.
+Defined at line 391.
 
 #### `_push_reference`
 
@@ -1354,7 +1434,7 @@ def _push_reference(name: str, context: LoweringContext) -> Mnemonic
 
 Internal helper in `pl1compinpy.codegen.executable_pipeline` for push reference.
 
-Defined at line 326.
+Defined at line 400.
 
 ## `pl1compinpy.codegen.jvm_bytecode`
 
@@ -1910,7 +1990,7 @@ def _io_statement(self, statement: IOStatement, indent: int) -> list[str]
 
 Internal helper in `PythonSourceEmitter` for io statement.
 
-Defined at line 90.
+Defined at line 92.
 
 ##### `PythonSourceEmitter._select_statement`
 
@@ -1920,7 +2000,7 @@ def _select_statement(self, statement: SelectStatement, indent: int) -> list[str
 
 Internal helper in `PythonSourceEmitter` for select statement.
 
-Defined at line 105.
+Defined at line 107.
 
 ##### `PythonSourceEmitter._select_condition`
 
@@ -1930,7 +2010,7 @@ def _select_condition(self, statement: SelectStatement, expressions: list[Expres
 
 Internal helper in `PythonSourceEmitter` for select condition.
 
-Defined at line 118.
+Defined at line 120.
 
 ##### `PythonSourceEmitter._procedure`
 
@@ -1940,7 +2020,7 @@ def _procedure(self, procedure: Procedure, indent: int) -> list[str]
 
 Internal helper in `PythonSourceEmitter` for procedure.
 
-Defined at line 126.
+Defined at line 128.
 
 ##### `PythonSourceEmitter._body`
 
@@ -1950,7 +2030,7 @@ def _body(self, statements: list[object], indent: int) -> list[str]
 
 Internal helper in `PythonSourceEmitter` for body.
 
-Defined at line 136.
+Defined at line 138.
 
 ##### `PythonSourceEmitter._expression`
 
@@ -1960,7 +2040,7 @@ def _expression(self, expression: Expression) -> str
 
 Internal helper in `PythonSourceEmitter` for expression.
 
-Defined at line 144.
+Defined at line 146.
 
 ##### `PythonSourceEmitter._operator`
 
@@ -1970,7 +2050,7 @@ def _operator(self, operator: str) -> str
 
 Internal helper in `PythonSourceEmitter` for operator.
 
-Defined at line 160.
+Defined at line 162.
 
 ##### `PythonSourceEmitter._declaration_initial_value`
 
@@ -1980,7 +2060,7 @@ def _declaration_initial_value(self, declaration: Declaration, name: str) -> str
 
 Internal helper in `PythonSourceEmitter` for declaration initial value.
 
-Defined at line 171.
+Defined at line 176.
 
 ##### `PythonSourceEmitter._main_procedure_name`
 
@@ -1990,7 +2070,7 @@ def _main_procedure_name(self, program: Program) -> str | None
 
 Internal helper in `PythonSourceEmitter` for main procedure name.
 
-Defined at line 183.
+Defined at line 188.
 
 ### Functions
 
@@ -2002,7 +2082,7 @@ def emit_python_source(program: Program) -> str
 
 Emits python source output for the compiler.
 
-Defined at line 191.
+Defined at line 196.
 
 ## `pl1compinpy.codegen.runtime_link`
 
@@ -2128,25 +2208,99 @@ Module containing ast support for the PL/I compiler.
 
 ### Classes
 
+#### `AstNode`
+
+```python
+class AstNode
+```
+
+Class implementing ast node behavior in the PL/I compiler.
+
+Defined at line 7.
+
+Methods:
+
+##### `AstNode.accept`
+
+```python
+def accept(self, visitor: 'AstVisitor') -> Any
+```
+
+Performs accept behavior in `AstNode`.
+
+Defined at line 8.
+
+#### `AstVisitor`
+
+```python
+class AstVisitor
+```
+
+Class implementing ast visitor behavior in the PL/I compiler.
+
+Defined at line 12.
+
+Methods:
+
+##### `AstVisitor.visit`
+
+```python
+def visit(self, node: AstNode | None) -> Any
+```
+
+Performs visit behavior in `AstVisitor`.
+
+Defined at line 13.
+
+##### `AstVisitor.visit_children`
+
+```python
+def visit_children(self, node: AstNode) -> list[Any]
+```
+
+Performs visit children behavior in `AstVisitor`.
+
+Defined at line 19.
+
+##### `AstVisitor.generic_visit`
+
+```python
+def generic_visit(self, node: AstNode) -> Any
+```
+
+Performs generic visit behavior in `AstVisitor`.
+
+Defined at line 26.
+
+##### `AstVisitor._visit_value`
+
+```python
+def _visit_value(self, value: object) -> list[Any]
+```
+
+Internal helper in `AstVisitor` for visit value.
+
+Defined at line 29.
+
 #### `Program`
 
 ```python
-class Program
+class Program(AstNode)
 ```
 
 Data container describing program values used by the compiler.
 
-Defined at line 7.
+Defined at line 46.
 
 #### `Statement`
 
 ```python
-class Statement
+class Statement(AstNode)
 ```
 
 Class implementing statement behavior in the PL/I compiler.
 
-Defined at line 11.
+Defined at line 50.
 
 #### `Assignment`
 
@@ -2156,7 +2310,7 @@ class Assignment(Statement)
 
 Data container describing assignment values used by the compiler.
 
-Defined at line 16.
+Defined at line 55.
 
 #### `Declaration`
 
@@ -2166,17 +2320,17 @@ class Declaration(Statement)
 
 Data container describing declaration values used by the compiler.
 
-Defined at line 22.
+Defined at line 61.
 
 #### `GenericAlternative`
 
 ```python
-class GenericAlternative
+class GenericAlternative(AstNode)
 ```
 
 Data container describing generic alternative values used by the compiler.
 
-Defined at line 34.
+Defined at line 73.
 
 #### `Call`
 
@@ -2186,7 +2340,7 @@ class Call(Statement)
 
 Data container describing call values used by the compiler.
 
-Defined at line 40.
+Defined at line 79.
 
 #### `Procedure`
 
@@ -2196,7 +2350,7 @@ class Procedure(Statement)
 
 Data container describing procedure values used by the compiler.
 
-Defined at line 47.
+Defined at line 86.
 
 #### `DoGroup`
 
@@ -2206,7 +2360,7 @@ class DoGroup(Statement)
 
 Data container describing do group values used by the compiler.
 
-Defined at line 57.
+Defined at line 96.
 
 #### `IfStatement`
 
@@ -2216,7 +2370,7 @@ class IfStatement(Statement)
 
 Data container describing if statement values used by the compiler.
 
-Defined at line 65.
+Defined at line 104.
 
 #### `IOStatement`
 
@@ -2226,7 +2380,7 @@ class IOStatement(Statement)
 
 Data container describing iostatement values used by the compiler.
 
-Defined at line 72.
+Defined at line 111.
 
 #### `SelectStatement`
 
@@ -2236,17 +2390,17 @@ class SelectStatement(Statement)
 
 Data container describing select statement values used by the compiler.
 
-Defined at line 81.
+Defined at line 120.
 
 #### `WhenBranch`
 
 ```python
-class WhenBranch
+class WhenBranch(AstNode)
 ```
 
 Data container describing when branch values used by the compiler.
 
-Defined at line 88.
+Defined at line 127.
 
 #### `LabelledStatement`
 
@@ -2256,7 +2410,7 @@ class LabelledStatement(Statement)
 
 Data container describing labelled statement values used by the compiler.
 
-Defined at line 94.
+Defined at line 133.
 
 #### `RawStatement`
 
@@ -2266,17 +2420,17 @@ class RawStatement(Statement)
 
 Data container describing raw statement values used by the compiler.
 
-Defined at line 100.
+Defined at line 139.
 
 #### `Expression`
 
 ```python
-class Expression
+class Expression(AstNode)
 ```
 
 Class implementing expression behavior in the PL/I compiler.
 
-Defined at line 105.
+Defined at line 144.
 
 #### `Identifier`
 
@@ -2286,7 +2440,7 @@ class Identifier(Expression)
 
 Data container describing identifier values used by the compiler.
 
-Defined at line 110.
+Defined at line 149.
 
 #### `NumberLiteral`
 
@@ -2296,7 +2450,7 @@ class NumberLiteral(Expression)
 
 Data container describing number literal values used by the compiler.
 
-Defined at line 115.
+Defined at line 154.
 
 #### `StringLiteral`
 
@@ -2306,7 +2460,7 @@ class StringLiteral(Expression)
 
 Data container describing string literal values used by the compiler.
 
-Defined at line 120.
+Defined at line 159.
 
 #### `BinaryExpression`
 
@@ -2316,7 +2470,7 @@ class BinaryExpression(Expression)
 
 Data container describing binary expression values used by the compiler.
 
-Defined at line 125.
+Defined at line 164.
 
 #### `UnaryExpression`
 
@@ -2326,7 +2480,7 @@ class UnaryExpression(Expression)
 
 Data container describing unary expression values used by the compiler.
 
-Defined at line 132.
+Defined at line 171.
 
 ## `pl1compinpy.core.compiler`
 
@@ -5045,6 +5199,226 @@ def substr(self, value: StringValue, start: int, count: int | None = None) -> St
 Performs substr behavior in `StringRuntime`.
 
 Defined at line 47.
+
+## `pl1compinpy.runtime.visitor`
+
+Source: `pl1compinpy/runtime/visitor.py`
+
+Module containing visitor support for the PL/I compiler.
+
+### Classes
+
+#### `RuntimeVisitorError`
+
+```python
+class RuntimeVisitorError(ValueError)
+```
+
+Exception type raised for runtime visitor errors.
+
+Defined at line 25.
+
+#### `RuntimeExecutionVisitor`
+
+```python
+class RuntimeExecutionVisitor(AstVisitor)
+```
+
+Class implementing runtime execution visitor behavior in the PL/I compiler.
+
+Defined at line 29.
+
+Methods:
+
+##### `RuntimeExecutionVisitor.__init__`
+
+```python
+def __init__(self, variables: dict[str, PL1Value | object] | None = None, max_loop: int = 10000) -> None
+```
+
+Initializes an instance of `RuntimeExecutionVisitor`.
+
+Defined at line 30.
+
+##### `RuntimeExecutionVisitor.visit_Program`
+
+```python
+def visit_Program(self, node: Program) -> Any
+```
+
+Performs visit program behavior in `RuntimeExecutionVisitor`.
+
+Defined at line 36.
+
+##### `RuntimeExecutionVisitor.visit_Declaration`
+
+```python
+def visit_Declaration(self, node: Declaration) -> None
+```
+
+Performs visit declaration behavior in `RuntimeExecutionVisitor`.
+
+Defined at line 44.
+
+##### `RuntimeExecutionVisitor.visit_Assignment`
+
+```python
+def visit_Assignment(self, node: Assignment) -> PL1Value
+```
+
+Performs visit assignment behavior in `RuntimeExecutionVisitor`.
+
+Defined at line 63.
+
+##### `RuntimeExecutionVisitor.visit_Call`
+
+```python
+def visit_Call(self, node: Call) -> Any
+```
+
+Performs visit call behavior in `RuntimeExecutionVisitor`.
+
+Defined at line 68.
+
+##### `RuntimeExecutionVisitor.visit_DoGroup`
+
+```python
+def visit_DoGroup(self, node: DoGroup) -> Any
+```
+
+Performs visit do group behavior in `RuntimeExecutionVisitor`.
+
+Defined at line 76.
+
+##### `RuntimeExecutionVisitor.visit_IfStatement`
+
+```python
+def visit_IfStatement(self, node: IfStatement) -> Any
+```
+
+Performs visit if statement behavior in `RuntimeExecutionVisitor`.
+
+Defined at line 92.
+
+##### `RuntimeExecutionVisitor.visit_SelectStatement`
+
+```python
+def visit_SelectStatement(self, node: SelectStatement) -> Any
+```
+
+Performs visit select statement behavior in `RuntimeExecutionVisitor`.
+
+Defined at line 97.
+
+##### `RuntimeExecutionVisitor.visit_LabelledStatement`
+
+```python
+def visit_LabelledStatement(self, node: LabelledStatement) -> Any
+```
+
+Performs visit labelled statement behavior in `RuntimeExecutionVisitor`.
+
+Defined at line 108.
+
+##### `RuntimeExecutionVisitor.visit_RawStatement`
+
+```python
+def visit_RawStatement(self, node: RawStatement) -> Any
+```
+
+Performs visit raw statement behavior in `RuntimeExecutionVisitor`.
+
+Defined at line 111.
+
+##### `RuntimeExecutionVisitor.evaluate`
+
+```python
+def evaluate(self, expression: Expression) -> PL1Value
+```
+
+Performs evaluate behavior in `RuntimeExecutionVisitor`.
+
+Defined at line 114.
+
+##### `RuntimeExecutionVisitor._execute_block`
+
+```python
+def _execute_block(self, statements: list[Statement]) -> Any
+```
+
+Internal helper in `RuntimeExecutionVisitor` for execute block.
+
+Defined at line 117.
+
+##### `RuntimeExecutionVisitor._dispatch_call`
+
+```python
+def _dispatch_call(self, name: str, arguments: list[object]) -> Any
+```
+
+Internal helper in `RuntimeExecutionVisitor` for dispatch call.
+
+Defined at line 123.
+
+##### `RuntimeExecutionVisitor._plain`
+
+```python
+def _plain(self, value: PL1Value | object) -> object
+```
+
+Internal helper in `RuntimeExecutionVisitor` for plain.
+
+Defined at line 153.
+
+##### `RuntimeExecutionVisitor._sign`
+
+```python
+def _sign(self, value: object) -> int
+```
+
+Internal helper in `RuntimeExecutionVisitor` for sign.
+
+Defined at line 156.
+
+##### `RuntimeExecutionVisitor._trunc`
+
+```python
+def _trunc(self, value: object, scale: object = 0) -> Decimal
+```
+
+Internal helper in `RuntimeExecutionVisitor` for trunc.
+
+Defined at line 160.
+
+##### `RuntimeExecutionVisitor._round`
+
+```python
+def _round(self, value: object, scale: object = 0) -> Decimal
+```
+
+Internal helper in `RuntimeExecutionVisitor` for round.
+
+Defined at line 164.
+
+##### `RuntimeExecutionVisitor._substr`
+
+```python
+def _substr(self, value: object, start: object, count: object | None = None) -> str
+```
+
+Internal helper in `RuntimeExecutionVisitor` for substr.
+
+Defined at line 168.
+
+##### `RuntimeExecutionVisitor._index`
+
+```python
+def _index(self, value: object, needle: object) -> int
+```
+
+Internal helper in `RuntimeExecutionVisitor` for index.
+
+Defined at line 173.
 
 ## `pl1compinpy.vsam`
 

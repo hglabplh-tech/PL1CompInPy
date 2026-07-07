@@ -145,7 +145,7 @@ class CalculationEngine:
             return PL1Value(left and right if op == "&" else left or right, PL1Type.BIT)
         left = self.evaluate(expression.left)
         right = self.evaluate(expression.right)
-        if op in {"=", "^=", "<>", "<", "<=", ">", ">="}:
+        if op in {"=", "^=", "¬=", "~=", "<>", "<", "<=", ">", ">=", "=>"}:
             return PL1Value(self._compare(left, right, op), PL1Type.BIT)
         left, right, target = self.tower.promote(left, right)
         try:
@@ -168,7 +168,7 @@ class CalculationEngine:
             left, right, _ = self.tower.promote(left, right)
         if op == "=":
             return left.value == right.value
-        if op in {"^=", "<>"}:
+        if op in {"^=", "¬=", "~=", "<>"}:
             return left.value != right.value
         if op == "<":
             return left.value < right.value
@@ -176,7 +176,7 @@ class CalculationEngine:
             return left.value <= right.value
         if op == ">":
             return left.value > right.value
-        if op == ">=":
+        if op in {">=", "=>"}:
             return left.value >= right.value
         raise CalculationError(f"Unsupported comparison operator: {op}")
 

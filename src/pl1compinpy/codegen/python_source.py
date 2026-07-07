@@ -45,8 +45,10 @@ class PythonSourceEmitter:
         if isinstance(statement, DoGroup):
             if statement.while_condition:
                 lines = [f"{prefix}while {self._expression(statement.while_condition)}:"]
-            else:
+            elif statement.until_condition:
                 lines = [f"{prefix}while True:"]
+            else:
+                return self._body(statement.body, indent)
             lines.extend(self._body(statement.body, indent + 4))
             if statement.until_condition:
                 lines.extend([f"{prefix}    if {self._expression(statement.until_condition)}:", f"{prefix}        break"])
@@ -161,7 +163,10 @@ class PythonSourceEmitter:
         return {
             "=": "==",
             "^=": "!=",
+            "¬=": "!=",
+            "~=": "!=",
             "<>": "!=",
+            "=>": ">=",
             "||": "+",
             "&": "and",
             "|": "or",
