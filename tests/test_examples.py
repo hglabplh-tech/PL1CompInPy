@@ -82,6 +82,31 @@ class ExampleTests(unittest.TestCase):
         self.assertEqual(visitor.based_structures.get_field(visitor.variables["P"], "REC", "ID").value, 2002)
         self.assertEqual(visitor.output, [1002])
 
+    def test_default_based_pointer_access_example_runs_with_runtime_visitor(self):
+        program = normalize_calls(self.parse_example("runtime/default_based_pointer_access.pl1"))
+        visitor = RuntimeExecutionVisitor()
+
+        visitor.visit(program)
+
+        self.assertEqual(visitor.variables["P"].handle, 512)
+        self.assertEqual(visitor.based_structures.get_field(visitor.variables["P"], "REC", "VALUE").value, 100)
+        self.assertEqual(visitor.output, [100])
+
+    def test_based_pointer_two_records_example_runs_with_runtime_visitor(self):
+        program = normalize_calls(self.parse_example("runtime/based_pointer_two_records.pl1"))
+        visitor = RuntimeExecutionVisitor()
+
+        visitor.visit(program)
+
+        left = visitor.variables["LEFTP"]
+        right = visitor.variables["RIGHTP"]
+        self.assertEqual(left.handle, 200)
+        self.assertEqual(right.handle, 300)
+        self.assertEqual(visitor.based_structures.get_field(left, "NODE", "ID").value, 1)
+        self.assertEqual(visitor.based_structures.get_field(right, "NODE", "ID").value, 2)
+        self.assertEqual(visitor.based_structures.get_field(right, "NODE", "PAYLOAD.COUNT").value, 15)
+        self.assertEqual(visitor.output, [1, 15])
+
     def test_file_examples_capture_record_options(self):
         v_decl = self.parse_example("runtime/file_record_v.pl1").statements[0]
         f_decl = self.parse_example("runtime/file_record_f.pl1").statements[0]

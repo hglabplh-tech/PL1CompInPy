@@ -28,6 +28,8 @@ These examples cover the compiler features currently implemented in PL1CompInPy.
 - `runtime/arrays.pl1`: array declarations
 - `runtime/based_pointer.pl1`: `POINTER` and `BASED(pointer)` declaration shape
 - `runtime/based_pointer_structure.pl1`: `BASED(pointer)` structure member access with `P->REC.FIELD`
+- `runtime/default_based_pointer_access.pl1`: default `BASED(P)` member access through `REC.FIELD`
+- `runtime/based_pointer_two_records.pl1`: two pointer locators using the same based structure definition
 - `runtime/file_unix_text.pl1`: Unix-style text file declaration
 - `runtime/file_record_v.pl1`: variable-record file declaration
 - `runtime/file_record_f.pl1`: fixed-record file declaration
@@ -36,6 +38,7 @@ These examples cover the compiler features currently implemented in PL1CompInPy.
 - `runtime/fixed_decimal_packed_zoned.py`: fixed decimal, packed decimal, zoned decimal, and two-byte string runtime APIs
 - `runtime/dynload.py`: native/managed dynamic loading descriptor usage
 - `runtime/pointer_builtin.py`: direct Python use of the `POINTER` builtin runtime helper
+- `runtime/based_structure_runtime.py`: direct Python use of based structure storage APIs
 - `runtime/runtime_visitor.py`: direct use of the AST `RuntimeExecutionVisitor`
 - `runtime/socket_io.py`: primitive runtime TCP socket send/receive example
 - `runtime/socket_stream.py`: file-like socket payload records above primitive sockets

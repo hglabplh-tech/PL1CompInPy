@@ -99,7 +99,7 @@
 - C-style runtime linkage plans for PE, ELF, Mach-O, JVM, and .NET targets.
 - Native runtime startup/shutdown symbol references plus embedded runtime link manifests.
 - Managed runtime references for JVM classpath and .NET assembly linkage.
-- Unit tests for lexer, parser, compiler output, assembly output, structures/records, runtime field access, declared pointer builtins, and binary signatures.
+- Unit tests for lexer, parser, compiler output, assembly output, structures/records, runtime field access, pointer-qualified based access, declared pointer builtins, and binary signatures.
 - Unit tests for include expansion, strict include diagnostics, recursive include protection, multi-source main selection, CLI library output, library manifests, dynamic-load runtime dispatch, and generated API documentation.
 - Packaged PL/I builtin source inclusion with a first `SUBSTR` builtin.
 - Static PL/I builtin function table entries that require `DCL name BUILTIN;` before use.
@@ -113,7 +113,7 @@
 - Structure/record declarations such as `DCL 1 CUSTOMER, 2 ID FIXED BIN(31), 2 NAME CHAR(20);`.
 - Dotted structure field assignments and expressions such as `CUSTOMER.ID = 1001;` and `TOTAL = CUSTOMER.ID + 1;`.
 - Pointer and based declarations such as `DCL P POINTER; DCL REC BASED(P);`.
-- Pointer-qualified based structure access such as `P->REC.ID = 1001;`, including default pointer access for `BASED(P)` structures.
+- Pointer-qualified based structure access such as `P->REC.ID = 1001;`, including default pointer access for `BASED(P)` structures and multiple pointer views over one based structure definition.
 - Integer assignments.
 - Arithmetic with `+`, `-`, `*`, and `/`.
 - Power, concatenation, comparison, unary, and logical expression evaluation through the calculation engine.
