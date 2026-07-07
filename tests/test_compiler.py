@@ -555,6 +555,7 @@ class CompilerTests(unittest.TestCase):
         self.assertTrue(pointer.requires_declaration)
         self.assertEqual(pointer.returns, "POINTER")
         self.assertEqual([parameter.name for parameter in pointer.parameters], ["VALUE", "OFFSET"])
+        self.assertTrue(all(parameter.optional for parameter in pointer.parameters))
 
     def test_builtin_declaration_enables_static_builtin_call(self):
         source = "DCL SUBSTR BUILTIN; CALL SUBSTR(S, START, COUNT);"
@@ -998,7 +999,7 @@ class CompilerTests(unittest.TestCase):
         self.assertEqual(builtins.POINTER(None), PointerValue(None, 0))
 
     def test_runtime_visitor_dispatches_pointer_builtin(self):
-        program = normalize_calls(Parser(Lexer("DCL POINTER BUILTIN; CALL POINTER(42, 8);").tokenize()).parse())
+        program = normalize_calls(Parser(Lexer("DCL POINTER BUILTIN; CALL POINTER(); CALL POINTER(42, 8);").tokenize()).parse())
         result = RuntimeExecutionVisitor().visit(program)
 
         self.assertEqual(result, PointerValue(42, 8))

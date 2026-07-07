@@ -34,6 +34,7 @@ These examples cover the compiler features currently implemented in PL1CompInPy.
 - `runtime/function_table.py`: dynamic user function table and static runtime function table lookup
 - `runtime/fixed_decimal_packed_zoned.py`: fixed decimal, packed decimal, zoned decimal, and two-byte string runtime APIs
 - `runtime/dynload.py`: native/managed dynamic loading descriptor usage
+- `runtime/pointer_builtin.py`: direct Python use of the `POINTER` builtin runtime helper
 - `runtime/runtime_visitor.py`: direct use of the AST `RuntimeExecutionVisitor`
 - `runtime/socket_io.py`: primitive runtime TCP socket send/receive example
 - `runtime/socket_stream.py`: file-like socket payload records above primitive sockets
@@ -47,6 +48,7 @@ These examples cover the compiler features currently implemented in PL1CompInPy.
 - `builtins/declared_substr.pl1`: `DCL SUBSTR BUILTIN;` enables a static PL/I builtin call
 - `builtins/numeric_string_builtins.pl1`: declared static numeric and string builtins through the function table
 - `builtins/pointer.pl1`: declared static `POINTER` builtin for pointer value normalization
+- `builtins/pointer_offsets.pl1`: null, numeric handle/offset, and existing-pointer `POINTER` calls
 
 ## Backends
 

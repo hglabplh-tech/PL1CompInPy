@@ -128,7 +128,13 @@ class ExampleTests(unittest.TestCase):
         program = normalize_calls(self.parse_example("builtins/pointer.pl1"))
         calls = [statement.name for statement in program.statements if hasattr(statement, "name")]
 
-        self.assertEqual(calls, ["POINTER", "POINTER", "POINTER"])
+        self.assertEqual(calls, ["POINTER", "POINTER", "POINTER", "POINTER"])
+
+    def test_pointer_offset_example_uses_static_builtin_table(self):
+        program = normalize_calls(self.parse_example("builtins/pointer_offsets.pl1"))
+        calls = [statement.name for statement in program.statements if hasattr(statement, "name")]
+
+        self.assertEqual(calls, ["POINTER", "POINTER", "POINTER", "POINTER", "POINTER"])
 
     def test_builtin_substr_example_includes_builtin_source(self):
         output = compile_source(self.example_source("builtins/substr.pl1"), builtins=["SUBSTR"])

@@ -254,7 +254,7 @@ def runtime_function_table() -> FunctionTable:
     table.add_builtin("SUBSTR", "builtins.substr", [ParameterDescriptor("S", "CHARACTER"), ParameterDescriptor("START", "FIXED BIN"), ParameterDescriptor("COUNT", "FIXED BIN", optional=True)], returns="CHARACTER")
     table.add_builtin("LENGTH", "builtins.length", [ParameterDescriptor("VALUE", "ANY")], returns="FIXED BIN")
     table.add_builtin("INDEX", "builtins.index", [ParameterDescriptor("SOURCE", "CHARACTER"), ParameterDescriptor("NEEDLE", "CHARACTER")], returns="FIXED BIN")
-    table.add_builtin("POINTER", "builtins.pointer", [ParameterDescriptor("VALUE", "ANY"), ParameterDescriptor("OFFSET", "FIXED BIN", optional=True)], returns="POINTER")
+    table.add_builtin("POINTER", "builtins.pointer", [ParameterDescriptor("VALUE", "ANY", optional=True), ParameterDescriptor("OFFSET", "FIXED BIN", optional=True)], returns="POINTER")
     for name in ("ABS", "SIGN", "CEIL", "FLOOR", "SQRT", "EXP", "LOG", "SIN", "COS", "TAN", "REAL", "IMAG", "CONJG"):
         table.add_builtin(name, f"builtins.{name.lower()}", [ParameterDescriptor("VALUE", "ANY")], returns="ANY")
     for name in ("MIN", "MAX"):
