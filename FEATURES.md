@@ -12,6 +12,7 @@
   - `codegen` for assembly text, executable lowering, and binary containers
 - PL/1 lexer with contextual keyword metadata.
 - PL/1 parser producing an AST for assignments, declarations, calls, procedures, labels, `GOTO`/`GO TO`, `DO` groups, `IF/THEN/ELSE`, structures/records, field references, and preprocessor commands.
+- Parser support for function-call expressions and pointer-qualified based references such as `P->REC.ID`.
 - PL/I source inclusion with `%INCLUDE`, `%XINCLUDE`, `%INSCAN`, and `%XINSCAN`, including include directories and duplicate suppression for X-include forms.
 - Multi-source compilation where all provided sources are parsed as one program and `PROC OPTIONS(MAIN)` selects the main module.
 - Visitor-enabled AST nodes and runtime execution visitor support for future compiler passes.
@@ -67,6 +68,7 @@
   - `POINTER` variables
   - declared `POINTER` builtin support for pointer normalization from nulls, existing pointers, and numeric handle/offset pairs
   - `BASED(pointer)` record storage bound to dedicated pointer locators
+  - pointer-qualified based structure member access using `P->REC.FIELD`, with default `BASED(P)` member access through `REC.FIELD`
   - calculation engine with a typed numeric tower, casts, expression evaluation, and shared runtime implementations for numeric builtins
   - strings stored as two-byte length plus payload, with runtime `LENGTH`, one-based `SUBSTR`, and one-based `INDEX`
   - PL/I-style file declarations
@@ -111,6 +113,7 @@
 - Structure/record declarations such as `DCL 1 CUSTOMER, 2 ID FIXED BIN(31), 2 NAME CHAR(20);`.
 - Dotted structure field assignments and expressions such as `CUSTOMER.ID = 1001;` and `TOTAL = CUSTOMER.ID + 1;`.
 - Pointer and based declarations such as `DCL P POINTER; DCL REC BASED(P);`.
+- Pointer-qualified based structure access such as `P->REC.ID = 1001;`, including default pointer access for `BASED(P)` structures.
 - Integer assignments.
 - Arithmetic with `+`, `-`, `*`, and `/`.
 - Power, concatenation, comparison, unary, and logical expression evaluation through the calculation engine.

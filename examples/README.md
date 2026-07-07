@@ -27,6 +27,7 @@ These examples cover the compiler features currently implemented in PL1CompInPy.
 
 - `runtime/arrays.pl1`: array declarations
 - `runtime/based_pointer.pl1`: `POINTER` and `BASED(pointer)` declaration shape
+- `runtime/based_pointer_structure.pl1`: `BASED(pointer)` structure member access with `P->REC.FIELD`
 - `runtime/file_unix_text.pl1`: Unix-style text file declaration
 - `runtime/file_record_v.pl1`: variable-record file declaration
 - `runtime/file_record_f.pl1`: fixed-record file declaration

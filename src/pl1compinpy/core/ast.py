@@ -183,6 +183,24 @@ class FieldReference(Expression):
 
 
 @dataclass(frozen=True)
+class PointerReference(Expression):
+    pointer: str
+    based: str
+    fields: list[str] = field(default_factory=list)
+
+    @property
+    def name(self) -> str:
+        suffix = ".".join(self.fields)
+        return f"{self.pointer}->{self.based}" + (f".{suffix}" if suffix else "")
+
+
+@dataclass(frozen=True)
+class FunctionCall(Expression):
+    name: str
+    arguments: list[Expression] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
 class NumberLiteral(Expression):
     value: str
 

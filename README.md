@@ -137,6 +137,7 @@ Currently supported compiler features:
 - integer variable declarations and storage
 - integer assignment with `+`, `-`, `*`, and `/`
 - level-numbered structures/records with nested scalar fields and dotted field references such as `CUSTOMER.ADDRESS.ZIP`
+- pointer-qualified based structure references such as `P->REC.ID`, plus default `BASED(P)` access through `REC.ID`
 - PL/I-style expression precedence for `**`, unary operators, `*`/`/`, `+`/`-`, `||`, comparisons, `&`, and `|`
 - `IF/THEN/ELSE` comparisons with `=`, `^=`, `<>`, `<`, `<=`, `>`, and `>=`
 - `DO WHILE` pre-test loops and post-test `DO ... UNTIL` loops
@@ -226,6 +227,7 @@ The runtime also includes starter storage and I/O services:
 - exported `FixedDecimal`, `PackedDecimalCodec`, `ZonedDecimalCodec`, `DecimalRuntime`, and `CalculationBuiltinRuntime` APIs for runtime callers
 - `POINTER` locator variables and `BASED(pointer)` record storage bound to heap blocks through pointer values
 - declared `POINTER` builtin support for normalizing null pointers, existing pointer values, and numeric handle/offset pairs into runtime `PointerValue` objects
+- pointer-qualified based structure member access with explicit `P->REC.FIELD` references and default-pointer `REC.FIELD` references
 - string storage as two bytes of big-endian length followed by sequential payload bytes, with runtime `LENGTH`, `SUBSTR`, and `INDEX` helpers over the stored payload
 - a first packaged PL/I builtin source file for `SUBSTR(string, start[, length])`
 - static builtin call checking for `DCL SUBSTR BUILTIN;`

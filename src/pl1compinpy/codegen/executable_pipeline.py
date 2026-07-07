@@ -11,6 +11,7 @@ from ..core.ast import (
     DoGroup,
     Expression,
     FieldReference,
+    FunctionCall,
     GotoStatement,
     Identifier,
     IfStatement,
@@ -19,6 +20,7 @@ from ..core.ast import (
     PreprocessorStatement,
     Procedure,
     Program,
+    PointerReference,
     RawStatement,
     SelectStatement,
     Statement,
@@ -190,6 +192,11 @@ def _collect_expression_data(expression: Expression, context: LoweringContext) -
         context.variable(expression.name)
     elif isinstance(expression, FieldReference):
         context.variable(expression.name)
+    elif isinstance(expression, PointerReference):
+        context.variable(expression.name)
+    elif isinstance(expression, FunctionCall):
+        for argument in expression.arguments:
+            _collect_expression_data(argument, context)
     elif isinstance(expression, StringLiteral):
         context.string(expression.value)
     elif isinstance(expression, BinaryExpression):
@@ -357,6 +364,10 @@ def _lower_expression(expression: Expression, context: LoweringContext) -> list[
         return [_load_name(expression.name, context)]
     if isinstance(expression, FieldReference):
         return [_load_name(expression.name, context)]
+    if isinstance(expression, PointerReference):
+        return [_load_name(expression.name, context)]
+    if isinstance(expression, FunctionCall):
+        return [Mnemonic("COMMENT", (f"function expression {expression.name} lowered as zero",)), Mnemonic("MOV_EAX_IMM", (0,))]
     if isinstance(expression, BinaryExpression):
         lines = _lower_expression(expression.left, context)
         lines.append(Mnemonic("PUSH_EAX"))

@@ -72,6 +72,16 @@ class ExampleTests(unittest.TestCase):
         self.assertEqual(declaration.dimensions["A"], [10])
         self.assertEqual(matrix_declaration.dimensions["MATRIX"], [2, 3])
 
+    def test_based_pointer_structure_example_runs_with_runtime_visitor(self):
+        program = normalize_calls(self.parse_example("runtime/based_pointer_structure.pl1"))
+        visitor = RuntimeExecutionVisitor()
+
+        visitor.visit(program)
+
+        self.assertEqual(visitor.variables["P"].handle, 100)
+        self.assertEqual(visitor.based_structures.get_field(visitor.variables["P"], "REC", "ID").value, 2002)
+        self.assertEqual(visitor.output, [1002])
+
     def test_file_examples_capture_record_options(self):
         v_decl = self.parse_example("runtime/file_record_v.pl1").statements[0]
         f_decl = self.parse_example("runtime/file_record_f.pl1").statements[0]

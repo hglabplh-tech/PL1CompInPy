@@ -8,6 +8,7 @@ from ..core.ast import (
     DoGroup,
     Expression,
     FieldReference,
+    FunctionCall,
     GotoStatement,
     Identifier,
     IfStatement,
@@ -17,6 +18,7 @@ from ..core.ast import (
     PreprocessorStatement,
     Procedure,
     Program,
+    PointerReference,
     RawStatement,
     SelectStatement,
     StringLiteral,
@@ -41,6 +43,9 @@ class PythonSourceEmitter:
     def _statement(self, statement: object, indent: int = 0) -> list[str]:
         prefix = " " * indent
         if isinstance(statement, Assignment):
+            if "->" in statement.target:
+                pointer, based, fields = self._pointer_target(statement.target)
+                return [f"{prefix}runtime.set_pointer_field({pointer}, {based!r}, {fields!r}, {self._expression(statement.expression)})"]
             return [f"{prefix}{self._target(statement.target)} = {self._expression(statement.expression)}"]
         if isinstance(statement, Declaration):
             if statement.structures:
@@ -165,6 +170,11 @@ class PythonSourceEmitter:
             return expression.name
         if isinstance(expression, FieldReference):
             return self._target(expression.name)
+        if isinstance(expression, PointerReference):
+            return f"runtime.get_pointer_field({expression.pointer}, {expression.based!r}, {expression.fields!r})"
+        if isinstance(expression, FunctionCall):
+            arguments = ", ".join(self._expression(argument) for argument in expression.arguments)
+            return f"{expression.name}({arguments})"
         if isinstance(expression, NumberLiteral):
             return expression.value
         if isinstance(expression, StringLiteral):
@@ -209,6 +219,11 @@ class PythonSourceEmitter:
         if len(parts) == 1:
             return name
         return parts[0] + "".join(f"[{part!r}]" for part in parts[1:])
+
+    def _pointer_target(self, name: str) -> tuple[str, str, list[str]]:
+        pointer, rest = name.split("->", 1)
+        based, *fields = rest.split(".")
+        return pointer, based, fields
 
     def _structure_literal(self, field: object) -> str:
         children = getattr(field, "children", [])

@@ -9,11 +9,13 @@ from ..core.ast import (
     Call,
     Declaration,
     FieldReference,
+    FunctionCall,
     Identifier,
     LabelledStatement,
     NumberLiteral,
     Procedure,
     Program,
+    PointerReference,
     RawStatement,
     StructureField,
     main_procedure_name,
@@ -185,6 +187,10 @@ class JVMClassFileEmitter:
             return self._iload(locals_map.setdefault(expression.name, len(locals_map)))
         if isinstance(expression, FieldReference):
             return self._iload(locals_map.setdefault(expression.name, len(locals_map)))
+        if isinstance(expression, PointerReference):
+            return self._iload(locals_map.setdefault(expression.name, len(locals_map)))
+        if isinstance(expression, FunctionCall):
+            return self._iconst(0)
         if isinstance(expression, BinaryExpression):
             opcode = {"+": 0x60, "-": 0x64, "*": 0x68, "/": 0x6C}.get(expression.operator, 0x60)
             return self._expression(expression.left, locals_map) + self._expression(expression.right, locals_map) + bytes([opcode])

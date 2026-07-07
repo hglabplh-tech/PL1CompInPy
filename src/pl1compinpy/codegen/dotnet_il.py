@@ -6,6 +6,7 @@ from ..core.ast import (
     Call,
     Declaration,
     FieldReference,
+    FunctionCall,
     GotoStatement,
     Identifier,
     LabelledStatement,
@@ -13,6 +14,7 @@ from ..core.ast import (
     PreprocessorStatement,
     Procedure,
     Program,
+    PointerReference,
     RawStatement,
     StringLiteral,
     StructureField,
@@ -170,6 +172,10 @@ class DotNetILEmitter:
             return [f"    ldloc {self._local(expression.name, locals_map, local_types)}"]
         if isinstance(expression, FieldReference):
             return [f"    ldloc {self._local(expression.name, locals_map, local_types)}"]
+        if isinstance(expression, PointerReference):
+            return [f"    ldloc {self._local(expression.name, locals_map, local_types)}"]
+        if isinstance(expression, FunctionCall):
+            return [f"    // function expression {expression.name} lowered as zero", "    ldc.i4.0"]
         if isinstance(expression, BinaryExpression):
             lines = self._expression(expression.left, locals_map, local_types)
             lines.extend(self._expression(expression.right, locals_map, local_types))

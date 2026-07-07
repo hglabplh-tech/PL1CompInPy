@@ -10,12 +10,14 @@ from ..core.ast import (
     DoGroup,
     Expression,
     FieldReference,
+    FunctionCall,
     GotoStatement,
     Identifier,
     IfStatement,
     LabelledStatement,
     PreprocessorStatement,
     Program,
+    PointerReference,
     RawStatement,
     SelectStatement,
     Statement,
@@ -27,7 +29,7 @@ from .decimal import CalculationBuiltinRuntime, FixedDecimal
 from .dynload import DynamicLoadRuntime
 from .function_table import RUNTIME_FUNCTION_TABLE, FunctionTable, FunctionTableError, build_dynamic_function_table, declare_program_builtins
 from .pointers import PointerBuiltinRuntime
-from .structures import StructureRuntime
+from .structures import BasedStructureRuntime, StructureRuntime
 
 
 class RuntimeVisitorError(ValueError):
@@ -45,6 +47,8 @@ class RuntimeExecutionVisitor(AstVisitor):
         self.command_line = CommandLineRuntime.from_argv(argv)
         self.dynamic_loader = DynamicLoadRuntime()
         self.structures = StructureRuntime()
+        self.based_structures = BasedStructureRuntime()
+        self.pointer_names: set[str] = set()
 
     def visit_Program(self, node: Program) -> Any:
         self.function_table = RUNTIME_FUNCTION_TABLE.merge(build_dynamic_function_table(node))
@@ -65,12 +69,20 @@ class RuntimeExecutionVisitor(AstVisitor):
             return None
         if node.structures:
             for name, field in node.structures.items():
-                self.variables[name] = self.structures.declare_structure(field)
+                if name in node.based_options:
+                    pointer_name = node.based_options[name]
+                    self.based_structures.declare_based_structure(field, pointer_name)
+                    if pointer_name:
+                        self.pointer_names.add(pointer_name)
+                        self.variables.setdefault(pointer_name, self.pointer_builtins.POINTER())
+                else:
+                    self.variables[name] = self.structures.declare_structure(field)
             return None
         attributes = {attribute.upper() for attribute in node.attributes}
         for name in node.names:
             if name in node.pointer_names or "POINTER" in attributes or "PTR" in attributes:
-                self.variables[name] = None
+                self.pointer_names.add(name)
+                self.variables[name] = self.pointer_builtins.POINTER()
             elif "FLOAT" in attributes:
                 self.variables[name] = PL1Value(0.0, PL1Type.FLOAT)
             elif "CHARACTER" in attributes or "CHAR" in attributes:
@@ -85,11 +97,21 @@ class RuntimeExecutionVisitor(AstVisitor):
 
     def visit_Assignment(self, node: Assignment) -> PL1Value:
         value = self.evaluate(node.expression)
+        if "->" in node.target:
+            pointer_name, based_name, fields = self._pointer_target(node.target)
+            self.based_structures.set_field(self._pointer_value(pointer_name), based_name, fields, value)
+            return value
         if "." in node.target:
             base, *fields = node.target.split(".")
+            if self._is_based_structure(base):
+                self.based_structures.set_field(self._default_pointer(base), base, fields, value)
+                return value
             if base in self.variables and hasattr(self.variables[base], "set_field"):
                 self.variables[base].set_field(fields, value)
                 return value
+        if node.target in self.pointer_names:
+            self.variables[node.target] = self.pointer_builtins.POINTER(self._plain(value))
+            return self.variables[node.target]
         self.variables[node.target] = value
         return value
 
@@ -146,14 +168,25 @@ class RuntimeExecutionVisitor(AstVisitor):
         return None
 
     def evaluate(self, expression: Expression) -> PL1Value:
+        if isinstance(expression, FunctionCall):
+            try:
+                self.function_table.validate_call(Call(expression.name, expression.arguments))
+            except FunctionTableError as exc:
+                raise RuntimeVisitorError(str(exc)) from exc
+            arguments = [self._plain(self.evaluate(argument)) for argument in expression.arguments]
+            return self._dispatch_call(expression.name, arguments)
+        if isinstance(expression, PointerReference):
+            return self.based_structures.get_field(self._pointer_value(expression.pointer), expression.based, expression.fields)
         if isinstance(expression, FieldReference):
+            if self._is_based_structure(expression.base):
+                return self.based_structures.get_field(self._default_pointer(expression.base), expression.base, expression.fields)
             if expression.base in self.variables and hasattr(self.variables[expression.base], "get_field"):
                 return self.variables[expression.base].get_field(expression.fields)
         if isinstance(expression, Identifier) and expression.name in self.variables:
             value = self.variables[expression.name]
             if value is None or hasattr(value, "handle"):
                 return value
-        return CalculationEngine(self.variables).evaluate(expression)
+        return CalculationEngine(self.variables, self.evaluate).evaluate(expression)
 
     def _execute_block(self, statements: list[Statement]) -> Any:
         result = None
@@ -209,5 +242,25 @@ class RuntimeExecutionVisitor(AstVisitor):
 
     def _plain(self, value: PL1Value | object) -> object:
         return value.value if isinstance(value, PL1Value) else value
+
+    def _pointer_target(self, target: str) -> tuple[str, str, list[str]]:
+        pointer, rest = target.split("->", 1)
+        based, *fields = rest.split(".")
+        return pointer, based, fields
+
+    def _is_based_structure(self, name: str) -> bool:
+        return name in self.based_structures.definitions
+
+    def _pointer_value(self, name: str) -> object:
+        value = self.variables.get(name)
+        if not hasattr(value, "handle"):
+            raise RuntimeVisitorError(f"{name} is not a POINTER value")
+        return value
+
+    def _default_pointer(self, structure_name: str) -> object:
+        pointer_name = self.based_structures.default_pointer_name(structure_name)
+        if pointer_name is None:
+            raise RuntimeVisitorError(f"BASED structure {structure_name} has no default pointer")
+        return self._pointer_value(pointer_name)
 
 __all__ = ["RuntimeExecutionVisitor", "RuntimeVisitorError"]

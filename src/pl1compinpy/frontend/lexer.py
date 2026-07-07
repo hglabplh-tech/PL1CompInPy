@@ -26,6 +26,7 @@ class TokenType(str, Enum):
     LE = "<="
     GT = ">"
     GE = ">="
+    ARROW = "->"
     LPAREN = "("
     RPAREN = ")"
     COMMA = ","
@@ -172,6 +173,7 @@ class Lexer:
             "<=": TokenType.LE,
             ">=": TokenType.GE,
             "=>": TokenType.GE,
+            "->": TokenType.ARROW,
         }
         pair = char + self._peek() if not self._at_end else char
         if pair in two_char_symbols:

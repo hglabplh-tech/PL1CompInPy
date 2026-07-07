@@ -24,6 +24,7 @@ from pl1compinpy.ast import (
     Declaration,
     DoGroup,
     FieldReference,
+    FunctionCall,
     GotoStatement,
     Identifier,
     IOStatement,
@@ -31,6 +32,7 @@ from pl1compinpy.ast import (
     LabelledStatement,
     PreprocessorStatement,
     Procedure,
+    PointerReference,
     SelectStatement,
     StructureField,
     main_procedure_name,
@@ -92,6 +94,14 @@ class CompilerTests(unittest.TestCase):
                 TokenType.SEMICOLON,
                 TokenType.EOF,
             ],
+        )
+
+    def test_tokenizes_pointer_qualified_reference(self):
+        tokens = Lexer("P->REC.ID = 7;").tokenize()
+
+        self.assertEqual(
+            [token.type for token in tokens[:6]],
+            [TokenType.IDENTIFIER, TokenType.ARROW, TokenType.IDENTIFIER, TokenType.DOT, TokenType.IDENTIFIER, TokenType.ASSIGN],
         )
 
     def test_compiles_assignment(self):
@@ -228,6 +238,23 @@ class CompilerTests(unittest.TestCase):
         self.assertIsInstance(assignment.expression.left, FieldReference)
         self.assertEqual(assignment.expression.left.name, "CUSTOMER.ID")
 
+    def test_parses_pointer_qualified_based_structure_references(self):
+        program = Parser(
+            Lexer(
+                "DCL POINTER BUILTIN; DCL P POINTER; "
+                "DCL 1 REC BASED(P), 2 ID FIXED BIN(31); "
+                "P = POINTER(100); P->REC.ID = P->REC.ID + 1;"
+            ).tokenize()
+        ).parse()
+        pointer_assignment = program.statements[3]
+        field_assignment = program.statements[4]
+
+        self.assertIsInstance(pointer_assignment.expression, FunctionCall)
+        self.assertEqual(pointer_assignment.expression.name, "POINTER")
+        self.assertEqual(field_assignment.target, "P->REC.ID")
+        self.assertIsInstance(field_assignment.expression.left, PointerReference)
+        self.assertEqual(field_assignment.expression.left.name, "P->REC.ID")
+
     def test_structure_fields_compile_to_python_and_assembly_backends(self):
         source = (
             "MAIN: PROC OPTIONS(MAIN); "
@@ -277,6 +304,25 @@ class CompilerTests(unittest.TestCase):
         customer = visitor.variables["CUSTOMER"]
         self.assertEqual(customer.get_field("ID").value, 1001)
         self.assertEqual(customer.get_field("ADDRESS.ZIP").value, 1002)
+
+    def test_runtime_visitor_executes_based_structure_through_pointer(self):
+        source = (
+            "DCL POINTER BUILTIN; DCL P POINTER; "
+            "DCL 1 REC BASED(P), 2 ID FIXED BIN(31), 2 ADDRESS, 3 ZIP FIXED BIN(31); "
+            "P = POINTER(100); "
+            "P->REC.ID = 1001; "
+            "P->REC.ADDRESS.ZIP = P->REC.ID + 1; "
+            "REC.ID = 2002; "
+            "TOTAL = P->REC.ID + REC.ADDRESS.ZIP;"
+        )
+        visitor = RuntimeExecutionVisitor()
+
+        visitor.visit(normalize_calls(Parser(Lexer(source).tokenize()).parse()))
+
+        self.assertEqual(visitor.variables["P"], PointerValue(100, 0))
+        self.assertEqual(visitor.based_structures.get_field(PointerValue(100, 0), "REC", "ID").value, 2002)
+        self.assertEqual(visitor.based_structures.get_field(PointerValue(100, 0), "REC", "ADDRESS.ZIP").value, 1002)
+        self.assertEqual(visitor.variables["TOTAL"].value, 3004)
 
     def test_parses_labelled_procedure(self):
         program = Parser(

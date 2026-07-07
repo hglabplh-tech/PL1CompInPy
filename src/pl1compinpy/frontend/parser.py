@@ -8,6 +8,7 @@ from ..core.ast import (
     DoGroup,
     Expression,
     FieldReference,
+    FunctionCall,
     GenericAlternative,
     GotoStatement,
     Identifier,
@@ -18,6 +19,7 @@ from ..core.ast import (
     PreprocessorStatement,
     Procedure,
     Program,
+    PointerReference,
     RawStatement,
     SelectStatement,
     Statement,
@@ -577,9 +579,20 @@ class Parser:
             return StringLiteral(self._previous().lexeme)
         if self._match(TokenType.IDENTIFIER):
             base = self._previous().lexeme
+            if self._match(TokenType.LPAREN):
+                arguments: list[Expression] = []
+                if not self._check(TokenType.RPAREN):
+                    arguments.append(self._expression())
+                    while self._match(TokenType.COMMA):
+                        arguments.append(self._expression())
+                self._consume(TokenType.RPAREN, "Expected ')' after function arguments")
+                return FunctionCall(base, arguments)
+            if self._match(TokenType.ARROW):
+                based = self._consume_identifier("Expected based variable after '->'").lexeme
+                fields = self._field_suffix()
+                return PointerReference(base, based, fields)
             fields: list[str] = []
-            while self._match(TokenType.DOT):
-                fields.append(self._consume_identifier("Expected field name after '.'").lexeme)
+            fields.extend(self._field_suffix())
             if fields:
                 return FieldReference(base, fields)
             return Identifier(base)
@@ -691,15 +704,27 @@ class Parser:
         if not self._check(TokenType.IDENTIFIER):
             return False
         index = self.current + 1
+        if index + 1 < len(self.tokens) and self.tokens[index].type == TokenType.ARROW and self.tokens[index + 1].type == TokenType.IDENTIFIER:
+            index += 2
         while index + 1 < len(self.tokens) and self.tokens[index].type == TokenType.DOT and self.tokens[index + 1].type == TokenType.IDENTIFIER:
             index += 2
         return index < len(self.tokens) and self.tokens[index].type == TokenType.ASSIGN
 
     def _assignment_target(self) -> str:
         parts = [self._consume_identifier("Expected assignment target").lexeme]
+        if self._match(TokenType.ARROW):
+            based = self._consume_identifier("Expected based variable after '->'").lexeme
+            fields = self._field_suffix()
+            return f"{parts[0]}->{based}" + (f".{'.'.join(fields)}" if fields else "")
         while self._match(TokenType.DOT):
             parts.append(self._consume_identifier("Expected field name after '.'").lexeme)
         return ".".join(parts)
+
+    def _field_suffix(self) -> list[str]:
+        fields: list[str] = []
+        while self._match(TokenType.DOT):
+            fields.append(self._consume_identifier("Expected field name after '.'").lexeme)
+        return fields
 
     def _starts_raw_statement(self) -> bool:
         return self._check_keyword(

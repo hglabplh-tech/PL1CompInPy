@@ -6,6 +6,7 @@ from ..core.ast import (
     Call,
     Declaration,
     FieldReference,
+    FunctionCall,
     GotoStatement,
     Identifier,
     LabelledStatement,
@@ -13,6 +14,7 @@ from ..core.ast import (
     PreprocessorStatement,
     Procedure,
     Program,
+    PointerReference,
     RawStatement,
     StructureField,
     main_procedure_entry,
@@ -157,6 +159,10 @@ class JVMBytecodeEmitter:
             return [f"    iload {locals_map.setdefault(expression.name, len(locals_map))}"]
         if isinstance(expression, FieldReference):
             return [f"    iload {locals_map.setdefault(expression.name, len(locals_map))}"]
+        if isinstance(expression, PointerReference):
+            return [f"    iload {locals_map.setdefault(expression.name, len(locals_map))}"]
+        if isinstance(expression, FunctionCall):
+            return ["    iconst_0", f"    ; function expression {expression.name} lowered as zero"]
         if isinstance(expression, BinaryExpression):
             lines = self._expression(expression.left, locals_map)
             lines.extend(self._expression(expression.right, locals_map))

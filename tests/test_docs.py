@@ -38,6 +38,8 @@ class DocumentationTests(unittest.TestCase):
         self.assertIn("`StructureRuntime`", text)
         self.assertIn("`FieldReference`", text)
         self.assertIn("`PointerBuiltinRuntime`", text)
+        self.assertIn("`PointerReference`", text)
+        self.assertIn("`BasedStructureRuntime`", text)
 
 
 if __name__ == "__main__":

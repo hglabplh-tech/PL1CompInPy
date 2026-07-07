@@ -6,6 +6,7 @@ from operator import mul
 from typing import Any
 
 from ..core.ast import StructureField
+from .based import PointerValue
 from .calculation import PL1Type, PL1Value
 
 
@@ -166,6 +167,46 @@ class StructureRuntime:
             self._flatten_offsets(child, values)
 
 
+class BasedStructureRuntime:
+    def __init__(self) -> None:
+        self.definitions: dict[str, tuple[StructureField, str | None]] = {}
+        self.values: dict[tuple[str, int, int], StructureValue] = {}
+
+    def declare_based_structure(self, field: StructureField, pointer_name: str | None = None) -> None:
+        self.definitions[field.name] = (field, pointer_name)
+
+    def default_pointer_name(self, structure_name: str) -> str | None:
+        return self._definition(structure_name)[1]
+
+    def set_field(self, pointer: PointerValue, structure_name: str, field_path: str | list[str] | tuple[str, ...], value: Any) -> None:
+        self._value(pointer, structure_name).set_field(field_path, value)
+
+    def get_field(self, pointer: PointerValue, structure_name: str, field_path: str | list[str] | tuple[str, ...]) -> Any:
+        return self._value(pointer, structure_name).get_field(field_path)
+
+    def field_offsets(self, structure_name: str) -> dict[str, int]:
+        field, _ = self._definition(structure_name)
+        runtime = StructureRuntime()
+        runtime.declare_structure(field)
+        return runtime.flattened_offsets(structure_name)
+
+    def _value(self, pointer: PointerValue, structure_name: str) -> StructureValue:
+        if pointer.handle is None:
+            raise StructureRuntimeError(f"Pointer for based structure {structure_name} is NULL")
+        key = (structure_name, pointer.handle, pointer.offset)
+        if key not in self.values:
+            field, _ = self._definition(structure_name)
+            runtime = StructureRuntime()
+            self.values[key] = runtime.declare_structure(field)
+        return self.values[key]
+
+    def _definition(self, structure_name: str) -> tuple[StructureField, str | None]:
+        try:
+            return self.definitions[structure_name]
+        except KeyError as exc:
+            raise StructureRuntimeError(f"Unknown BASED structure: {structure_name}") from exc
+
+
 def flattened_structure_fields(field: StructureField) -> list[str]:
     runtime = StructureRuntime()
     value = runtime.declare_structure(field)
@@ -179,6 +220,7 @@ def _path_parts(path: str | list[str] | tuple[str, ...]) -> list[str]:
 
 
 __all__ = [
+    "BasedStructureRuntime",
     "StructureFieldLayout",
     "StructureRuntime",
     "StructureRuntimeError",

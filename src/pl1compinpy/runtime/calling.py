@@ -10,6 +10,7 @@ from .function_table import (
     FunctionTableError,
     build_dynamic_function_table,
     declare_program_builtins,
+    validate_program_calls,
 )
 
 
@@ -21,6 +22,7 @@ def normalize_calls(program: Program) -> Program:
     procedures = _procedure_table(program.statements)
     table = RUNTIME_FUNCTION_TABLE.merge(build_dynamic_function_table(program))
     declare_program_builtins(program, table)
+    validate_program_calls(program, table)
     return Program([_normalize_statement(statement, procedures, table) for statement in program.statements])
 
 

@@ -10,6 +10,7 @@ from ..core.ast import (
     DoGroup,
     Expression,
     FieldReference,
+    FunctionCall,
     GotoStatement,
     Identifier,
     IfStatement,
@@ -18,6 +19,7 @@ from ..core.ast import (
     PreprocessorStatement,
     Procedure,
     Program,
+    PointerReference,
     RawStatement,
     SelectStatement,
     Statement,
@@ -125,6 +127,11 @@ class AssemblyEmitter:
             self.symbols.variables.add(expression.name)
         elif isinstance(expression, FieldReference):
             self.symbols.variables.add(expression.name)
+        elif isinstance(expression, PointerReference):
+            self.symbols.variables.add(expression.name)
+        elif isinstance(expression, FunctionCall):
+            for argument in expression.arguments:
+                self._collect_expression(argument)
         elif isinstance(expression, StringLiteral):
             self.symbols.add_string(expression.value)
         elif isinstance(expression, BinaryExpression):
@@ -140,7 +147,7 @@ class AssemblyEmitter:
         return f"{self.target.symbol_prefix}{name}"
 
     def _data_label(self, name: str) -> str:
-        return name.replace(".", "_")
+        return name.replace("->", "__").replace(".", "_")
 
     def _runtime_symbol(self, name: str) -> str:
         return self.runtime_linkage.symbol(name, self.target.symbol_prefix)
@@ -355,6 +362,10 @@ class X586AssemblyEmitter(AssemblyEmitter):
             return [f"    mov eax, [{self._data_label(expression.name)}]"]
         if isinstance(expression, FieldReference):
             return [f"    mov eax, [{self._data_label(expression.name)}]"]
+        if isinstance(expression, PointerReference):
+            return [f"    mov eax, [{self._data_label(expression.name)}]"]
+        if isinstance(expression, FunctionCall):
+            return [f"    ; function expression {expression.name} lowered as zero", "    xor eax, eax"]
         if isinstance(expression, StringLiteral):
             return [f"    mov eax, {self.symbols.add_string(expression.value)}"]
         if isinstance(expression, BinaryExpression):
@@ -555,6 +566,10 @@ class X8664AssemblyEmitter(AssemblyEmitter):
             return [f"    mov rax, [rel {self._data_label(expression.name)}]"]
         if isinstance(expression, FieldReference):
             return [f"    mov rax, [rel {self._data_label(expression.name)}]"]
+        if isinstance(expression, PointerReference):
+            return [f"    mov rax, [rel {self._data_label(expression.name)}]"]
+        if isinstance(expression, FunctionCall):
+            return [f"    ; function expression {expression.name} lowered as zero", "    xor rax, rax"]
         if isinstance(expression, StringLiteral):
             return [f"    lea rax, [rel {self.symbols.add_string(expression.value)}]"]
         if isinstance(expression, BinaryExpression):
@@ -769,6 +784,11 @@ class Arm64AssemblyEmitter(AssemblyEmitter):
         if isinstance(expression, FieldReference):
             label = self._data_label(expression.name)
             return [f"    adrp x0, {label}@PAGE", f"    add x0, x0, {label}@PAGEOFF", "    ldr w0, [x0]"]
+        if isinstance(expression, PointerReference):
+            label = self._data_label(expression.name)
+            return [f"    adrp x0, {label}@PAGE", f"    add x0, x0, {label}@PAGEOFF", "    ldr w0, [x0]"]
+        if isinstance(expression, FunctionCall):
+            return [f"    // function expression {expression.name} lowered as zero", "    mov w0, #0"]
         if isinstance(expression, StringLiteral):
             label = self.symbols.add_string(expression.value)
             return [f"    adrp x0, {label}@PAGE", f"    add x0, x0, {label}@PAGEOFF"]

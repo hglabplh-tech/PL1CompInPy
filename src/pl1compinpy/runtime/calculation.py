@@ -3,8 +3,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from decimal import Decimal, DivisionByZero
 from enum import Enum
+from typing import Callable
 
-from ..core.ast import BinaryExpression, Expression, FieldReference, Identifier, NumberLiteral, StringLiteral, UnaryExpression
+from ..core.ast import BinaryExpression, Expression, FieldReference, FunctionCall, Identifier, NumberLiteral, PointerReference, StringLiteral, UnaryExpression
 from .decimal import FixedDecimal
 
 
@@ -110,11 +111,14 @@ class NumericTower:
 
 
 class CalculationEngine:
-    def __init__(self, variables: dict[str, PL1Value | object] | None = None) -> None:
+    def __init__(self, variables: dict[str, PL1Value | object] | None = None, resolver: Callable[[Expression], PL1Value | object] | None = None) -> None:
         self.tower = NumericTower()
         self.variables = variables or {}
+        self.resolver = resolver
 
     def evaluate(self, expression: Expression) -> PL1Value:
+        if self.resolver and isinstance(expression, (FieldReference, PointerReference, FunctionCall)):
+            return self.tower.value(self.resolver(expression))
         if isinstance(expression, NumberLiteral):
             return self._number(expression.value)
         if isinstance(expression, StringLiteral):
@@ -124,6 +128,8 @@ class CalculationEngine:
                 raise CalculationError(f"Unknown variable: {expression.name}")
             return self.tower.value(self.variables[expression.name])
         if isinstance(expression, FieldReference):
+            if self.resolver:
+                return self.tower.value(self.resolver(expression))
             if expression.base in self.variables:
                 value = self.variables[expression.base]
                 if hasattr(value, "get_field"):

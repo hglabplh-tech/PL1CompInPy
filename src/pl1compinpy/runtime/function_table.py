@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Callable
 
-from ..core.ast import Call, Declaration, Identifier, LabelledStatement, Procedure, Program, RawStatement, SelectStatement, Statement
+from ..core.ast import BinaryExpression, Call, Declaration, Expression, FunctionCall, Identifier, LabelledStatement, Procedure, Program, RawStatement, SelectStatement, Statement, UnaryExpression
 
 
 class FunctionTableError(ValueError):
@@ -210,12 +210,16 @@ def validate_program_calls(program: Program, table: FunctionTable) -> None:
 
 
 def _validate_statement_calls(statement: Statement | None, table: FunctionTable) -> None:
-    from ..core.ast import DoGroup, IfStatement, IOStatement, RawStatement
+    from ..core.ast import Assignment, DoGroup, IfStatement, IOStatement, RawStatement
 
     if statement is None or isinstance(statement, (IOStatement, RawStatement)):
         return
     if isinstance(statement, Call):
         table.validate_call(statement)
+        for argument in statement.arguments:
+            _validate_expression_calls(argument, table)
+    elif isinstance(statement, Assignment):
+        _validate_expression_calls(statement.expression, table)
     elif isinstance(statement, Procedure):
         for child in statement.body:
             _validate_statement_calls(child, table)
@@ -225,12 +229,29 @@ def _validate_statement_calls(statement: Statement | None, table: FunctionTable)
         for child in statement.body:
             _validate_statement_calls(child, table)
     elif isinstance(statement, IfStatement):
+        _validate_expression_calls(statement.condition, table)
         _validate_statement_calls(statement.then_branch, table)
         _validate_statement_calls(statement.else_branch, table)
     elif isinstance(statement, SelectStatement):
+        if statement.expression:
+            _validate_expression_calls(statement.expression, table)
         for branch in statement.when_branches:
+            for expression in branch.expressions:
+                _validate_expression_calls(expression, table)
             _validate_statement_calls(branch.statement, table)
         _validate_statement_calls(statement.otherwise, table)
+
+
+def _validate_expression_calls(expression: Expression, table: FunctionTable) -> None:
+    if isinstance(expression, FunctionCall):
+        table.validate_call(Call(expression.name, expression.arguments))
+        for argument in expression.arguments:
+            _validate_expression_calls(argument, table)
+    elif isinstance(expression, BinaryExpression):
+        _validate_expression_calls(expression.left, table)
+        _validate_expression_calls(expression.right, table)
+    elif isinstance(expression, UnaryExpression):
+        _validate_expression_calls(expression.operand, table)
 
 
 def runtime_function_table() -> FunctionTable:
