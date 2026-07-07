@@ -58,6 +58,15 @@ class Assignment(Statement):
 
 
 @dataclass(frozen=True)
+class StructureField(AstNode):
+    level: int
+    name: str
+    attributes: list[str] = field(default_factory=list)
+    dimensions: list[int] = field(default_factory=list)
+    children: list["StructureField"] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
 class Declaration(Statement):
     names: list[str]
     attributes: list[str]
@@ -67,6 +76,7 @@ class Declaration(Statement):
     picture_options: dict[str, str] = field(default_factory=dict)
     based_options: dict[str, str | None] = field(default_factory=dict)
     pointer_names: list[str] = field(default_factory=list)
+    structures: dict[str, StructureField] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -160,6 +170,16 @@ class Expression(AstNode):
 @dataclass(frozen=True)
 class Identifier(Expression):
     name: str
+
+
+@dataclass(frozen=True)
+class FieldReference(Expression):
+    base: str
+    fields: list[str]
+
+    @property
+    def name(self) -> str:
+        return ".".join([self.base, *self.fields])
 
 
 @dataclass(frozen=True)

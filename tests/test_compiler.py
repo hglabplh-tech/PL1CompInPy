@@ -23,6 +23,7 @@ from pl1compinpy.ast import (
     Call,
     Declaration,
     DoGroup,
+    FieldReference,
     GotoStatement,
     Identifier,
     IOStatement,
@@ -31,6 +32,7 @@ from pl1compinpy.ast import (
     PreprocessorStatement,
     Procedure,
     SelectStatement,
+    StructureField,
     main_procedure_name,
 )
 from pl1compinpy.frontend.include import IncludeError, IncludeExpander
@@ -56,6 +58,7 @@ from pl1compinpy.runtime import (
     RUNTIME_FUNCTION_TABLE,
     StdioRuntime,
     StringRuntime,
+    StructureRuntime,
     ZonedDecimalCodec,
     PL1Type,
     PL1Value,
@@ -204,6 +207,74 @@ class CompilerTests(unittest.TestCase):
 
         self.assertEqual(declaration.names, ["REC"])
         self.assertEqual(declaration.based_options["REC"], "P")
+
+    def test_parses_structure_declaration_and_field_references(self):
+        program = Parser(
+            Lexer(
+                "DCL 1 CUSTOMER, 2 ID FIXED BIN(31), 2 ADDRESS, 3 ZIP FIXED BIN(31); "
+                "CUSTOMER.ID = 1001; CUSTOMER.ADDRESS.ZIP = CUSTOMER.ID + 1;"
+            ).tokenize()
+        ).parse()
+        declaration = program.statements[0]
+        assignment = program.statements[2]
+
+        self.assertIsInstance(declaration.structures["CUSTOMER"], StructureField)
+        self.assertEqual([field.name for field in declaration.structures["CUSTOMER"].children], ["ID", "ADDRESS"])
+        self.assertEqual(declaration.structures["CUSTOMER"].children[1].children[0].name, "ZIP")
+        self.assertEqual(program.statements[1].target, "CUSTOMER.ID")
+        self.assertEqual(assignment.target, "CUSTOMER.ADDRESS.ZIP")
+        self.assertIsInstance(assignment.expression.left, FieldReference)
+        self.assertEqual(assignment.expression.left.name, "CUSTOMER.ID")
+
+    def test_structure_fields_compile_to_python_and_assembly_backends(self):
+        source = (
+            "MAIN: PROC OPTIONS(MAIN); "
+            "DCL 1 CUSTOMER, 2 ID FIXED BIN(31), 2 ZIP FIXED BIN(31); "
+            "CUSTOMER.ID = 7; CUSTOMER.ZIP = CUSTOMER.ID + 1; "
+            "END MAIN;"
+        )
+
+        python_output = compile_source(source, target="python-source")
+        x586_output = compile_source(source, target="x586-windows")
+        jvm_output = compile_source(source, target="jvm-bytecode")
+        dotnet_output = compile_source(source, target="dotnet-il")
+
+        self.assertIn("CUSTOMER = {'ID': 0, 'ZIP': 0}", python_output)
+        self.assertIn("CUSTOMER['ID'] = 7", python_output)
+        self.assertIn("CUSTOMER['ZIP'] = (CUSTOMER['ID'] + 1)", python_output)
+        self.assertIn("CUSTOMER_ID dd 0", x586_output)
+        self.assertIn("mov [CUSTOMER_ID], eax", x586_output)
+        self.assertIn("istore", jvm_output)
+        self.assertIn(".locals init", dotnet_output)
+
+    def test_structure_runtime_declares_fields_offsets_and_values(self):
+        declaration = Parser(
+            Lexer("DCL 1 CUSTOMER, 2 ID FIXED BIN(31), 2 NAME CHAR(20), 2 ADDRESS, 3 ZIP FIXED BIN(31);").tokenize()
+        ).parse().statements[0]
+        runtime = StructureRuntime()
+
+        value = runtime.declare_structure(declaration.structures["CUSTOMER"])
+        runtime.set_field("CUSTOMER", "ID", PL1Value(1001, PL1Type.FIXED_BIN))
+        runtime.set_field("CUSTOMER", ["ADDRESS", "ZIP"], PL1Value(55123, PL1Type.FIXED_BIN))
+
+        self.assertEqual(value.get_field("ID").value, 1001)
+        self.assertEqual(value.get_field("ADDRESS.ZIP").value, 55123)
+        self.assertEqual(runtime.flattened_offsets("CUSTOMER")["CUSTOMER.ID"], 0)
+        self.assertEqual(runtime.flattened_offsets("CUSTOMER")["CUSTOMER.NAME"], 4)
+        self.assertEqual(runtime.flattened_offsets("CUSTOMER")["CUSTOMER.ADDRESS.ZIP"], 24)
+
+    def test_runtime_visitor_executes_structure_field_assignments(self):
+        source = (
+            "DCL 1 CUSTOMER, 2 ID FIXED BIN(31), 2 ADDRESS, 3 ZIP FIXED BIN(31); "
+            "CUSTOMER.ID = 1001; CUSTOMER.ADDRESS.ZIP = CUSTOMER.ID + 1;"
+        )
+        visitor = RuntimeExecutionVisitor()
+
+        visitor.visit(Parser(Lexer(source).tokenize()).parse())
+
+        customer = visitor.variables["CUSTOMER"]
+        self.assertEqual(customer.get_field("ID").value, 1001)
+        self.assertEqual(customer.get_field("ADDRESS.ZIP").value, 1002)
 
     def test_parses_labelled_procedure(self):
         program = Parser(

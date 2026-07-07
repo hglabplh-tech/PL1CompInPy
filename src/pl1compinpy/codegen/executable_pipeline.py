@@ -10,6 +10,7 @@ from ..core.ast import (
     Declaration,
     DoGroup,
     Expression,
+    FieldReference,
     GotoStatement,
     Identifier,
     IfStatement,
@@ -22,6 +23,7 @@ from ..core.ast import (
     SelectStatement,
     Statement,
     StringLiteral,
+    StructureField,
     main_procedure_entry,
     main_procedure_name,
     procedure_entry_name,
@@ -146,7 +148,7 @@ def assemble_executable(program: Program, binary_format: str, *, image_base: int
 
 def _collect_data(statement: Statement, context: LoweringContext) -> None:
     if isinstance(statement, Declaration):
-        for name in statement.names:
+        for name in _declaration_storage_names(statement):
             context.variable(name)
     elif isinstance(statement, Assignment):
         context.variable(statement.target)
@@ -186,6 +188,8 @@ def _collect_data(statement: Statement, context: LoweringContext) -> None:
 def _collect_expression_data(expression: Expression, context: LoweringContext) -> None:
     if isinstance(expression, Identifier):
         context.variable(expression.name)
+    elif isinstance(expression, FieldReference):
+        context.variable(expression.name)
     elif isinstance(expression, StringLiteral):
         context.string(expression.value)
     elif isinstance(expression, BinaryExpression):
@@ -206,7 +210,7 @@ def _main_procedure_name(program: Program) -> str | None:
 def _lower_statement(statement: Statement, context: LoweringContext) -> list[Mnemonic]:
     if isinstance(statement, Declaration):
         if context.local_scopes:
-            for name in statement.names:
+            for name in _declaration_storage_names(statement):
                 context.local(name)
         return [Mnemonic("COMMENT", (f"declare {', '.join(statement.names)}",))]
     if isinstance(statement, Assignment):
@@ -319,7 +323,7 @@ def _lower_procedure(procedure: Procedure, context: LoweringContext) -> list[Mne
     context.local_scopes.append({})
     for child in procedure.body:
         if isinstance(child, Declaration):
-            for local_name in child.names:
+            for local_name in _declaration_storage_names(child):
                 context.local(local_name)
     local_bytes = context.local_bytes()
 
@@ -351,6 +355,8 @@ def _lower_expression(expression: Expression, context: LoweringContext) -> list[
         return [Mnemonic("MOV_EAX_IMM", (int(float(expression.value)),))]
     if isinstance(expression, Identifier):
         return [_load_name(expression.name, context)]
+    if isinstance(expression, FieldReference):
+        return [_load_name(expression.name, context)]
     if isinstance(expression, BinaryExpression):
         lines = _lower_expression(expression.left, context)
         lines.append(Mnemonic("PUSH_EAX"))
@@ -366,6 +372,24 @@ def _lower_expression(expression: Expression, context: LoweringContext) -> list[
             lines.append(Mnemonic(operator))
             return lines
     return [Mnemonic("MOV_EAX_IMM", (0,))]
+
+
+def _declaration_storage_names(declaration: Declaration) -> list[str]:
+    if declaration.structures:
+        names: list[str] = []
+        for field in declaration.structures.values():
+            names.extend(_structure_leaf_names(field, [field.name]))
+        return names
+    return declaration.names
+
+
+def _structure_leaf_names(field: StructureField, prefix: list[str]) -> list[str]:
+    if not field.children:
+        return [".".join(prefix)]
+    names: list[str] = []
+    for child in field.children:
+        names.extend(_structure_leaf_names(child, [*prefix, child.name]))
+    return names
 
 
 def _lower_condition_false_jump(expression: Expression, false_label: str, context: LoweringContext) -> list[Mnemonic]:

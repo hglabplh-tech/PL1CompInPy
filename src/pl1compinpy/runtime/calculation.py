@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from decimal import Decimal, DivisionByZero
 from enum import Enum
 
-from ..core.ast import BinaryExpression, Expression, Identifier, NumberLiteral, StringLiteral, UnaryExpression
+from ..core.ast import BinaryExpression, Expression, FieldReference, Identifier, NumberLiteral, StringLiteral, UnaryExpression
 from .decimal import FixedDecimal
 
 
@@ -123,6 +123,15 @@ class CalculationEngine:
             if expression.name not in self.variables:
                 raise CalculationError(f"Unknown variable: {expression.name}")
             return self.tower.value(self.variables[expression.name])
+        if isinstance(expression, FieldReference):
+            if expression.base in self.variables:
+                value = self.variables[expression.base]
+                if hasattr(value, "get_field"):
+                    return self.tower.value(value.get_field(expression.fields))
+            dotted = expression.name
+            if dotted in self.variables:
+                return self.tower.value(self.variables[dotted])
+            raise CalculationError(f"Unknown structure field: {dotted}")
         if isinstance(expression, UnaryExpression):
             return self._unary(expression)
         if isinstance(expression, BinaryExpression):

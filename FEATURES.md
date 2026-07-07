@@ -11,7 +11,7 @@
   - `runtime` for calling-convention normalization
   - `codegen` for assembly text, executable lowering, and binary containers
 - PL/1 lexer with contextual keyword metadata.
-- PL/1 parser producing an AST for assignments, declarations, calls, procedures, labels, `GOTO`/`GO TO`, `DO` groups, `IF/THEN/ELSE`, and preprocessor commands.
+- PL/1 parser producing an AST for assignments, declarations, calls, procedures, labels, `GOTO`/`GO TO`, `DO` groups, `IF/THEN/ELSE`, structures/records, field references, and preprocessor commands.
 - PL/I source inclusion with `%INCLUDE`, `%XINCLUDE`, `%INSCAN`, and `%XINSCAN`, including include directories and duplicate suppression for X-include forms.
 - Multi-source compilation where all provided sources are parsed as one program and `PROC OPTIONS(MAIN)` selects the main module.
 - Visitor-enabled AST nodes and runtime execution visitor support for future compiler passes.
@@ -58,6 +58,7 @@
 - Runtime storage and I/O:
   - heap allocation blocks
   - heap-backed arrays
+  - level-numbered structures/records with nested scalar fields, dotted field references, runtime get/set, simple field offsets, and flattened backend storage
   - `FLOAT` declarations
   - `PICTURE`/`PIC` pattern metadata and runtime formatting/parsing
   - fixed decimal and float conversion to/from picture-formatted text
@@ -95,7 +96,7 @@
 - C-style runtime linkage plans for PE, ELF, Mach-O, JVM, and .NET targets.
 - Native runtime startup/shutdown symbol references plus embedded runtime link manifests.
 - Managed runtime references for JVM classpath and .NET assembly linkage.
-- Unit tests for lexer, parser, compiler output, assembly output, and binary signatures.
+- Unit tests for lexer, parser, compiler output, assembly output, structures/records, runtime field access, and binary signatures.
 - Unit tests for include expansion, strict include diagnostics, recursive include protection, multi-source main selection, CLI library output, library manifests, dynamic-load runtime dispatch, and generated API documentation.
 - Packaged PL/I builtin source inclusion with a first `SUBSTR` builtin.
 - Static PL/I builtin function table entries that require `DCL name BUILTIN;` before use.
@@ -106,6 +107,8 @@
 - Floating-point declarations.
 - Picture declarations such as `DCL AMOUNT PIC'ZZZ9.99';`.
 - Array declarations such as `DCL A(10) FIXED BIN(31);`.
+- Structure/record declarations such as `DCL 1 CUSTOMER, 2 ID FIXED BIN(31), 2 NAME CHAR(20);`.
+- Dotted structure field assignments and expressions such as `CUSTOMER.ID = 1001;` and `TOTAL = CUSTOMER.ID + 1;`.
 - Pointer and based declarations such as `DCL P POINTER; DCL REC BASED(P);`.
 - Integer assignments.
 - Arithmetic with `+`, `-`, `*`, and `/`.

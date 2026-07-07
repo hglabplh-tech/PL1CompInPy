@@ -9,6 +9,7 @@ from ..core.ast import (
     Declaration,
     DoGroup,
     Expression,
+    FieldReference,
     GotoStatement,
     Identifier,
     IfStatement,
@@ -21,6 +22,7 @@ from ..core.ast import (
     SelectStatement,
     Statement,
     StringLiteral,
+    StructureField,
     procedure_entry_name,
 )
 from .runtime_link import runtime_linkage
@@ -96,7 +98,7 @@ class AssemblyEmitter:
             self.symbols.variables.add(statement.target)
             self._collect_expression(statement.expression)
         elif isinstance(statement, Declaration):
-            self.symbols.variables.update(statement.names)
+            self.symbols.variables.update(_declaration_storage_names(statement))
         elif isinstance(statement, Call):
             for argument in statement.arguments:
                 self._collect_expression(argument)
@@ -121,6 +123,8 @@ class AssemblyEmitter:
     def _collect_expression(self, expression: Expression) -> None:
         if isinstance(expression, Identifier):
             self.symbols.variables.add(expression.name)
+        elif isinstance(expression, FieldReference):
+            self.symbols.variables.add(expression.name)
         elif isinstance(expression, StringLiteral):
             self.symbols.add_string(expression.value)
         elif isinstance(expression, BinaryExpression):
@@ -134,6 +138,9 @@ class AssemblyEmitter:
 
     def _symbol(self, name: str) -> str:
         return f"{self.target.symbol_prefix}{name}"
+
+    def _data_label(self, name: str) -> str:
+        return name.replace(".", "_")
 
     def _runtime_symbol(self, name: str) -> str:
         return self.runtime_linkage.symbol(name, self.target.symbol_prefix)
@@ -202,7 +209,7 @@ class X586AssemblyEmitter(AssemblyEmitter):
             "fmt_str db \"%s\", 10, 0",
         ]
         for name in sorted(self.symbols.variables):
-            lines.append(f"{name} dd 0")
+            lines.append(f"{self._data_label(name)} dd 0")
         for value, label in self.symbols.strings.items():
             lines.append(f"{label} db {self._escaped_bytes(value)}")
 
@@ -215,7 +222,7 @@ class X586AssemblyEmitter(AssemblyEmitter):
     def _statement(self, statement: Statement) -> list[str]:
         if isinstance(statement, Assignment):
             lines = self._expression(statement.expression)
-            lines.append(f"    mov [{statement.target}], eax")
+            lines.append(f"    mov [{self._data_label(statement.target)}], eax")
             return lines
         if isinstance(statement, Declaration):
             return [f"    ; declare {', '.join(statement.names)} {' '.join(statement.attributes)}".rstrip()]
@@ -345,7 +352,9 @@ class X586AssemblyEmitter(AssemblyEmitter):
         if isinstance(expression, NumberLiteral):
             return [f"    mov eax, {expression.value}"]
         if isinstance(expression, Identifier):
-            return [f"    mov eax, [{expression.name}]"]
+            return [f"    mov eax, [{self._data_label(expression.name)}]"]
+        if isinstance(expression, FieldReference):
+            return [f"    mov eax, [{self._data_label(expression.name)}]"]
         if isinstance(expression, StringLiteral):
             return [f"    mov eax, {self.symbols.add_string(expression.value)}"]
         if isinstance(expression, BinaryExpression):
@@ -384,7 +393,7 @@ class X8664AssemblyEmitter(AssemblyEmitter):
             "fmt_str db \"%s\", 10, 0",
         ]
         for name in sorted(self.symbols.variables):
-            lines.append(f"{name} dq 0")
+            lines.append(f"{self._data_label(name)} dq 0")
         for value, label in self.symbols.strings.items():
             lines.append(f"{label} db {self._escaped_bytes(value)}")
 
@@ -397,7 +406,7 @@ class X8664AssemblyEmitter(AssemblyEmitter):
     def _statement(self, statement: Statement) -> list[str]:
         if isinstance(statement, Assignment):
             lines = self._expression(statement.expression)
-            lines.append(f"    mov [rel {statement.target}], rax")
+            lines.append(f"    mov [rel {self._data_label(statement.target)}], rax")
             return lines
         if isinstance(statement, Declaration):
             return [f"    ; declare {', '.join(statement.names)} {' '.join(statement.attributes)}".rstrip()]
@@ -543,7 +552,9 @@ class X8664AssemblyEmitter(AssemblyEmitter):
         if isinstance(expression, NumberLiteral):
             return [f"    mov rax, {expression.value}"]
         if isinstance(expression, Identifier):
-            return [f"    mov rax, [rel {expression.name}]"]
+            return [f"    mov rax, [rel {self._data_label(expression.name)}]"]
+        if isinstance(expression, FieldReference):
+            return [f"    mov rax, [rel {self._data_label(expression.name)}]"]
         if isinstance(expression, StringLiteral):
             return [f"    lea rax, [rel {self.symbols.add_string(expression.value)}]"]
         if isinstance(expression, BinaryExpression):
@@ -577,7 +588,7 @@ class Arm64AssemblyEmitter(AssemblyEmitter):
             'fmt_str: .asciz "%s\\n"',
         ]
         for name in sorted(self.symbols.variables):
-            lines.extend([f".balign 4", f"{name}: .word 0"])
+            lines.extend([f".balign 4", f"{self._data_label(name)}: .word 0"])
         for value, label in self.symbols.strings.items():
             lines.append(f'{label}: .asciz "{self._escape_asciz(value)}"')
 
@@ -597,7 +608,8 @@ class Arm64AssemblyEmitter(AssemblyEmitter):
     def _statement(self, statement: Statement) -> list[str]:
         if isinstance(statement, Assignment):
             lines = self._expression(statement.expression)
-            lines.extend([f"    adrp x1, {statement.target}@PAGE", f"    add x1, x1, {statement.target}@PAGEOFF", "    str w0, [x1]"])
+            label = self._data_label(statement.target)
+            lines.extend([f"    adrp x1, {label}@PAGE", f"    add x1, x1, {label}@PAGEOFF", "    str w0, [x1]"])
             return lines
         if isinstance(statement, Declaration):
             return [f"    // declare {', '.join(statement.names)} {' '.join(statement.attributes)}".rstrip()]
@@ -752,7 +764,11 @@ class Arm64AssemblyEmitter(AssemblyEmitter):
         if isinstance(expression, NumberLiteral):
             return [f"    mov w0, #{expression.value}"]
         if isinstance(expression, Identifier):
-            return [f"    adrp x0, {expression.name}@PAGE", f"    add x0, x0, {expression.name}@PAGEOFF", "    ldr w0, [x0]"]
+            label = self._data_label(expression.name)
+            return [f"    adrp x0, {label}@PAGE", f"    add x0, x0, {label}@PAGEOFF", "    ldr w0, [x0]"]
+        if isinstance(expression, FieldReference):
+            label = self._data_label(expression.name)
+            return [f"    adrp x0, {label}@PAGE", f"    add x0, x0, {label}@PAGEOFF", "    ldr w0, [x0]"]
         if isinstance(expression, StringLiteral):
             label = self.symbols.add_string(expression.value)
             return [f"    adrp x0, {label}@PAGE", f"    add x0, x0, {label}@PAGEOFF"]
@@ -775,3 +791,21 @@ class Arm64AssemblyEmitter(AssemblyEmitter):
 
     def _escape_asciz(self, value: str) -> str:
         return value.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n")
+
+
+def _declaration_storage_names(declaration: Declaration) -> list[str]:
+    if declaration.structures:
+        names: list[str] = []
+        for field in declaration.structures.values():
+            names.extend(_structure_leaf_names(field, [field.name]))
+        return names
+    return declaration.names
+
+
+def _structure_leaf_names(field: StructureField, prefix: list[str]) -> list[str]:
+    if not field.children:
+        return [".".join(prefix)]
+    names: list[str] = []
+    for child in field.children:
+        names.extend(_structure_leaf_names(child, [*prefix, child.name]))
+    return names

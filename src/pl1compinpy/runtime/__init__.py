@@ -12,6 +12,7 @@ from .io import FileDescriptor, FileRuntimeError, StdioRuntime
 from .picture import PictureRuntime, PictureRuntimeError, PictureSpec
 from .socket_io import SocketDescriptor, SocketFileDescriptor, SocketHandle, SocketRuntime, SocketRuntimeError, SocketSecureMode, SocketStreamRuntime
 from .strings import StringRuntime, StringRuntimeError, StringValue
+from .structures import StructureFieldLayout, StructureRuntime, StructureRuntimeError, StructureValue, flattened_structure_fields
 from .visitor import RuntimeExecutionVisitor, RuntimeVisitorError
 from .generics import GenericFunction, GenericRuntime, GenericRuntimeError, pl1_type
 from .function_table import (
@@ -80,10 +81,15 @@ __all__ = [
     "StringRuntime",
     "StringRuntimeError",
     "StringValue",
+    "StructureFieldLayout",
+    "StructureRuntime",
+    "StructureRuntimeError",
+    "StructureValue",
     "ZonedDecimalCodec",
     "build_dynamic_function_table",
     "declare_program_builtins",
     "declared_builtins",
+    "flattened_structure_fields",
     "normalize_calls",
     "pl1_type",
     "runtime_function_table",

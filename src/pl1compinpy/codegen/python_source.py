@@ -7,6 +7,7 @@ from ..core.ast import (
     Declaration,
     DoGroup,
     Expression,
+    FieldReference,
     GotoStatement,
     Identifier,
     IfStatement,
@@ -40,8 +41,10 @@ class PythonSourceEmitter:
     def _statement(self, statement: object, indent: int = 0) -> list[str]:
         prefix = " " * indent
         if isinstance(statement, Assignment):
-            return [f"{prefix}{statement.target} = {self._expression(statement.expression)}"]
+            return [f"{prefix}{self._target(statement.target)} = {self._expression(statement.expression)}"]
         if isinstance(statement, Declaration):
+            if statement.structures:
+                return [f"{prefix}{name} = {self._structure_literal(field)}" for name, field in statement.structures.items()]
             return [f"{prefix}{name} = {self._declaration_initial_value(statement, name)}" for name in statement.names] or [f"{prefix}pass"]
         if isinstance(statement, Call):
             arguments = ", ".join(self._expression(argument) for argument in statement.arguments)
@@ -160,6 +163,8 @@ class PythonSourceEmitter:
     def _expression(self, expression: Expression) -> str:
         if isinstance(expression, Identifier):
             return expression.name
+        if isinstance(expression, FieldReference):
+            return self._target(expression.name)
         if isinstance(expression, NumberLiteral):
             return expression.value
         if isinstance(expression, StringLiteral):
@@ -197,6 +202,26 @@ class PythonSourceEmitter:
             return repr("")
         if "FLOAT" in attributes:
             return "0.0"
+        return "0"
+
+    def _target(self, name: str) -> str:
+        parts = name.split(".")
+        if len(parts) == 1:
+            return name
+        return parts[0] + "".join(f"[{part!r}]" for part in parts[1:])
+
+    def _structure_literal(self, field: object) -> str:
+        children = getattr(field, "children", [])
+        if children:
+            parts = ", ".join(f"{child.name!r}: {self._structure_literal(child)}" for child in children)
+            return "{" + parts + "}"
+        attributes = {attribute.upper() for attribute in getattr(field, "attributes", [])}
+        if "FLOAT" in attributes:
+            return "0.0"
+        if "CHARACTER" in attributes or "CHAR" in attributes:
+            return "''"
+        if "BIT" in attributes:
+            return "False"
         return "0"
 
     def _main_arguments(self, procedure: Procedure) -> str:

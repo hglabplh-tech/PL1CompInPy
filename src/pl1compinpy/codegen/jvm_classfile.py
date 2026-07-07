@@ -3,7 +3,22 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 import struct
 
-from ..core.ast import Assignment, BinaryExpression, Call, Declaration, Identifier, LabelledStatement, NumberLiteral, Procedure, Program, RawStatement, main_procedure_name, procedure_entry_name
+from ..core.ast import (
+    Assignment,
+    BinaryExpression,
+    Call,
+    Declaration,
+    FieldReference,
+    Identifier,
+    LabelledStatement,
+    NumberLiteral,
+    Procedure,
+    Program,
+    RawStatement,
+    StructureField,
+    main_procedure_name,
+    procedure_entry_name,
+)
 from .runtime_link import runtime_linkage
 
 
@@ -132,7 +147,7 @@ class JVMClassFileEmitter:
         returned = False
         for statement in procedure.body:
             if isinstance(statement, Declaration):
-                for var_name in statement.names:
+                for var_name in _declaration_storage_names(statement):
                     if var_name not in locals_map:
                         locals_map[var_name] = len(locals_map)
                         code.extend(self._iconst(0))
@@ -167,6 +182,8 @@ class JVMClassFileEmitter:
         if isinstance(expression, NumberLiteral):
             return self._iconst(int(float(expression.value)))
         if isinstance(expression, Identifier):
+            return self._iload(locals_map.setdefault(expression.name, len(locals_map)))
+        if isinstance(expression, FieldReference):
             return self._iload(locals_map.setdefault(expression.name, len(locals_map)))
         if isinstance(expression, BinaryExpression):
             opcode = {"+": 0x60, "-": 0x64, "*": 0x68, "/": 0x6C}.get(expression.operator, 0x60)
@@ -218,3 +235,21 @@ def emit_jvm_class(program: Program, class_name: str = "PL1Program") -> bytes:
 
 def emit_jvm_classes(program: Program, class_name: str = "PL1Program") -> dict[str, bytes]:
     return {f"{class_name}.class": emit_jvm_class(program, class_name)}
+
+
+def _declaration_storage_names(declaration: Declaration) -> list[str]:
+    if declaration.structures:
+        names: list[str] = []
+        for field in declaration.structures.values():
+            names.extend(_structure_leaf_names(field, [field.name]))
+        return names
+    return declaration.names
+
+
+def _structure_leaf_names(field: StructureField, prefix: list[str]) -> list[str]:
+    if not field.children:
+        return [".".join(prefix)]
+    names: list[str] = []
+    for child in field.children:
+        names.extend(_structure_leaf_names(child, [*prefix, child.name]))
+    return names

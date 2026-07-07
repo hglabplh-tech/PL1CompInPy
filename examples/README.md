@@ -21,6 +21,7 @@ These examples cover the compiler features currently implemented in PL1CompInPy.
 - `language/recursive_proc.pl1`: recursive procedure metadata and ordinary call continuation
 - `language/generic.pl1`: `GENERIC` declaration with type-based alternatives
 - `language/picture_float.pl1`: `PICTURE`/`PIC` declarations and `FLOAT` data
+- `language/structures_records.pl1`: level-numbered structures/records and field access
 
 ## Runtime
 

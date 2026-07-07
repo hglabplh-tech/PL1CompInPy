@@ -5,6 +5,7 @@ from ..core.ast import (
     BinaryExpression,
     Call,
     Declaration,
+    FieldReference,
     GotoStatement,
     Identifier,
     LabelledStatement,
@@ -13,6 +14,7 @@ from ..core.ast import (
     Procedure,
     Program,
     RawStatement,
+    StructureField,
     main_procedure_entry,
     main_procedure_name,
     procedure_entry_name,
@@ -75,7 +77,7 @@ class JVMBytecodeEmitter:
         next_local = len(locals_map)
         for statement in procedure.body:
             if isinstance(statement, Declaration):
-                for var_name in statement.names:
+                for var_name in _declaration_storage_names(statement):
                     if var_name not in locals_map:
                         locals_map[var_name] = next_local
                         next_local += 1
@@ -115,7 +117,7 @@ class JVMBytecodeEmitter:
         lines: list[str] = []
         for statement in procedure.body:
             if isinstance(statement, Declaration):
-                for var_name in statement.names:
+                for var_name in _declaration_storage_names(statement):
                     if var_name not in locals_map:
                         locals_map[var_name] = next_local
                         next_local += 1
@@ -152,6 +154,8 @@ class JVMBytecodeEmitter:
         if isinstance(expression, NumberLiteral):
             return self._int_constant(int(float(expression.value)))
         if isinstance(expression, Identifier):
+            return [f"    iload {locals_map.setdefault(expression.name, len(locals_map))}"]
+        if isinstance(expression, FieldReference):
             return [f"    iload {locals_map.setdefault(expression.name, len(locals_map))}"]
         if isinstance(expression, BinaryExpression):
             lines = self._expression(expression.left, locals_map)
@@ -193,3 +197,21 @@ class JVMBytecodeEmitter:
 
 def emit_jvm_bytecode(program: Program) -> str:
     return JVMBytecodeEmitter().emit(program)
+
+
+def _declaration_storage_names(declaration: Declaration) -> list[str]:
+    if declaration.structures:
+        names: list[str] = []
+        for field in declaration.structures.values():
+            names.extend(_structure_leaf_names(field, [field.name]))
+        return names
+    return declaration.names
+
+
+def _structure_leaf_names(field: StructureField, prefix: list[str]) -> list[str]:
+    if not field.children:
+        return [".".join(prefix)]
+    names: list[str] = []
+    for child in field.children:
+        names.extend(_structure_leaf_names(child, [*prefix, child.name]))
+    return names

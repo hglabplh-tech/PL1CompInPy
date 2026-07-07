@@ -7,6 +7,7 @@ from ..core.ast import (
     Declaration,
     DoGroup,
     Expression,
+    FieldReference,
     GenericAlternative,
     GotoStatement,
     Identifier,
@@ -21,6 +22,7 @@ from ..core.ast import (
     SelectStatement,
     Statement,
     StringLiteral,
+    StructureField,
     UnaryExpression,
     WhenBranch,
 )
@@ -53,7 +55,7 @@ class Parser:
             self._consume(TokenType.COLON, "Expected ':' after label")
             return LabelledStatement(label, self._statement())
 
-        if self._check(TokenType.IDENTIFIER) and self._check_next(TokenType.ASSIGN):
+        if self._looks_like_assignment_target():
             statement = self._assignment()
             self._consume(TokenType.SEMICOLON, "Expected ';' after assignment")
             return statement
@@ -100,6 +102,7 @@ class Parser:
         picture_options: dict[str, str] = {}
         based_options: dict[str, str | None] = {}
         pointer_names: list[str] = []
+        structures: dict[str, StructureField] = {}
         before_attribute = True
         index = 0
         depth = 0
@@ -150,7 +153,18 @@ class Parser:
         picture_options = self._picture_options_from_tokens(names, tokens)
         based_options = self._based_options_from_tokens(names, tokens)
         pointer_names = self._pointer_names_from_tokens(names, tokens)
-        return Declaration(names, attributes, dimensions, file_options, generic_options, picture_options, based_options, pointer_names)
+        structures = self._structures_from_tokens(tokens)
+        return Declaration(
+            names,
+            attributes,
+            dimensions,
+            file_options,
+            generic_options,
+            picture_options,
+            based_options,
+            pointer_names,
+            structures,
+        )
 
     def _dimensions_from_tokens(self, tokens: list[Token], index: int) -> tuple[list[int], int]:
         dimensions: list[int] = []
@@ -259,6 +273,50 @@ class Parser:
         if any(token.lexeme.upper() in {"POINTER", "PTR"} for token in tokens):
             return names.copy()
         return []
+
+    def _structures_from_tokens(self, tokens: list[Token]) -> dict[str, StructureField]:
+        segments = self._declaration_segments(tokens)
+        roots: dict[str, StructureField] = {}
+        stack: list[StructureField] = []
+        for segment in segments:
+            if len(segment) < 2 or segment[0].type != TokenType.NUMBER or segment[1].type != TokenType.IDENTIFIER:
+                continue
+            level = int(float(segment[0].lexeme))
+            name_index = 1
+            name = segment[name_index].lexeme
+            dimensions: list[int] = []
+            attr_start = name_index + 1
+            if attr_start < len(segment) and segment[attr_start].type == TokenType.LPAREN:
+                dimensions, attr_start = self._dimensions_from_tokens(segment, attr_start + 1)
+            attributes = [token.lexeme for token in segment[attr_start:] if token.type not in {TokenType.LPAREN, TokenType.RPAREN, TokenType.COMMA}]
+            field = StructureField(level, name, attributes, dimensions, [])
+            while stack and stack[-1].level >= level:
+                stack.pop()
+            if stack:
+                stack[-1].children.append(field)
+            else:
+                roots[name] = field
+            stack.append(field)
+        return {name: field for name, field in roots.items() if field.children}
+
+    def _declaration_segments(self, tokens: list[Token]) -> list[list[Token]]:
+        segments: list[list[Token]] = []
+        current: list[Token] = []
+        depth = 0
+        for token in tokens:
+            if token.type == TokenType.LPAREN:
+                depth += 1
+            elif token.type == TokenType.RPAREN:
+                depth = max(depth - 1, 0)
+            if token.type == TokenType.COMMA and depth == 0:
+                if current:
+                    segments.append(current)
+                    current = []
+                continue
+            current.append(token)
+        if current:
+            segments.append(current)
+        return segments
 
     def _procedure(self, name: str | None) -> Procedure:
         parameters: list[str] = []
@@ -404,9 +462,9 @@ class Parser:
         return SelectStatement(expression, branches, otherwise)
 
     def _assignment(self) -> Assignment:
-        target = self._consume_identifier("Expected assignment target")
+        target = self._assignment_target()
         self._consume(TokenType.ASSIGN, "Expected '=' after assignment target")
-        return Assignment(target.lexeme, self._expression())
+        return Assignment(target, self._expression())
 
     def _raw_statement(self) -> RawStatement:
         keyword = self._advance().lexeme
@@ -506,7 +564,13 @@ class Parser:
         if self._match(TokenType.STRING):
             return StringLiteral(self._previous().lexeme)
         if self._match(TokenType.IDENTIFIER):
-            return Identifier(self._previous().lexeme)
+            base = self._previous().lexeme
+            fields: list[str] = []
+            while self._match(TokenType.DOT):
+                fields.append(self._consume_identifier("Expected field name after '.'").lexeme)
+            if fields:
+                return FieldReference(base, fields)
+            return Identifier(base)
         if self._match(TokenType.LPAREN):
             expression = self._expression()
             self._consume(TokenType.RPAREN, "Expected ')' after expression")
@@ -610,6 +674,20 @@ class Parser:
 
     def _looks_like_label(self) -> bool:
         return self._check(TokenType.IDENTIFIER) and self._check_next(TokenType.COLON)
+
+    def _looks_like_assignment_target(self) -> bool:
+        if not self._check(TokenType.IDENTIFIER):
+            return False
+        index = self.current + 1
+        while index + 1 < len(self.tokens) and self.tokens[index].type == TokenType.DOT and self.tokens[index + 1].type == TokenType.IDENTIFIER:
+            index += 2
+        return index < len(self.tokens) and self.tokens[index].type == TokenType.ASSIGN
+
+    def _assignment_target(self) -> str:
+        parts = [self._consume_identifier("Expected assignment target").lexeme]
+        while self._match(TokenType.DOT):
+            parts.append(self._consume_identifier("Expected field name after '.'").lexeme)
+        return ".".join(parts)
 
     def _starts_raw_statement(self) -> bool:
         return self._check_keyword(

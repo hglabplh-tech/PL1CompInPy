@@ -136,6 +136,7 @@ Currently supported compiler features:
 
 - integer variable declarations and storage
 - integer assignment with `+`, `-`, `*`, and `/`
+- level-numbered structures/records with nested scalar fields and dotted field references such as `CUSTOMER.ADDRESS.ZIP`
 - PL/I-style expression precedence for `**`, unary operators, `*`/`/`, `+`/`-`, `||`, comparisons, `&`, and `|`
 - `IF/THEN/ELSE` comparisons with `=`, `^=`, `<>`, `<`, `<=`, `>`, and `>=`
 - `DO WHILE` pre-test loops and post-test `DO ... UNTIL` loops
@@ -215,6 +216,8 @@ The executable pipeline includes a first runtime calling convention:
 The runtime also includes starter storage and I/O services:
 
 - PL/I-style array declarations such as `DCL A(10) FIXED BIN(31);`
+- PL/I-style level-numbered structure/record declarations such as `DCL 1 CUSTOMER, 2 ID FIXED BIN(31), 2 NAME CHAR(20);`
+- runtime structure values with nested field get/set, simple field-size layout, and flattened field storage for native/JVM/.NET backends
 - heap allocation helpers used by dynamic array storage
 - `FLOAT` declarations initialized as floating-point values in Python output
 - `PICTURE`/`PIC` decimal display patterns using digit positions such as `9`, zero-suppressed `Z`, stored decimal `.`, and implied decimal `V`

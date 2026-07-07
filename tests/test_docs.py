@@ -35,6 +35,8 @@ class DocumentationTests(unittest.TestCase):
         self.assertIn("`IncludeExpander`", text)
         self.assertIn("`DynamicLoadRuntime`", text)
         self.assertIn("`emit_library`", text)
+        self.assertIn("`StructureRuntime`", text)
+        self.assertIn("`FieldReference`", text)
 
 
 if __name__ == "__main__":

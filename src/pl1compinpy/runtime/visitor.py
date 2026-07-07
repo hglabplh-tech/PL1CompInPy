@@ -9,6 +9,7 @@ from ..core.ast import (
     Declaration,
     DoGroup,
     Expression,
+    FieldReference,
     GotoStatement,
     IfStatement,
     LabelledStatement,
@@ -24,6 +25,7 @@ from .command_line import CommandLineRuntime
 from .decimal import CalculationBuiltinRuntime, FixedDecimal
 from .dynload import DynamicLoadRuntime
 from .function_table import RUNTIME_FUNCTION_TABLE, FunctionTable, FunctionTableError, build_dynamic_function_table, declare_program_builtins
+from .structures import StructureRuntime
 
 
 class RuntimeVisitorError(ValueError):
@@ -39,6 +41,7 @@ class RuntimeExecutionVisitor(AstVisitor):
         self.builtins = CalculationBuiltinRuntime()
         self.command_line = CommandLineRuntime.from_argv(argv)
         self.dynamic_loader = DynamicLoadRuntime()
+        self.structures = StructureRuntime()
 
     def visit_Program(self, node: Program) -> Any:
         self.function_table = RUNTIME_FUNCTION_TABLE.merge(build_dynamic_function_table(node))
@@ -56,6 +59,10 @@ class RuntimeExecutionVisitor(AstVisitor):
 
     def visit_Declaration(self, node: Declaration) -> None:
         if any(attribute.upper() == "BUILTIN" for attribute in node.attributes):
+            return None
+        if node.structures:
+            for name, field in node.structures.items():
+                self.variables[name] = self.structures.declare_structure(field)
             return None
         attributes = {attribute.upper() for attribute in node.attributes}
         for name in node.names:
@@ -75,6 +82,11 @@ class RuntimeExecutionVisitor(AstVisitor):
 
     def visit_Assignment(self, node: Assignment) -> PL1Value:
         value = self.evaluate(node.expression)
+        if "." in node.target:
+            base, *fields = node.target.split(".")
+            if base in self.variables and hasattr(self.variables[base], "set_field"):
+                self.variables[base].set_field(fields, value)
+                return value
         self.variables[node.target] = value
         return value
 
@@ -131,6 +143,9 @@ class RuntimeExecutionVisitor(AstVisitor):
         return None
 
     def evaluate(self, expression: Expression) -> PL1Value:
+        if isinstance(expression, FieldReference):
+            if expression.base in self.variables and hasattr(self.variables[expression.base], "get_field"):
+                return self.variables[expression.base].get_field(expression.fields)
         return CalculationEngine(self.variables).evaluate(expression)
 
     def _execute_block(self, statements: list[Statement]) -> Any:

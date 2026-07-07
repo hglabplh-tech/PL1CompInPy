@@ -5,6 +5,7 @@ from ..core.ast import (
     BinaryExpression,
     Call,
     Declaration,
+    FieldReference,
     GotoStatement,
     Identifier,
     LabelledStatement,
@@ -14,6 +15,7 @@ from ..core.ast import (
     Program,
     RawStatement,
     StringLiteral,
+    StructureField,
     main_procedure_entry,
     main_procedure_name,
     procedure_entry_name,
@@ -138,7 +140,7 @@ class DotNetILEmitter:
     def _statement(self, statement: object, locals_map: dict[str, int], local_types: list[str]) -> list[str]:
         if isinstance(statement, Declaration):
             lines: list[str] = []
-            for name in statement.names:
+            for name in _declaration_storage_names(statement):
                 index = self._local(name, locals_map, local_types)
                 lines.extend(["    ldc.i4.0", f"    stloc {index}"])
             return lines
@@ -165,6 +167,8 @@ class DotNetILEmitter:
         if isinstance(expression, NumberLiteral):
             return self._int_constant(int(float(expression.value)))
         if isinstance(expression, Identifier):
+            return [f"    ldloc {self._local(expression.name, locals_map, local_types)}"]
+        if isinstance(expression, FieldReference):
             return [f"    ldloc {self._local(expression.name, locals_map, local_types)}"]
         if isinstance(expression, BinaryExpression):
             lines = self._expression(expression.left, locals_map, local_types)
@@ -215,3 +219,21 @@ class DotNetILEmitter:
 
 def emit_dotnet_il(program: Program) -> str:
     return DotNetILEmitter().emit(program)
+
+
+def _declaration_storage_names(declaration: Declaration) -> list[str]:
+    if declaration.structures:
+        names: list[str] = []
+        for field in declaration.structures.values():
+            names.extend(_structure_leaf_names(field, [field.name]))
+        return names
+    return declaration.names
+
+
+def _structure_leaf_names(field: StructureField, prefix: list[str]) -> list[str]:
+    if not field.children:
+        return [".".join(prefix)]
+    names: list[str] = []
+    for child in field.children:
+        names.extend(_structure_leaf_names(child, [*prefix, child.name]))
+    return names
