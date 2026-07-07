@@ -15,6 +15,7 @@
 - Visitor-enabled AST nodes and runtime execution visitor support for future compiler passes.
 - Parser support for `DO WHILE`, post-test `DO ... UNTIL`, and `SELECT`/`WHEN`/`OTHERWISE`.
 - Backend lowering for `DO` blocks, `DO WHILE`, post-test `DO ... UNTIL`, `IF/THEN/ELSE`, and `SELECT/WHEN/OTHERWISE` branch blocks.
+- Example coverage for visitor-based runtime execution and structured backend control blocks.
 - PL/I-style expression precedence for power, unary operators, multiplication/division, addition/subtraction, concatenation, comparison, logical AND, and logical OR.
 - Keyword catalog covering PL/1 statements, declaration attributes, storage attributes, I/O words, conditions, and preprocessor/listing words.
 - Python-like text emitter for early compiler validation.
@@ -44,6 +45,7 @@
   - call by name normalized to sorted call by reference
   - dynamic function table for user procedures
   - static runtime function table for runtime functions, I/O, allocation, VSAM, TCP/IP, SSL, and TLS helpers
+  - static builtin function table entries for `SUBSTR`, `LENGTH`, `INDEX`, `ABS`, `SIGN`, `MIN`, `MAX`, `MOD`, `ROUND`, `TRUNC`, `CEIL`, `FLOOR`, and starter math/complex helpers
   - call validation against function parameter and return descriptions
 - Runtime storage and I/O:
   - heap allocation blocks
@@ -103,10 +105,11 @@
 - VSAM declarations using `ENVIRONMENT(VSAM(...), KEYOFFSET(...), KEYLENGTH(...))`.
 - VSAM I/O statements using `OPEN FILE(...)`, `WRITE FILE(...) FROM(...)`, `READ FILE(...) KEY(...) INTO(...)`, ESDS `RBA(...)`, RRDS `RRN(...)`, LDS `RBA(...) LENGTH(...)`, and `CLOSE FILE(...)`.
 - Runtime `SUBSTR` behavior using one-based positions, enabled in source with `DCL SUBSTR BUILTIN;`.
+- Declared static builtins for string and numeric helpers such as `LENGTH`, `INDEX`, `ABS`, `MIN`, `MAX`, `MOD`, `ROUND`, and `TRUNC`.
 - `PROC OPTIONS(MAIN)` program entry point.
 - `PROC RECURSIVE` metadata and ordinary recursive-call continuation semantics.
 - `PROC RETURNS(...)` function return metadata.
-- `IF/THEN/ELSE` comparisons using `=`, `^=`, `<>`, `<`, `<=`, `>`, and `>=`.
+- `IF/THEN/ELSE` comparisons using `=`, `^=`, `¬=`, `~=`, `<>`, `<`, `<=`, `>`, `>=`, and `=>`.
 - `DO WHILE` and post-test `DO ... UNTIL` groups.
 - `SELECT` with `WHEN` and `OTHERWISE`.
 - Labels and simple procedure bodies.

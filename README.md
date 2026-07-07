@@ -173,12 +173,13 @@ The executable pipeline includes a first runtime calling convention:
 - user procedures are registered in a dynamic function table as they are detected
 - runtime services are registered in a static function table with PL/I-like names, pointer targets, parameter descriptions, return types, and call modes
 - PL/I builtins are also registered in the static table, but a source program must declare them with `DCL name BUILTIN;` before calls are accepted
+- declared static builtins now include `SUBSTR`, `LENGTH`, `INDEX`, `ABS`, `SIGN`, `MIN`, `MAX`, `MOD`, `ROUND`, `TRUNC`, `CEIL`, `FLOOR`, and starter math helpers
 - `CALL` validation uses the merged runtime and dynamic tables before lowering
 - procedure definitions are emitted before main code and the entry path jumps over them, so procedures run only when called
 - native targets use a C-style runtime link model: generated objects reference `pl1rt_init`/`pl1rt_shutdown`, then the final executable is resolved against a PL/I runtime object/archive or shared/import library plus the platform C runtime
 - JVM output links the runtime through the `pl1compinpy/runtime/PL1Runtime` class on the classpath
 - .NET IL links the runtime through the `PL1CompInPy.Runtime` managed assembly
-- AST nodes support a visitor pattern through `accept`, and runtime execution has a `RuntimeExecutionVisitor` for future compiler passes and runtime checks
+- AST nodes support a visitor pattern through `accept`, and runtime execution has a `RuntimeExecutionVisitor` for future compiler passes and runtime checks; see `examples/runtime/runtime_visitor.py`
 - backend control-flow lowering treats simple `DO` as a block, `DO WHILE` as a pre-test loop, `DO ... UNTIL` as a post-test loop, `IF/THEN/ELSE` as decisions, and `SELECT/WHEN/OTHERWISE` as branches
 
 The runtime also includes starter storage and I/O services:
@@ -193,6 +194,7 @@ The runtime also includes starter storage and I/O services:
 - string storage as two bytes of big-endian length followed by sequential payload bytes
 - a first packaged PL/I builtin source file for `SUBSTR(string, start[, length])`
 - static builtin call checking for `DCL SUBSTR BUILTIN;`
+- examples for declared numeric/string builtins in `examples/builtins/numeric_string_builtins.pl1`
 - PL/I-style file declarations such as `DCL F FILE RECORD OUTPUT ENVIRONMENT(RECFM(V), LRECL(80), PATH('out.dat')) BINARY;`
 - PL/I-style file statements: `OPEN FILE(F);`, `READ FILE(F) INTO(BUF);`, `WRITE FILE(F) FROM(BUF);`, and `CLOSE FILE(F);`
 - normal Unix-style stream files

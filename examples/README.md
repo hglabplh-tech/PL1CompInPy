@@ -9,6 +9,7 @@ These examples cover the compiler features currently implemented in PL1CompInPy.
 - `language/control_structures.pl1`: `IF/THEN/ELSE`
 - `language/do_while_until.pl1`: `DO WHILE` and post-test `DO ... UNTIL`
 - `language/select_when.pl1`: `SELECT` with `WHEN` and `OTHERWISE`
+- `language/visitor_control_blocks.pl1`: visitor/backend control blocks with `DO`, `DO WHILE`, `DO ... UNTIL`, `IF`, `SELECT`, and condition aliases
 - `language/procedure_main.pl1`: `PROC OPTIONS(MAIN)` and `RETURNS`
 - `language/call_by_reference.pl1`: by-reference calls
 - `language/call_by_name.pl1`: by-name call normalization
@@ -25,6 +26,7 @@ These examples cover the compiler features currently implemented in PL1CompInPy.
 - `runtime/file_record_f.pl1`: fixed-record file declaration
 - `runtime/file_read_write.pl1`: `OPEN`, `READ`, `WRITE`, and `CLOSE` file statements
 - `runtime/function_table.py`: dynamic user function table and static runtime function table lookup
+- `runtime/runtime_visitor.py`: direct use of the AST `RuntimeExecutionVisitor`
 - `runtime/socket_io.py`: primitive runtime TCP socket send/receive example
 - `runtime/socket_stream.py`: file-like socket payload records above primitive sockets
 - `runtime/socket_primitive_sender.pl1`: primitive `TCPIP_OPEN`, `TCPIP_SEND`, and `TCPIP_CLOSE` call usage
@@ -35,6 +37,7 @@ These examples cover the compiler features currently implemented in PL1CompInPy.
 
 - `builtins/substr.pl1`: compile with `--builtin SUBSTR`
 - `builtins/declared_substr.pl1`: `DCL SUBSTR BUILTIN;` enables a static PL/I builtin call
+- `builtins/numeric_string_builtins.pl1`: declared static numeric and string builtins through the function table
 
 ## Backends
 
