@@ -208,6 +208,8 @@ class PythonSourceEmitter:
         attributes = {attribute.upper() for attribute in declaration.attributes}
         if name in declaration.pointer_names or "POINTER" in attributes or "PTR" in attributes:
             return "None"
+        if "COMPLEX" in attributes or "CPLX" in attributes:
+            return "0j"
         if name in declaration.based_options:
             return "None"
         if name in declaration.picture_options:

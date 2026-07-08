@@ -31,7 +31,7 @@ The current catalog covers the main language-reference families:
 - flow-control statements: `CALL`, `IF`, `THEN`, `ELSE`, `SELECT`, `GO`, `GOTO`, `RETURN`, `STOP`
 - condition statements and conditions: `ON`, `SIGNAL`, `REVERT`, `ERROR`, `FINISH`, `ENDFILE`, `ZERODIVIDE`, and related conditions
 - storage statements and attributes: `ALLOCATE`, `ALLOC`, `FREE`, `AUTOMATIC`, `STATIC`, `BASED`, `CONTROLLED`
-- data attributes: `FIXED`, `FLOAT`, `BINARY`, `DECIMAL`, `CHARACTER`, `BIT`, `POINTER`, `PICTURE`, and related aliases
+- data attributes: `FIXED`, `FLOAT`, `BINARY`, `DECIMAL`, `REAL`, `COMPLEX`, `CHARACTER`, `BIT`, `POINTER`, `PICTURE`, and related aliases
 - I/O statements and options: `OPEN`, `CLOSE`, `GET`, `PUT`, `READ`, `WRITE`, `REWRITE`, `LOCATE`, `DELETE`, `LIST`, `SKIP`, `KEY`
 - preprocessor/listing words: `INCLUDE`, `XINCLUDE`, `ACTIVATE`, `DEACTIVATE`, `REPLACE`, `PAGE`, `PRINT`, `PUSH`, `POP`
 
@@ -202,7 +202,7 @@ The executable pipeline includes a first runtime calling convention:
 - runtime services are registered in a static function table with PL/I-like names, pointer targets, parameter descriptions, return types, and call modes
 - command-line runtime services expose `COMMAND`, `ARGC`, and `ARGV`, and direct runtime execution binds main procedure parameters from host `argv`
 - PL/I builtins are also registered in the static table, but a source program must declare them with `DCL name BUILTIN;` before calls are accepted
-- declared static builtins now include `SUBSTR`, `LENGTH`, `INDEX`, `POINTER`, `ABS`, `SIGN`, `MIN`, `MAX`, `MOD`, `ROUND`, `TRUNC`, `CEIL`, `FLOOR`, starter math helpers, and fixed-decimal conversion helpers
+- declared static builtins now include `SUBSTR`, `LENGTH`, `INDEX`, `POINTER`, `COMPLEX`, `REAL`, `IMAG`, `CONJG`, `ABS`, `SIGN`, `MIN`, `MAX`, `MOD`, `ROUND`, `TRUNC`, `CEIL`, `FLOOR`, complex-capable math helpers, and fixed-decimal conversion helpers
 - `CALL` validation uses the merged runtime and dynamic tables before lowering
 - procedure definitions are emitted before main code and the entry path jumps over them, so procedures run only when called
 - native targets use a C-style runtime link model: generated objects reference `pl1rt_init`/`pl1rt_shutdown`, then the final executable is resolved against a PL/I runtime object/archive or shared/import library plus the platform C runtime
@@ -212,6 +212,7 @@ The executable pipeline includes a first runtime calling convention:
 - dynamic-load runtime services include `DYNLOAD`/`DYNSYM` for native libraries plus Java class-load and .NET assembly-load descriptors
 - AST nodes support a visitor pattern through `accept`, and runtime execution has a `RuntimeExecutionVisitor` for future compiler passes and runtime checks; see `examples/runtime/runtime_visitor.py`
 - semantic analysis includes canonical `PliType` parsing, backend type mappings, and a debugger-oriented `SymbolTable` with scope, storage, dimensions, based-pointer, procedure, parameter, and field records
+- arithmetic semantics include `COMPLEX`/`CPLX` as a first-class arithmetic mode, runtime `ComplexValue` storage, complex promotion in the numeric tower, and equality-only comparison semantics for complex values
 - Python source output passes `" ".join(sys.argv[1:])` to the first `OPTIONS(MAIN)` procedure parameter; native/JVM/.NET backends now identify the same main entry and reserve argument slots for parameterized mains
 - backend control-flow lowering treats simple `DO` as a block, `DO WHILE` as a pre-test loop, `DO ... UNTIL` as a post-test loop, `IF/THEN/ELSE` as decisions, and `SELECT/WHEN/OTHERWISE` as branches
 - GOTO statements are parsed as AST nodes and lowered to unconditional branches for the native mnemonic/assembly backends, while Python, JVM text, and .NET IL outputs preserve the branch intent in their target form

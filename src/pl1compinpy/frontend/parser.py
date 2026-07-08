@@ -284,10 +284,13 @@ class Parser:
     def _builtin_names_from_tokens(self, tokens: list[Token]) -> list[str]:
         if not any(token.lexeme.upper() == "BUILTIN" for token in tokens):
             return []
+        names: list[str] = []
         for token in tokens:
-            if token.type == TokenType.IDENTIFIER and token.lexeme.upper() != "BUILTIN":
-                return [token.lexeme]
-        return []
+            if token.lexeme.upper() == "BUILTIN":
+                break
+            if token.type == TokenType.IDENTIFIER and token.lexeme.upper() not in {"DECLARE", "DCL"}:
+                names.append(token.lexeme)
+        return names
 
     def _structures_from_tokens(self, tokens: list[Token]) -> dict[str, StructureField]:
         segments = self._declaration_segments(tokens)

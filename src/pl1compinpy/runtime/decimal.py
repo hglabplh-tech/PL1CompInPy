@@ -6,6 +6,7 @@ from decimal import Decimal, ROUND_CEILING, ROUND_DOWN, ROUND_FLOOR, ROUND_HALF_
 import math
 from typing import Any
 
+from .complex import ComplexRuntime, ComplexValue
 from .strings import StringValue
 
 getcontext().prec = max(getcontext().prec, 80)
@@ -223,6 +224,8 @@ def to_decimal(value: Any) -> Decimal:
         return Decimal(value)
     if isinstance(value, float):
         return Decimal(str(value))
+    if isinstance(value, (ComplexValue, complex)):
+        raise TypeError("Cannot convert complex value to Decimal without REAL/IMAG/ABS")
     if isinstance(value, StringValue):
         return Decimal(value.text())
     return Decimal(str(value))
@@ -236,8 +239,8 @@ def to_python_float(value: Any) -> float:
 
 class CalculationBuiltinRuntime:
     def ABS(self, value: Any) -> Any:
-        if isinstance(value, complex):
-            return abs(value)
+        if isinstance(value, (ComplexValue, complex)):
+            return ComplexRuntime().abs(value)
         if isinstance(value, FixedDecimal):
             return FixedDecimal(abs(value.scaled), value.precision, value.scale)
         return abs(value)
@@ -271,34 +274,47 @@ class CalculationBuiltinRuntime:
     def FLOOR(self, value: Any) -> int:
         return int(to_decimal(value).to_integral_value(rounding=ROUND_FLOOR))
 
+    def COMPLEX(self, real: Any = 0, imag: Any = 0) -> ComplexValue:
+        return ComplexRuntime().value(real, imag)
+
     def SQRT(self, value: Any) -> Any:
-        if isinstance(value, complex):
-            return cmath.sqrt(value)
+        if isinstance(value, (ComplexValue, complex)):
+            return ComplexRuntime().sqrt(value)
         return math.sqrt(to_python_float(value))
 
-    def EXP(self, value: Any) -> float:
+    def EXP(self, value: Any) -> Any:
+        if isinstance(value, (ComplexValue, complex)):
+            return ComplexRuntime().exp(value)
         return math.exp(to_python_float(value))
 
-    def LOG(self, value: Any) -> float:
+    def LOG(self, value: Any) -> Any:
+        if isinstance(value, (ComplexValue, complex)):
+            return ComplexRuntime().log(value)
         return math.log(to_python_float(value))
 
-    def SIN(self, value: Any) -> float:
+    def SIN(self, value: Any) -> Any:
+        if isinstance(value, (ComplexValue, complex)):
+            return ComplexRuntime().sin(value)
         return math.sin(to_python_float(value))
 
-    def COS(self, value: Any) -> float:
+    def COS(self, value: Any) -> Any:
+        if isinstance(value, (ComplexValue, complex)):
+            return ComplexRuntime().cos(value)
         return math.cos(to_python_float(value))
 
-    def TAN(self, value: Any) -> float:
+    def TAN(self, value: Any) -> Any:
+        if isinstance(value, (ComplexValue, complex)):
+            return ComplexRuntime().tan(value)
         return math.tan(to_python_float(value))
 
     def REAL(self, value: Any) -> Any:
-        return value.real if isinstance(value, complex) else value
+        return ComplexRuntime().real(value)
 
     def IMAG(self, value: Any) -> Any:
-        return value.imag if isinstance(value, complex) else 0
+        return ComplexRuntime().imag(value)
 
-    def CONJG(self, value: Any) -> complex:
-        return value.conjugate() if isinstance(value, complex) else complex(to_python_float(value), 0).conjugate()
+    def CONJG(self, value: Any) -> ComplexValue:
+        return ComplexRuntime().conjg(value)
 
     def LENGTH(self, value: Any) -> int:
         if isinstance(value, StringValue):
@@ -337,6 +353,8 @@ class CalculationBuiltinRuntime:
 
 
 __all__ = [
+    "ComplexRuntime",
+    "ComplexValue",
     "CalculationBuiltinRuntime",
     "DecimalRuntime",
     "FixedDecimal",

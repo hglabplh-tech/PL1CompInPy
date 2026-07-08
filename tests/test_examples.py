@@ -166,6 +166,14 @@ class ExampleTests(unittest.TestCase):
 
         self.assertEqual(calls, ["LENGTH", "INDEX", "ABS", "MIN", "MAX", "MOD", "ROUND", "TRUNC"])
 
+    def test_complex_builtins_example_runs_with_runtime_visitor(self):
+        program = normalize_calls(self.parse_example("builtins/complex_math_builtins.pl1"))
+        visitor = RuntimeExecutionVisitor()
+
+        visitor.visit(program)
+
+        self.assertEqual(visitor.output, [25, 2, 5.0, 1])
+
     def test_pointer_builtin_example_uses_static_builtin_table(self):
         program = normalize_calls(self.parse_example("builtins/pointer.pl1"))
         calls = [statement.name for statement in program.statements if hasattr(statement, "name")]

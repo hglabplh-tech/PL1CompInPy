@@ -25,6 +25,7 @@ from ..core.ast import (
 )
 from .calculation import CalculationEngine, PL1Type, PL1Value
 from .command_line import CommandLineRuntime
+from .complex import ComplexValue
 from .decimal import CalculationBuiltinRuntime, FixedDecimal
 from .dynload import DynamicLoadRuntime
 from .function_table import RUNTIME_FUNCTION_TABLE, FunctionTable, FunctionTableError, build_dynamic_function_table, declare_program_builtins
@@ -83,6 +84,8 @@ class RuntimeExecutionVisitor(AstVisitor):
             if name in node.pointer_names or "POINTER" in attributes or "PTR" in attributes:
                 self.pointer_names.add(name)
                 self.variables[name] = self.pointer_builtins.POINTER()
+            elif "COMPLEX" in attributes or "CPLX" in attributes:
+                self.variables[name] = PL1Value(ComplexValue(0.0, 0.0), PL1Type.COMPLEX)
             elif "FLOAT" in attributes:
                 self.variables[name] = PL1Value(0.0, PL1Type.FLOAT)
             elif "CHARACTER" in attributes or "CHAR" in attributes:
@@ -200,6 +203,7 @@ class RuntimeExecutionVisitor(AstVisitor):
             self.output.extend(arguments)
             return None
         handlers = {
+            "COMPLEX": self.builtins.COMPLEX,
             "ABS": self.builtins.ABS,
             "SIGN": self.builtins.SIGN,
             "MIN": self.builtins.MIN,

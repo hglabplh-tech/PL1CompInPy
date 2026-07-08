@@ -4,7 +4,9 @@ This document records the current PL1CompInPy semantic model for operator preced
 
 ## Source Findings
 
-- IBM Enterprise PL/I documentation treats PL/I declarations as attribute combinations. Arithmetic data is best modeled by base (`BINARY` or `DECIMAL`), scale (`FIXED` or `FLOAT`), mode (`REAL` or `COMPLEX`), and precision/scale metadata. PL1CompInPy mirrors that with canonical `PliType` values such as `FIXED BINARY`, `FIXED DECIMAL`, `FLOAT BINARY`, and `FLOAT DECIMAL`.
+- IBM Enterprise PL/I documentation treats PL/I declarations as attribute combinations. Arithmetic data is best modeled by base (`BINARY` or `DECIMAL`), scale (`FIXED` or `FLOAT`), mode (`REAL` or `COMPLEX`), and precision/scale metadata. PL1CompInPy mirrors that with canonical `PliType` values such as `FIXED BINARY`, `FIXED DECIMAL`, `FLOAT BINARY`, `FLOAT DECIMAL`, `COMPLEX FIXED BINARY`, `COMPLEX FIXED DECIMAL`, `COMPLEX FLOAT BINARY`, and `COMPLEX FLOAT DECIMAL`.
+- The PL/I `COMPLEX` attribute, also accepted through the common `CPLX` spelling, is an arithmetic mode rather than a separate statement family. The runtime therefore stores complex values as paired real and imaginary parts, promotes real operands into complex operands when needed, and keeps ordering comparisons invalid while allowing equality and inequality checks.
+- Trusted PL/I references describe common complex-related builtins around construction/projection and mathematical functions. PL1CompInPy registers `COMPLEX`, `REAL`, `IMAG`, `CONJG`, `ABS`, `SQRT`, `EXP`, `LOG`, `SIN`, `COS`, and `TAN` in the static builtin table; source programs must still declare them with `DCL name BUILTIN;` or grouped `DCL (...) BUILTIN;` before use.
 - PL/I also has non-arithmetic and locator categories that matter to code generation: `CHARACTER`, `BIT`, `PICTURE`, `POINTER`, `OFFSET`, `ENTRY`, arrays, structures, and based storage. These are kept as canonical type kinds with backend mappings instead of being reduced to Python primitives too early.
 - IBM-style PL/I precedence gives exponentiation the tightest binary binding, then prefix sign/not, multiplication/division, addition/subtraction, concatenation, comparisons, logical AND, and logical OR. The compiler now stores that in `pl1compinpy.frontend.precedence` and the parser uses precedence climbing against the same table.
 - LLVM's tutorial keeps current-scope values in a `NamedValues` map during code generation; this matches the project direction of using one central table to answer name/type/storage questions instead of scattering ad hoc dictionaries through every backend.
@@ -16,6 +18,7 @@ This document records the current PL1CompInPy semantic model for operator preced
 - `TYPE_MAPPINGS` records Python, JVM, .NET, x86_64, and Apple ARM64 representation notes.
 - `SymbolTableBuilder` walks the AST and records variables, parameters, procedures, labels, structures, fields, pointer variables, and based storage.
 - `operator_precedence_table()` exposes the parser's operator model for tests, docs, and future debugger expression evaluation.
+- `ComplexRuntime` and `CalculationEngine` share the same precedence-driven expression tree: `**` binds tighter than unary and multiplicative/additive operators, and complex operands ride through the existing numeric tower instead of using a second evaluator.
 
 ## Debugger Direction
 

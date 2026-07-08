@@ -276,7 +276,11 @@ def runtime_function_table() -> FunctionTable:
     table.add_builtin("LENGTH", "builtins.length", [ParameterDescriptor("VALUE", "ANY")], returns="FIXED BIN")
     table.add_builtin("INDEX", "builtins.index", [ParameterDescriptor("SOURCE", "CHARACTER"), ParameterDescriptor("NEEDLE", "CHARACTER")], returns="FIXED BIN")
     table.add_builtin("POINTER", "builtins.pointer", [ParameterDescriptor("VALUE", "ANY", optional=True), ParameterDescriptor("OFFSET", "FIXED BIN", optional=True)], returns="POINTER")
-    for name in ("ABS", "SIGN", "CEIL", "FLOOR", "SQRT", "EXP", "LOG", "SIN", "COS", "TAN", "REAL", "IMAG", "CONJG"):
+    table.add_builtin("COMPLEX", "builtins.complex", [ParameterDescriptor("REAL", "ANY", optional=True), ParameterDescriptor("IMAG", "ANY", optional=True)], returns="COMPLEX")
+    table.add_builtin("REAL", "builtins.real", [ParameterDescriptor("VALUE", "ANY")], returns="ANY")
+    table.add_builtin("IMAG", "builtins.imag", [ParameterDescriptor("VALUE", "ANY")], returns="ANY")
+    table.add_builtin("CONJG", "builtins.conjg", [ParameterDescriptor("VALUE", "ANY")], returns="COMPLEX")
+    for name in ("ABS", "SIGN", "CEIL", "FLOOR", "SQRT", "EXP", "LOG", "SIN", "COS", "TAN"):
         table.add_builtin(name, f"builtins.{name.lower()}", [ParameterDescriptor("VALUE", "ANY")], returns="ANY")
     for name in ("MIN", "MAX"):
         table.add_builtin(name, f"builtins.{name.lower()}", [ParameterDescriptor("VALUE", "ANY")], returns="ANY", variadic=True)

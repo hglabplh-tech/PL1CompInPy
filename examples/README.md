@@ -39,6 +39,7 @@ These examples cover the compiler features currently implemented in PL1CompInPy.
 - `runtime/file_read_write.pl1`: `OPEN`, `READ`, `WRITE`, and `CLOSE` file statements
 - `runtime/function_table.py`: dynamic user function table and static runtime function table lookup
 - `runtime/fixed_decimal_packed_zoned.py`: fixed decimal, packed decimal, zoned decimal, and two-byte string runtime APIs
+- `runtime/complex_compute_engine.py`: direct Python use of the complex arithmetic runtime and calculation engine
 - `runtime/dynload.py`: native/managed dynamic loading descriptor usage
 - `runtime/pointer_builtin.py`: direct Python use of the `POINTER` builtin runtime helper
 - `runtime/based_structure_runtime.py`: direct Python use of based structure storage APIs
@@ -55,6 +56,7 @@ These examples cover the compiler features currently implemented in PL1CompInPy.
 - `builtins/substr.pl1`: compile with `--builtin SUBSTR`
 - `builtins/declared_substr.pl1`: `DCL SUBSTR BUILTIN;` enables a static PL/I builtin call
 - `builtins/numeric_string_builtins.pl1`: declared static numeric and string builtins through the function table
+- `builtins/complex_math_builtins.pl1`: declared static `COMPLEX`, `REAL`, `IMAG`, `CONJG`, and complex-capable math builtins
 - `builtins/pointer.pl1`: declared static `POINTER` builtin for pointer value normalization
 - `builtins/pointer_offsets.pl1`: null, numeric handle/offset, and existing-pointer `POINTER` calls
 

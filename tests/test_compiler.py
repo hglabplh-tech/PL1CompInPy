@@ -52,6 +52,8 @@ from pl1compinpy.runtime import (
     FunctionTableError,
     CalculationBuiltinRuntime,
     CommandLineRuntime,
+    ComplexRuntime,
+    ComplexValue,
     DecimalRuntime,
     DynamicLoadRuntime,
     PictureRuntime,
@@ -1147,6 +1149,51 @@ class CompilerTests(unittest.TestCase):
         self.assertEqual(float_value.value, 3.5)
         self.assertEqual(text_value.value, "AB")
         self.assertEqual(bit_value.value, False)
+
+    def test_complex_attribute_builtins_and_compute_engine(self):
+        declaration = Parser(Lexer("DCL (COMPLEX, REAL, IMAG, CONJG, ABS, SQRT) BUILTIN; DCL Z COMPLEX FLOAT;").tokenize()).parse().statements[0]
+        builtins = CalculationBuiltinRuntime()
+        complex_runtime = ComplexRuntime()
+        z = builtins.COMPLEX(3, 4)
+        expression = Parser(Lexer("RESULT = Z * Z;").tokenize()).parse().statements[0].expression
+        result = CalculationEngine({"Z": PL1Value(z, PL1Type.COMPLEX)}).evaluate(expression)
+        sqrt_negative = builtins.SQRT(ComplexValue(-1, 0))
+
+        self.assertEqual(declaration.names, ["COMPLEX", "REAL", "IMAG", "CONJG", "ABS", "SQRT"])
+        self.assertEqual(PliTypeParser().parse("COMPLEX FLOAT(53)").canonical(), "COMPLEX FLOAT BINARY(53)")
+        self.assertEqual(TYPE_MAPPINGS["COMPLEX FLOAT BINARY"].python, "ComplexValue[float,float]")
+        self.assertEqual(builtins.REAL(z), 3)
+        self.assertEqual(builtins.IMAG(z), 4)
+        self.assertEqual(builtins.ABS(z), 5.0)
+        self.assertEqual(builtins.IMAG(builtins.CONJG(z)), -4)
+        self.assertEqual(complex_runtime.mul(z, z), result.value)
+        self.assertEqual(result.type, PL1Type.COMPLEX)
+        self.assertEqual(result.value.real, -7)
+        self.assertEqual(result.value.imag, 24)
+        self.assertEqual(sqrt_negative.real, 0)
+        self.assertEqual(sqrt_negative.imag, 1)
+
+    def test_complex_builtins_run_through_runtime_function_table(self):
+        program = normalize_calls(
+            Parser(
+                Lexer(
+                    "DCL (COMPLEX, REAL, IMAG, CONJG, ABS) BUILTIN; "
+                    "DCL Z COMPLEX FLOAT; "
+                    "Z = COMPLEX(3,4); "
+                    "CALL DISPLAY(REAL(Z)); "
+                    "CALL DISPLAY(IMAG(Z)); "
+                    "CALL DISPLAY(ABS(Z)); "
+                    "CALL DISPLAY(IMAG(CONJG(Z)));"
+                ).tokenize()
+            ).parse()
+        )
+        visitor = RuntimeExecutionVisitor()
+
+        visitor.visit(program)
+
+        self.assertEqual(visitor.output, [3, 4, 5.0, -4])
+        self.assertEqual(RUNTIME_FUNCTION_TABLE.get("COMPLEX").returns, "COMPLEX")
+        self.assertTrue(RUNTIME_FUNCTION_TABLE.get("REAL").requires_declaration)
 
     def test_socket_runtime_sends_and_receives_plain_tcp(self):
         runtime = SocketRuntime()

@@ -5,6 +5,7 @@ from .based import BasedRecord, BasedRuntime, BasedRuntimeError, PointerValue
 from .calculation import CalculationEngine, CalculationError, NumericTower, PL1Type, PL1Value
 from .calling import RuntimeError, normalize_calls
 from .command_line import CommandLineRuntime
+from .complex import ComplexRuntime, ComplexRuntimeError, ComplexValue
 from .decimal import CalculationBuiltinRuntime, DecimalRuntime, FixedDecimal, PackedDecimalCodec, ZonedDecimalCodec
 from .dynload import DotNetAssemblyLoadRequest, DynamicLibraryHandle, DynamicLoadError, DynamicLoadRuntime, JavaClassLoadRequest
 from .heap import HeapBlock, HeapRuntime, HeapRuntimeError
@@ -43,6 +44,9 @@ __all__ = [
     "CalculationBuiltinRuntime",
     "CalculationError",
     "CommandLineRuntime",
+    "ComplexValue",
+    "ComplexRuntimeError",
+    "ComplexRuntime",
     "DecimalRuntime",
     "DotNetAssemblyLoadRequest",
     "DynamicLibraryHandle",

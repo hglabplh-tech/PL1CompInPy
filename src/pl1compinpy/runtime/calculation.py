@@ -6,6 +6,7 @@ from enum import Enum
 from typing import Callable
 
 from ..core.ast import BinaryExpression, Expression, FieldReference, FunctionCall, Identifier, NumberLiteral, PointerReference, StringLiteral, UnaryExpression
+from .complex import ComplexRuntime, ComplexValue
 from .decimal import FixedDecimal
 
 
@@ -19,6 +20,7 @@ class PL1Type(str, Enum):
     FLOAT = "FLOAT"
     BIT = "BIT"
     CHARACTER = "CHARACTER"
+    COMPLEX = "COMPLEX"
 
 
 @dataclass(frozen=True)
@@ -32,6 +34,8 @@ class PL1Value:
             return bool(self.value)
         if isinstance(self.value, FixedDecimal):
             return self.value.scaled != 0
+        if self.type == PL1Type.COMPLEX:
+            return self.value.as_complex() != 0 if isinstance(self.value, ComplexValue) else complex(self.value) != 0
         if self.type in {PL1Type.FIXED_BIN, PL1Type.FIXED_DEC, PL1Type.FLOAT}:
             return self.value != 0
         return bool(self.value)
@@ -43,6 +47,7 @@ class NumericTower:
         PL1Type.FIXED_BIN: 1,
         PL1Type.FIXED_DEC: 2,
         PL1Type.FLOAT: 3,
+        PL1Type.COMPLEX: 4,
     }
 
     def value(self, raw: object, type_name: PL1Type | str | None = None) -> PL1Value:
@@ -59,6 +64,8 @@ class NumericTower:
             return PL1Value(FixedDecimal.from_string(text, max(len(text.replace(".", "").replace("-", "").replace("+", "")), 1), len(text.split(".", 1)[1]) if "." in text else 0), target)
         if value.type == target:
             return value
+        if target == PL1Type.COMPLEX:
+            return PL1Value(ComplexRuntime().normalize(value.value), target)
         if target == PL1Type.CHARACTER:
             if isinstance(value.value, FixedDecimal):
                 return PL1Value(value.value.string(), target)
@@ -105,6 +112,8 @@ class NumericTower:
             return PL1Type.FIXED_DEC
         if isinstance(raw, float):
             return PL1Type.FLOAT
+        if isinstance(raw, (ComplexValue, complex)):
+            return PL1Type.COMPLEX
         if isinstance(raw, str):
             return PL1Type.CHARACTER
         raise CalculationError(f"Unsupported PL/I value: {raw!r}")
@@ -160,6 +169,8 @@ class CalculationEngine:
         if op == "-":
             if value.type == PL1Type.CHARACTER:
                 value = self.cast(value, PL1Type.FIXED_DEC)
+            if value.type == PL1Type.COMPLEX:
+                return PL1Value(ComplexRuntime().neg(value.value), PL1Type.COMPLEX)
             return PL1Value(-value.value, value.type)
         if op in {"^", "NOT"}:
             return PL1Value(not value.truthy, PL1Type.BIT)
@@ -178,7 +189,19 @@ class CalculationEngine:
         if op in {"=", "^=", "¬=", "~=", "<>", "<", "<=", ">", ">=", "=>"}:
             return PL1Value(self._compare(left, right, op), PL1Type.BIT)
         left, right, target = self.tower.promote(left, right)
+        complex_runtime = ComplexRuntime()
         try:
+            if target == PL1Type.COMPLEX:
+                if op == "+":
+                    return PL1Value(complex_runtime.add(left.value, right.value), target)
+                if op == "-":
+                    return PL1Value(complex_runtime.sub(left.value, right.value), target)
+                if op == "*":
+                    return PL1Value(complex_runtime.mul(left.value, right.value), target)
+                if op == "/":
+                    return PL1Value(complex_runtime.div(left.value, right.value), target)
+                if op == "**":
+                    return PL1Value(complex_runtime.power(left.value, right.value), target)
             if op == "+":
                 if target == PL1Type.FIXED_DEC and isinstance(left.value, FixedDecimal) and isinstance(right.value, FixedDecimal):
                     return PL1Value(left.value.add(right.value), target)
@@ -202,6 +225,12 @@ class CalculationEngine:
         raise CalculationError(f"Unsupported binary operator: {expression.operator}")
 
     def _compare(self, left: PL1Value, right: PL1Value, op: str) -> bool:
+        if left.type == PL1Type.COMPLEX or right.type == PL1Type.COMPLEX:
+            left, right, _ = self.tower.promote(left, right)
+            if op in {"=", "^=", "¬=", "~=", "<>"}:
+                equals = ComplexRuntime().normalize(left.value).as_complex() == ComplexRuntime().normalize(right.value).as_complex()
+                return equals if op == "=" else not equals
+            raise CalculationError("Complex values only support equality comparisons")
         if left.type != PL1Type.CHARACTER or right.type != PL1Type.CHARACTER:
             left, right, _ = self.tower.promote(left, right)
         if op == "=":

@@ -12,7 +12,7 @@
   - `codegen` for assembly text, executable lowering, and binary containers
 - PL/1 lexer with contextual keyword metadata.
 - PL/1 parser producing an AST for assignments, declarations, calls, procedures, labels, `GOTO`/`GO TO`, `DO` groups, `IF/THEN/ELSE`, structures/records, field references, and preprocessor commands.
-- Parser support for function-call expressions and pointer-qualified based references such as `P->REC.ID`.
+- Parser support for function-call expressions, grouped `DCL (... ) BUILTIN` declarations, and pointer-qualified based references such as `P->REC.ID`.
 - Central operator-precedence table with precedence-climbing expression parsing for arithmetic, concatenation, comparison, and logical operators including word-form `AND`/`OR`.
 - PL/I source inclusion with `%INCLUDE`, `%XINCLUDE`, `%INSCAN`, and `%XINSCAN`, including include directories and duplicate suppression for X-include forms.
 - IBM-style compile-time preprocessing for `%DECLARE`, compile-time assignment, `%ACTIVATE`, `%DEACTIVATE`, `%REPLACE`, `%NOTE`, simple `%IF/%ELSE/%END` selection, and a compile-time builtin table.
@@ -56,10 +56,10 @@
   - dynamic function table for user procedures
   - static runtime function table for runtime functions, I/O, allocation, VSAM, TCP/IP, SSL, and TLS helpers
   - dynamic loading helpers for native DLL/shared libraries, Java class loading descriptors, and .NET assembly loading descriptors
-  - static builtin function table entries for `SUBSTR`, `LENGTH`, `INDEX`, `POINTER`, `ABS`, `SIGN`, `MIN`, `MAX`, `MOD`, `ROUND`, `TRUNC`, `CEIL`, `FLOOR`, and starter math/complex helpers
+  - static builtin function table entries for `SUBSTR`, `LENGTH`, `INDEX`, `POINTER`, `COMPLEX`, `REAL`, `IMAG`, `CONJG`, `ABS`, `SIGN`, `MIN`, `MAX`, `MOD`, `ROUND`, `TRUNC`, `CEIL`, `FLOOR`, and starter math/complex helpers
   - call validation against function parameter and return descriptions
 - Semantic analysis and debugger preparation:
-  - canonical `PliType` parsing for arithmetic, string, bit, picture, pointer, offset, entry, file, and structure declarations
+  - canonical `PliType` parsing for arithmetic including `COMPLEX`/`CPLX`, string, bit, picture, pointer, offset, entry, file, and structure declarations
   - backend type mapping notes for Python, JVM, .NET, x86_64, and Apple ARM64 targets
   - target-neutral `SymbolTable` with debugger records for variables, parameters, procedures, labels, structures, fields, dimensions, storage class, and based-pointer metadata
   - semantic source notes in `docs/SEMANTICS.md` from IBM PL/I documentation, LLVM symbol-table guidance, DWARF, and Microsoft symbol-file references
@@ -77,6 +77,7 @@
   - `BASED(pointer)` record storage bound to dedicated pointer locators
   - pointer-qualified based structure member access using `P->REC.FIELD`, with default `BASED(P)` member access through `REC.FIELD`
   - calculation engine with a typed numeric tower, casts, expression evaluation, and shared runtime implementations for numeric builtins
+  - complex-number compute engine using two-part `ComplexValue` storage, arithmetic promotion, power/division checks, conjugation, real/imaginary projection, magnitude, and trigonometric/exponential/logarithmic math helpers
   - strings stored as two-byte length plus payload, with runtime `LENGTH`, one-based `SUBSTR`, and one-based `INDEX`
   - PL/I-style file declarations
   - PL/I-style `OPEN`, `READ`, `WRITE`, and `CLOSE` file statements
@@ -114,7 +115,7 @@
 ## Supported PL/1 Subset
 
 - Integer variable declarations.
-- Floating-point declarations.
+- Floating-point and complex arithmetic declarations such as `DCL Z COMPLEX FLOAT;`.
 - Picture declarations such as `DCL AMOUNT PIC'ZZZ9.99';`.
 - Array declarations such as `DCL A(10) FIXED BIN(31);`.
 - Structure/record declarations such as `DCL 1 CUSTOMER, 2 ID FIXED BIN(31), 2 NAME CHAR(20);`.
@@ -123,7 +124,7 @@
 - Pointer-qualified based structure access such as `P->REC.ID = 1001;`, including default pointer access for `BASED(P)` structures and multiple pointer views over one based structure definition.
 - Integer assignments.
 - Arithmetic with `+`, `-`, `*`, and `/`.
-- Power, concatenation, comparison, unary, and logical expression evaluation through the central precedence table and calculation engine.
+- Power, concatenation, comparison, unary, logical, and complex arithmetic expression evaluation through the central precedence table and calculation engine.
 - Procedure calls.
 - Function calls resolved and checked through runtime and dynamic function tables.
 - Multi-source translation using PL/I `%INCLUDE` text inclusion and separate module source files.
@@ -138,7 +139,7 @@
 - VSAM I/O statements using `OPEN FILE(...)`, `WRITE FILE(...) FROM(...)`, `READ FILE(...) KEY(...) INTO(...)`, ESDS `RBA(...)`, RRDS `RRN(...)`, LDS `RBA(...) LENGTH(...)`, and `CLOSE FILE(...)`.
 - Runtime `SUBSTR` behavior using one-based positions over two-byte-length string payloads, enabled in source with `DCL SUBSTR BUILTIN;`.
 - Runtime `POINTER` builtin behavior enabled in source with `DCL POINTER BUILTIN;`.
-- Declared static builtins for string, pointer, and numeric helpers such as `LENGTH`, `INDEX`, `POINTER`, `ABS`, `SIGN`, `MIN`, `MAX`, `MOD`, `ROUND`, `TRUNC`, `CEIL`, `FLOOR`, `SQRT`, `EXP`, `LOG`, `SIN`, `COS`, and `TAN`.
+- Declared static builtins for string, pointer, numeric, and complex helpers such as `LENGTH`, `INDEX`, `POINTER`, `COMPLEX`, `REAL`, `IMAG`, `CONJG`, `ABS`, `SIGN`, `MIN`, `MAX`, `MOD`, `ROUND`, `TRUNC`, `CEIL`, `FLOOR`, `SQRT`, `EXP`, `LOG`, `SIN`, `COS`, and `TAN`.
 - Declared static conversion builtins for `FIXED_DECIMAL`, `DECIMAL_TO_PACKED`, `DECIMAL_FROM_PACKED`, `DECIMAL_TO_ZONED`, and `DECIMAL_FROM_ZONED`.
 - `PROC OPTIONS(MAIN)` program entry point, including unnamed main procedures and first-parameter command-line binding.
 - `PROC RECURSIVE` metadata and ordinary recursive-call continuation semantics.
@@ -156,7 +157,7 @@
 ## Planned Features
 
 - Full declaration attribute validation.
-- Complete PL/1 expression precedence and type semantics.
+- Broader PL/1 expression and type edge cases beyond the current precedence, numeric tower, and complex arithmetic model.
 - Broader I/O support beyond starter console output.
 - Complete platform runtime/linker integration for generated binaries.
 - More complete x86_64 and ARM64 instruction encoders.

@@ -4,9 +4,9 @@ This file is generated from the Python source tree. Regenerate it with `python s
 
 ## Summary
 
-- Modules: 53
-- Classes: 153
-- Functions and methods: 615
+- Modules: 54
+- Classes: 156
+- Functions and methods: 641
 
 ## `pl1compinpy`
 
@@ -2290,7 +2290,7 @@ def _target(self, name: str) -> str
 
 Internal helper in `PythonSourceEmitter` for target.
 
-Defined at line 219.
+Defined at line 221.
 
 ##### `PythonSourceEmitter._pointer_target`
 
@@ -2300,7 +2300,7 @@ def _pointer_target(self, name: str) -> tuple[str, str, list[str]]
 
 Internal helper in `PythonSourceEmitter` for pointer target.
 
-Defined at line 225.
+Defined at line 227.
 
 ##### `PythonSourceEmitter._structure_literal`
 
@@ -2310,7 +2310,7 @@ def _structure_literal(self, field: object) -> str
 
 Internal helper in `PythonSourceEmitter` for structure literal.
 
-Defined at line 230.
+Defined at line 232.
 
 ##### `PythonSourceEmitter._main_arguments`
 
@@ -2320,7 +2320,7 @@ def _main_arguments(self, procedure: Procedure) -> str
 
 Internal helper in `PythonSourceEmitter` for main arguments.
 
-Defined at line 244.
+Defined at line 246.
 
 ### Functions
 
@@ -2332,7 +2332,7 @@ def emit_python_source(program: Program) -> str
 
 Emits python source output for the compiler.
 
-Defined at line 257.
+Defined at line 259.
 
 ## `pl1compinpy.codegen.runtime_link`
 
@@ -3528,7 +3528,7 @@ def _structures_from_tokens(self, tokens: list[Token]) -> dict[str, StructureFie
 
 Internal helper in `Parser` for structures from tokens.
 
-Defined at line 292.
+Defined at line 295.
 
 ##### `Parser._declaration_segments`
 
@@ -3538,7 +3538,7 @@ def _declaration_segments(self, tokens: list[Token]) -> list[list[Token]]
 
 Internal helper in `Parser` for declaration segments.
 
-Defined at line 317.
+Defined at line 320.
 
 ##### `Parser._procedure`
 
@@ -3548,7 +3548,7 @@ def _procedure(self, name: str | None) -> Procedure
 
 Internal helper in `Parser` for procedure.
 
-Defined at line 336.
+Defined at line 339.
 
 ##### `Parser._collect_until_balanced_rparen`
 
@@ -3558,7 +3558,7 @@ def _collect_until_balanced_rparen(self) -> list[Token]
 
 Internal helper in `Parser` for collect until balanced rparen.
 
-Defined at line 370.
+Defined at line 373.
 
 ##### `Parser._do_group`
 
@@ -3568,7 +3568,7 @@ def _do_group(self) -> DoGroup
 
 Internal helper in `Parser` for do group.
 
-Defined at line 387.
+Defined at line 390.
 
 ##### `Parser._do_control_condition`
 
@@ -3578,7 +3578,7 @@ def _do_control_condition(self, tokens: list[Token], keyword: str) -> Expression
 
 Internal helper in `Parser` for do control condition.
 
-Defined at line 407.
+Defined at line 410.
 
 ##### `Parser._if_statement`
 
@@ -3588,7 +3588,7 @@ def _if_statement(self) -> IfStatement
 
 Internal helper in `Parser` for if statement.
 
-Defined at line 416.
+Defined at line 419.
 
 ##### `Parser._call_statement`
 
@@ -3598,7 +3598,7 @@ def _call_statement(self) -> Call
 
 Internal helper in `Parser` for call statement.
 
-Defined at line 423.
+Defined at line 426.
 
 ##### `Parser._io_statement`
 
@@ -3608,7 +3608,7 @@ def _io_statement(self) -> IOStatement
 
 Internal helper in `Parser` for io statement.
 
-Defined at line 442.
+Defined at line 445.
 
 ##### `Parser._select_statement`
 
@@ -3618,7 +3618,7 @@ def _select_statement(self) -> SelectStatement
 
 Internal helper in `Parser` for select statement.
 
-Defined at line 452.
+Defined at line 455.
 
 ##### `Parser._assignment`
 
@@ -3628,7 +3628,7 @@ def _assignment(self) -> Assignment
 
 Internal helper in `Parser` for assignment.
 
-Defined at line 479.
+Defined at line 482.
 
 ##### `Parser._raw_statement`
 
@@ -3638,7 +3638,7 @@ def _raw_statement(self) -> RawStatement
 
 Internal helper in `Parser` for raw statement.
 
-Defined at line 484.
+Defined at line 487.
 
 ##### `Parser._goto_statement`
 
@@ -3648,7 +3648,7 @@ def _goto_statement(self) -> GotoStatement
 
 Internal helper in `Parser` for goto statement.
 
-Defined at line 489.
+Defined at line 492.
 
 ##### `Parser._preprocessor_statement`
 
@@ -3658,7 +3658,7 @@ def _preprocessor_statement(self) -> PreprocessorStatement
 
 Internal helper in `Parser` for preprocessor statement.
 
-Defined at line 494.
+Defined at line 497.
 
 ##### `Parser._expression`
 
@@ -3668,7 +3668,7 @@ def _expression(self) -> Expression
 
 Internal helper in `Parser` for expression.
 
-Defined at line 509.
+Defined at line 512.
 
 ##### `Parser._parse_precedence`
 
@@ -3678,7 +3678,7 @@ def _parse_precedence(self, minimum: int) -> Expression
 
 Internal helper in `Parser` for parse precedence.
 
-Defined at line 512.
+Defined at line 515.
 
 ##### `Parser._primary`
 
@@ -3688,7 +3688,7 @@ def _primary(self) -> Expression
 
 Internal helper in `Parser` for primary.
 
-Defined at line 531.
+Defined at line 534.
 
 ##### `Parser._expression_from_tokens`
 
@@ -3698,7 +3698,7 @@ def _expression_from_tokens(self, tokens: list[Token]) -> Expression
 
 Internal helper in `Parser` for expression from tokens.
 
-Defined at line 561.
+Defined at line 564.
 
 ##### `Parser._expressions_until_rparen`
 
@@ -3708,7 +3708,7 @@ def _expressions_until_rparen(self) -> list[Expression]
 
 Internal helper in `Parser` for expressions until rparen.
 
-Defined at line 565.
+Defined at line 568.
 
 ##### `Parser._option_value`
 
@@ -3718,7 +3718,7 @@ def _option_value(self, tokens: list[Token], keyword: str) -> str | None
 
 Internal helper in `Parser` for option value.
 
-Defined at line 576.
+Defined at line 579.
 
 ##### `Parser._option_tokens`
 
@@ -3728,7 +3728,7 @@ def _option_tokens(self, tokens: list[Token], keyword: str) -> list[Token]
 
 Internal helper in `Parser` for option tokens.
 
-Defined at line 582.
+Defined at line 585.
 
 ##### `Parser._io_options_from_tokens`
 
@@ -3738,7 +3738,7 @@ def _io_options_from_tokens(self, tokens: list[Token]) -> dict[str, Expression]
 
 Internal helper in `Parser` for io options from tokens.
 
-Defined at line 607.
+Defined at line 610.
 
 ##### `Parser._identifier_list_until`
 
@@ -3748,7 +3748,7 @@ def _identifier_list_until(self, end: TokenType) -> list[str]
 
 Internal helper in `Parser` for identifier list until.
 
-Defined at line 615.
+Defined at line 618.
 
 ##### `Parser._type_text`
 
@@ -3758,7 +3758,7 @@ def _type_text(self, tokens: list[Token]) -> str
 
 Internal helper in `Parser` for type text.
 
-Defined at line 625.
+Defined at line 628.
 
 ##### `Parser._collect_until_semicolon`
 
@@ -3768,7 +3768,7 @@ def _collect_until_semicolon(self) -> list[Token]
 
 Internal helper in `Parser` for collect until semicolon.
 
-Defined at line 628.
+Defined at line 631.
 
 ##### `Parser._collect_until_keyword`
 
@@ -3778,7 +3778,7 @@ def _collect_until_keyword(self, *keywords: str) -> list[Token]
 
 Internal helper in `Parser` for collect until keyword.
 
-Defined at line 642.
+Defined at line 645.
 
 ##### `Parser._looks_like_label`
 
@@ -3788,7 +3788,7 @@ def _looks_like_label(self) -> bool
 
 Internal helper in `Parser` for looks like label.
 
-Defined at line 656.
+Defined at line 659.
 
 ##### `Parser._looks_like_assignment_target`
 
@@ -3798,7 +3798,7 @@ def _looks_like_assignment_target(self) -> bool
 
 Internal helper in `Parser` for looks like assignment target.
 
-Defined at line 659.
+Defined at line 662.
 
 ##### `Parser._assignment_target`
 
@@ -3808,7 +3808,7 @@ def _assignment_target(self) -> str
 
 Internal helper in `Parser` for assignment target.
 
-Defined at line 669.
+Defined at line 672.
 
 ##### `Parser._field_suffix`
 
@@ -3818,7 +3818,7 @@ def _field_suffix(self) -> list[str]
 
 Internal helper in `Parser` for field suffix.
 
-Defined at line 679.
+Defined at line 682.
 
 ##### `Parser._starts_raw_statement`
 
@@ -3828,7 +3828,7 @@ def _starts_raw_statement(self) -> bool
 
 Internal helper in `Parser` for starts raw statement.
 
-Defined at line 685.
+Defined at line 688.
 
 ##### `Parser._match`
 
@@ -3838,7 +3838,7 @@ def _match(self, *types: TokenType) -> bool
 
 Internal helper in `Parser` for match.
 
-Defined at line 711.
+Defined at line 714.
 
 ##### `Parser._match_semicolon`
 
@@ -3848,7 +3848,7 @@ def _match_semicolon(self) -> bool
 
 Internal helper in `Parser` for match semicolon.
 
-Defined at line 717.
+Defined at line 720.
 
 ##### `Parser._match_keyword`
 
@@ -3858,7 +3858,7 @@ def _match_keyword(self, *keywords: str) -> bool
 
 Internal helper in `Parser` for match keyword.
 
-Defined at line 720.
+Defined at line 723.
 
 ##### `Parser._previous_keyword`
 
@@ -3868,7 +3868,7 @@ def _previous_keyword(self, keyword: str) -> bool
 
 Internal helper in `Parser` for previous keyword.
 
-Defined at line 726.
+Defined at line 729.
 
 ##### `Parser._check`
 
@@ -3878,7 +3878,7 @@ def _check(self, token_type: TokenType) -> bool
 
 Internal helper in `Parser` for check.
 
-Defined at line 729.
+Defined at line 732.
 
 ##### `Parser._check_next`
 
@@ -3888,7 +3888,7 @@ def _check_next(self, token_type: TokenType) -> bool
 
 Internal helper in `Parser` for check next.
 
-Defined at line 732.
+Defined at line 735.
 
 ##### `Parser._check_keyword`
 
@@ -3898,7 +3898,7 @@ def _check_keyword(self, *keywords: str) -> bool
 
 Internal helper in `Parser` for check keyword.
 
-Defined at line 737.
+Defined at line 740.
 
 ##### `Parser._check_next_keyword`
 
@@ -3908,7 +3908,7 @@ def _check_next_keyword(self, *keywords: str) -> bool
 
 Internal helper in `Parser` for check next keyword.
 
-Defined at line 741.
+Defined at line 744.
 
 ##### `Parser._consume`
 
@@ -3918,7 +3918,7 @@ def _consume(self, token_type: TokenType, message: str) -> Token
 
 Internal helper in `Parser` for consume.
 
-Defined at line 747.
+Defined at line 750.
 
 ##### `Parser._consume_identifier`
 
@@ -3928,7 +3928,7 @@ def _consume_identifier(self, message: str) -> Token
 
 Internal helper in `Parser` for consume identifier.
 
-Defined at line 752.
+Defined at line 755.
 
 ##### `Parser._advance`
 
@@ -3938,7 +3938,7 @@ def _advance(self) -> Token
 
 Internal helper in `Parser` for advance.
 
-Defined at line 757.
+Defined at line 760.
 
 ##### `Parser._peek`
 
@@ -3948,7 +3948,7 @@ def _peek(self) -> Token
 
 Internal helper in `Parser` for peek.
 
-Defined at line 762.
+Defined at line 765.
 
 ##### `Parser._previous`
 
@@ -3958,7 +3958,7 @@ def _previous(self) -> Token
 
 Internal helper in `Parser` for previous.
 
-Defined at line 765.
+Defined at line 768.
 
 ##### `Parser._error`
 
@@ -3968,7 +3968,7 @@ def _error(self, token: Token, message: str) -> ParserError
 
 Internal helper in `Parser` for error.
 
-Defined at line 768.
+Defined at line 771.
 
 ## `pl1compinpy.frontend.precedence`
 
@@ -4645,7 +4645,7 @@ class CalculationError(ValueError)
 
 Exception type raised for calculation errors.
 
-Defined at line 12.
+Defined at line 13.
 
 #### `PL1Type`
 
@@ -4655,7 +4655,7 @@ class PL1Type(str, Enum)
 
 Class implementing pl1 type behavior in the PL/I compiler.
 
-Defined at line 16.
+Defined at line 17.
 
 #### `PL1Value`
 
@@ -4665,7 +4665,7 @@ class PL1Value
 
 Data container describing pl1 value values used by the compiler.
 
-Defined at line 25.
+Defined at line 27.
 
 Methods:
 
@@ -4677,7 +4677,7 @@ def truthy(self) -> bool
 
 Performs truthy behavior in `PL1Value`.
 
-Defined at line 30.
+Defined at line 32.
 
 #### `NumericTower`
 
@@ -4687,7 +4687,7 @@ class NumericTower
 
 Class implementing numeric tower behavior in the PL/I compiler.
 
-Defined at line 40.
+Defined at line 44.
 
 Methods:
 
@@ -4699,7 +4699,7 @@ def value(self, raw: object, type_name: PL1Type | str | None = None) -> PL1Value
 
 Performs value behavior in `NumericTower`.
 
-Defined at line 48.
+Defined at line 53.
 
 ##### `NumericTower.cast`
 
@@ -4709,7 +4709,7 @@ def cast(self, value: PL1Value, target: PL1Type | str) -> PL1Value
 
 Performs cast behavior in `NumericTower`.
 
-Defined at line 55.
+Defined at line 60.
 
 ##### `NumericTower.promote`
 
@@ -4719,7 +4719,7 @@ def promote(self, left: PL1Value, right: PL1Value) -> tuple[PL1Value, PL1Value, 
 
 Performs promote behavior in `NumericTower`.
 
-Defined at line 91.
+Defined at line 98.
 
 ##### `NumericTower._infer`
 
@@ -4729,7 +4729,7 @@ def _infer(self, raw: object) -> PL1Type
 
 Internal helper in `NumericTower` for infer.
 
-Defined at line 99.
+Defined at line 106.
 
 #### `CalculationEngine`
 
@@ -4739,7 +4739,7 @@ class CalculationEngine
 
 Class implementing calculation engine behavior in the PL/I compiler.
 
-Defined at line 113.
+Defined at line 122.
 
 Methods:
 
@@ -4751,7 +4751,7 @@ def __init__(self, variables: dict[str, PL1Value | object] | None = None, resolv
 
 Initializes an instance of `CalculationEngine`.
 
-Defined at line 114.
+Defined at line 123.
 
 ##### `CalculationEngine.evaluate`
 
@@ -4761,7 +4761,7 @@ def evaluate(self, expression: Expression) -> PL1Value
 
 Performs evaluate behavior in `CalculationEngine`.
 
-Defined at line 119.
+Defined at line 128.
 
 ##### `CalculationEngine.cast`
 
@@ -4771,7 +4771,7 @@ def cast(self, value: PL1Value | object, target: PL1Type | str) -> PL1Value
 
 Performs cast behavior in `CalculationEngine`.
 
-Defined at line 147.
+Defined at line 156.
 
 ##### `CalculationEngine._number`
 
@@ -4781,7 +4781,7 @@ def _number(self, text: str) -> PL1Value
 
 Internal helper in `CalculationEngine` for number.
 
-Defined at line 150.
+Defined at line 159.
 
 ##### `CalculationEngine._unary`
 
@@ -4791,7 +4791,7 @@ def _unary(self, expression: UnaryExpression) -> PL1Value
 
 Internal helper in `CalculationEngine` for unary.
 
-Defined at line 155.
+Defined at line 164.
 
 ##### `CalculationEngine._binary`
 
@@ -4801,7 +4801,7 @@ def _binary(self, expression: BinaryExpression) -> PL1Value
 
 Internal helper in `CalculationEngine` for binary.
 
-Defined at line 168.
+Defined at line 179.
 
 ##### `CalculationEngine._compare`
 
@@ -4811,7 +4811,7 @@ def _compare(self, left: PL1Value, right: PL1Value, op: str) -> bool
 
 Internal helper in `CalculationEngine` for compare.
 
-Defined at line 204.
+Defined at line 227.
 
 ##### `CalculationEngine._comparable`
 
@@ -4821,7 +4821,7 @@ def _comparable(self, value: object) -> object
 
 Internal helper in `CalculationEngine` for comparable.
 
-Defined at line 221.
+Defined at line 250.
 
 ## `pl1compinpy.runtime.calling`
 
@@ -4983,6 +4983,300 @@ Performs bind main parameters behavior in `CommandLineRuntime`.
 
 Defined at line 37.
 
+## `pl1compinpy.runtime.complex`
+
+Source: `pl1compinpy/runtime/complex.py`
+
+Module containing complex support for the PL/I compiler.
+
+### Classes
+
+#### `ComplexRuntimeError`
+
+```python
+class ComplexRuntimeError(ValueError)
+```
+
+Exception type raised for complex runtime errors.
+
+Defined at line 9.
+
+#### `ComplexValue`
+
+```python
+class ComplexValue
+```
+
+Data container describing complex value values used by the compiler.
+
+Defined at line 14.
+
+Methods:
+
+##### `ComplexValue.from_python`
+
+```python
+def from_python(cls, value: complex) -> 'ComplexValue'
+```
+
+Performs from python behavior in `ComplexValue`.
+
+Defined at line 19.
+
+##### `ComplexValue.as_complex`
+
+```python
+def as_complex(self) -> complex
+```
+
+Performs as complex behavior in `ComplexValue`.
+
+Defined at line 22.
+
+##### `ComplexValue.__complex__`
+
+```python
+def __complex__(self) -> complex
+```
+
+Internal helper in `ComplexValue` for complex.
+
+Defined at line 25.
+
+##### `ComplexValue.__str__`
+
+```python
+def __str__(self) -> str
+```
+
+Internal helper in `ComplexValue` for str.
+
+Defined at line 28.
+
+#### `ComplexRuntime`
+
+```python
+class ComplexRuntime
+```
+
+Class implementing complex runtime behavior in the PL/I compiler.
+
+Defined at line 56.
+
+Methods:
+
+##### `ComplexRuntime.value`
+
+```python
+def value(self, real: Any = 0.0, imag: Any = 0.0) -> ComplexValue
+```
+
+Performs value behavior in `ComplexRuntime`.
+
+Defined at line 57.
+
+##### `ComplexRuntime.normalize`
+
+```python
+def normalize(self, value: Any) -> ComplexValue
+```
+
+Performs normalize behavior in `ComplexRuntime`.
+
+Defined at line 64.
+
+##### `ComplexRuntime.add`
+
+```python
+def add(self, left: Any, right: Any) -> ComplexValue
+```
+
+Performs add behavior in `ComplexRuntime`.
+
+Defined at line 71.
+
+##### `ComplexRuntime.sub`
+
+```python
+def sub(self, left: Any, right: Any) -> ComplexValue
+```
+
+Performs sub behavior in `ComplexRuntime`.
+
+Defined at line 74.
+
+##### `ComplexRuntime.mul`
+
+```python
+def mul(self, left: Any, right: Any) -> ComplexValue
+```
+
+Performs mul behavior in `ComplexRuntime`.
+
+Defined at line 77.
+
+##### `ComplexRuntime.div`
+
+```python
+def div(self, left: Any, right: Any) -> ComplexValue
+```
+
+Performs div behavior in `ComplexRuntime`.
+
+Defined at line 80.
+
+##### `ComplexRuntime.power`
+
+```python
+def power(self, left: Any, right: Any) -> ComplexValue
+```
+
+Performs power behavior in `ComplexRuntime`.
+
+Defined at line 86.
+
+##### `ComplexRuntime.neg`
+
+```python
+def neg(self, value: Any) -> ComplexValue
+```
+
+Performs neg behavior in `ComplexRuntime`.
+
+Defined at line 89.
+
+##### `ComplexRuntime.real`
+
+```python
+def real(self, value: Any) -> Any
+```
+
+Performs real behavior in `ComplexRuntime`.
+
+Defined at line 92.
+
+##### `ComplexRuntime.imag`
+
+```python
+def imag(self, value: Any) -> Any
+```
+
+Performs imag behavior in `ComplexRuntime`.
+
+Defined at line 95.
+
+##### `ComplexRuntime.conjg`
+
+```python
+def conjg(self, value: Any) -> ComplexValue
+```
+
+Performs conjg behavior in `ComplexRuntime`.
+
+Defined at line 98.
+
+##### `ComplexRuntime.abs`
+
+```python
+def abs(self, value: Any) -> float
+```
+
+Performs abs behavior in `ComplexRuntime`.
+
+Defined at line 101.
+
+##### `ComplexRuntime.sqrt`
+
+```python
+def sqrt(self, value: Any) -> ComplexValue
+```
+
+Performs sqrt behavior in `ComplexRuntime`.
+
+Defined at line 104.
+
+##### `ComplexRuntime.exp`
+
+```python
+def exp(self, value: Any) -> ComplexValue
+```
+
+Performs exp behavior in `ComplexRuntime`.
+
+Defined at line 107.
+
+##### `ComplexRuntime.log`
+
+```python
+def log(self, value: Any) -> ComplexValue
+```
+
+Performs log behavior in `ComplexRuntime`.
+
+Defined at line 110.
+
+##### `ComplexRuntime.sin`
+
+```python
+def sin(self, value: Any) -> ComplexValue
+```
+
+Performs sin behavior in `ComplexRuntime`.
+
+Defined at line 113.
+
+##### `ComplexRuntime.cos`
+
+```python
+def cos(self, value: Any) -> ComplexValue
+```
+
+Performs cos behavior in `ComplexRuntime`.
+
+Defined at line 116.
+
+##### `ComplexRuntime.tan`
+
+```python
+def tan(self, value: Any) -> ComplexValue
+```
+
+Performs tan behavior in `ComplexRuntime`.
+
+Defined at line 119.
+
+### Functions
+
+#### `_clean_float`
+
+```python
+def _clean_float(value: float) -> int | float
+```
+
+Internal helper in `pl1compinpy.runtime.complex` for clean float.
+
+Defined at line 33.
+
+#### `_to_float`
+
+```python
+def _to_float(value: Any) -> float
+```
+
+Internal helper in `pl1compinpy.runtime.complex` for to float.
+
+Defined at line 37.
+
+#### `_is_complex_like`
+
+```python
+def _is_complex_like(value: Any) -> bool
+```
+
+Internal helper in `pl1compinpy.runtime.complex` for is complex like.
+
+Defined at line 123.
+
 ## `pl1compinpy.runtime.decimal`
 
 Source: `pl1compinpy/runtime/decimal.py`
@@ -4999,7 +5293,7 @@ class FixedDecimal
 
 Data container describing fixed decimal values used by the compiler.
 
-Defined at line 15.
+Defined at line 16.
 
 Methods:
 
@@ -5011,7 +5305,7 @@ def from_decimal(cls, value: Decimal, precision: int, scale: int = 0) -> 'FixedD
 
 Performs from decimal behavior in `FixedDecimal`.
 
-Defined at line 21.
+Defined at line 22.
 
 ##### `FixedDecimal.from_string`
 
@@ -5021,7 +5315,7 @@ def from_string(cls, text: str, precision: int, scale: int = 0) -> 'FixedDecimal
 
 Performs from string behavior in `FixedDecimal`.
 
-Defined at line 29.
+Defined at line 30.
 
 ##### `FixedDecimal.from_int`
 
@@ -5031,7 +5325,7 @@ def from_int(cls, value: int, precision: int, scale: int = 0) -> 'FixedDecimal'
 
 Performs from int behavior in `FixedDecimal`.
 
-Defined at line 33.
+Defined at line 34.
 
 ##### `FixedDecimal.from_float`
 
@@ -5041,7 +5335,7 @@ def from_float(cls, value: float, precision: int, scale: int = 0) -> 'FixedDecim
 
 Performs from float behavior in `FixedDecimal`.
 
-Defined at line 37.
+Defined at line 38.
 
 ##### `FixedDecimal.decimal`
 
@@ -5051,7 +5345,7 @@ def decimal(self) -> Decimal
 
 Performs decimal behavior in `FixedDecimal`.
 
-Defined at line 40.
+Defined at line 41.
 
 ##### `FixedDecimal.string`
 
@@ -5061,7 +5355,7 @@ def string(self) -> str
 
 Performs string behavior in `FixedDecimal`.
 
-Defined at line 43.
+Defined at line 44.
 
 ##### `FixedDecimal.__str__`
 
@@ -5071,7 +5365,7 @@ def __str__(self) -> str
 
 Internal helper in `FixedDecimal` for str.
 
-Defined at line 47.
+Defined at line 48.
 
 ##### `FixedDecimal.__eq__`
 
@@ -5081,7 +5375,7 @@ def __eq__(self, other: object) -> bool
 
 Internal helper in `FixedDecimal` for eq.
 
-Defined at line 50.
+Defined at line 51.
 
 ##### `FixedDecimal.int`
 
@@ -5091,7 +5385,7 @@ def int(self) -> int
 
 Performs int behavior in `FixedDecimal`.
 
-Defined at line 57.
+Defined at line 58.
 
 ##### `FixedDecimal.float`
 
@@ -5101,7 +5395,7 @@ def float(self) -> float
 
 Performs float behavior in `FixedDecimal`.
 
-Defined at line 60.
+Defined at line 61.
 
 ##### `FixedDecimal.check`
 
@@ -5111,7 +5405,7 @@ def check(self) -> None
 
 Performs check behavior in `FixedDecimal`.
 
-Defined at line 63.
+Defined at line 64.
 
 ##### `FixedDecimal.rescale`
 
@@ -5121,7 +5415,7 @@ def rescale(self, precision: int, scale: int) -> 'FixedDecimal'
 
 Performs rescale behavior in `FixedDecimal`.
 
-Defined at line 68.
+Defined at line 69.
 
 ##### `FixedDecimal.add`
 
@@ -5131,7 +5425,7 @@ def add(self, other: 'FixedDecimal') -> 'FixedDecimal'
 
 Performs add behavior in `FixedDecimal`.
 
-Defined at line 71.
+Defined at line 72.
 
 ##### `FixedDecimal.sub`
 
@@ -5141,7 +5435,7 @@ def sub(self, other: 'FixedDecimal') -> 'FixedDecimal'
 
 Performs sub behavior in `FixedDecimal`.
 
-Defined at line 78.
+Defined at line 79.
 
 ##### `FixedDecimal.mul`
 
@@ -5151,7 +5445,7 @@ def mul(self, other: 'FixedDecimal') -> 'FixedDecimal'
 
 Performs mul behavior in `FixedDecimal`.
 
-Defined at line 85.
+Defined at line 86.
 
 ##### `FixedDecimal.div`
 
@@ -5161,7 +5455,7 @@ def div(self, other: 'FixedDecimal', precision: int | None = None, scale: int | 
 
 Performs div behavior in `FixedDecimal`.
 
-Defined at line 88.
+Defined at line 89.
 
 #### `ZonedDecimalCodec`
 
@@ -5171,7 +5465,7 @@ class ZonedDecimalCodec
 
 Class implementing zoned decimal codec behavior in the PL/I compiler.
 
-Defined at line 102.
+Defined at line 103.
 
 Methods:
 
@@ -5183,7 +5477,7 @@ def encode(value: FixedDecimal, signed: bool = True, overpunch: bool = True) -> 
 
 Performs encode behavior in `ZonedDecimalCodec`.
 
-Defined at line 104.
+Defined at line 105.
 
 ##### `ZonedDecimalCodec.decode`
 
@@ -5193,7 +5487,7 @@ def decode(text: str, precision: int, scale: int = 0) -> FixedDecimal
 
 Performs decode behavior in `ZonedDecimalCodec`.
 
-Defined at line 114.
+Defined at line 115.
 
 #### `PackedDecimalCodec`
 
@@ -5203,7 +5497,7 @@ class PackedDecimalCodec
 
 Class implementing packed decimal codec behavior in the PL/I compiler.
 
-Defined at line 130.
+Defined at line 131.
 
 Methods:
 
@@ -5215,7 +5509,7 @@ def encode(value: FixedDecimal) -> bytes
 
 Performs encode behavior in `PackedDecimalCodec`.
 
-Defined at line 135.
+Defined at line 136.
 
 ##### `PackedDecimalCodec.decode`
 
@@ -5225,7 +5519,7 @@ def decode(data: bytes | bytearray, precision: int, scale: int = 0) -> FixedDeci
 
 Performs decode behavior in `PackedDecimalCodec`.
 
-Defined at line 144.
+Defined at line 145.
 
 #### `DecimalRuntime`
 
@@ -5235,7 +5529,7 @@ class DecimalRuntime
 
 Class implementing decimal runtime behavior in the PL/I compiler.
 
-Defined at line 162.
+Defined at line 163.
 
 Methods:
 
@@ -5247,7 +5541,7 @@ def fixed_decimal(value: Decimal | str | int | float | FixedDecimal, precision: 
 
 Performs fixed decimal behavior in `DecimalRuntime`.
 
-Defined at line 164.
+Defined at line 165.
 
 ##### `DecimalRuntime.convert`
 
@@ -5257,7 +5551,7 @@ def convert(value: Any, source: str, target: str, *, precision: int, scale: int 
 
 Performs convert behavior in `DecimalRuntime`.
 
-Defined at line 176.
+Defined at line 177.
 
 ##### `DecimalRuntime.to_fixed_decimal`
 
@@ -5267,7 +5561,7 @@ def to_fixed_decimal(value: Any, source: str, precision: int, scale: int = 0) ->
 
 Performs to fixed decimal behavior in `DecimalRuntime`.
 
-Defined at line 196.
+Defined at line 197.
 
 #### `CalculationBuiltinRuntime`
 
@@ -5277,7 +5571,7 @@ class CalculationBuiltinRuntime
 
 Class implementing calculation builtin runtime behavior in the PL/I compiler.
 
-Defined at line 237.
+Defined at line 240.
 
 Methods:
 
@@ -5289,7 +5583,7 @@ def ABS(self, value: Any) -> Any
 
 Performs abs behavior in `CalculationBuiltinRuntime`.
 
-Defined at line 238.
+Defined at line 241.
 
 ##### `CalculationBuiltinRuntime.SIGN`
 
@@ -5299,7 +5593,7 @@ def SIGN(self, value: Any) -> int
 
 Performs sign behavior in `CalculationBuiltinRuntime`.
 
-Defined at line 245.
+Defined at line 248.
 
 ##### `CalculationBuiltinRuntime.MIN`
 
@@ -5309,7 +5603,7 @@ def MIN(self, *args: Any) -> Any
 
 Performs min behavior in `CalculationBuiltinRuntime`.
 
-Defined at line 249.
+Defined at line 252.
 
 ##### `CalculationBuiltinRuntime.MAX`
 
@@ -5319,7 +5613,7 @@ def MAX(self, *args: Any) -> Any
 
 Performs max behavior in `CalculationBuiltinRuntime`.
 
-Defined at line 252.
+Defined at line 255.
 
 ##### `CalculationBuiltinRuntime.MOD`
 
@@ -5329,7 +5623,7 @@ def MOD(self, left: Any, right: Any) -> int
 
 Performs mod behavior in `CalculationBuiltinRuntime`.
 
-Defined at line 255.
+Defined at line 258.
 
 ##### `CalculationBuiltinRuntime.TRUNC`
 
@@ -5339,7 +5633,7 @@ def TRUNC(self, value: Any, scale: Any = 0) -> FixedDecimal
 
 Performs trunc behavior in `CalculationBuiltinRuntime`.
 
-Defined at line 258.
+Defined at line 261.
 
 ##### `CalculationBuiltinRuntime.ROUND`
 
@@ -5349,7 +5643,7 @@ def ROUND(self, value: Any, scale: Any = 0) -> FixedDecimal
 
 Performs round behavior in `CalculationBuiltinRuntime`.
 
-Defined at line 263.
+Defined at line 266.
 
 ##### `CalculationBuiltinRuntime.CEIL`
 
@@ -5359,7 +5653,7 @@ def CEIL(self, value: Any) -> int
 
 Performs ceil behavior in `CalculationBuiltinRuntime`.
 
-Defined at line 268.
+Defined at line 271.
 
 ##### `CalculationBuiltinRuntime.FLOOR`
 
@@ -5369,7 +5663,17 @@ def FLOOR(self, value: Any) -> int
 
 Performs floor behavior in `CalculationBuiltinRuntime`.
 
-Defined at line 271.
+Defined at line 274.
+
+##### `CalculationBuiltinRuntime.COMPLEX`
+
+```python
+def COMPLEX(self, real: Any = 0, imag: Any = 0) -> ComplexValue
+```
+
+Performs complex behavior in `CalculationBuiltinRuntime`.
+
+Defined at line 277.
 
 ##### `CalculationBuiltinRuntime.SQRT`
 
@@ -5379,57 +5683,57 @@ def SQRT(self, value: Any) -> Any
 
 Performs sqrt behavior in `CalculationBuiltinRuntime`.
 
-Defined at line 274.
+Defined at line 280.
 
 ##### `CalculationBuiltinRuntime.EXP`
 
 ```python
-def EXP(self, value: Any) -> float
+def EXP(self, value: Any) -> Any
 ```
 
 Performs exp behavior in `CalculationBuiltinRuntime`.
 
-Defined at line 279.
+Defined at line 285.
 
 ##### `CalculationBuiltinRuntime.LOG`
 
 ```python
-def LOG(self, value: Any) -> float
+def LOG(self, value: Any) -> Any
 ```
 
 Performs log behavior in `CalculationBuiltinRuntime`.
 
-Defined at line 282.
+Defined at line 290.
 
 ##### `CalculationBuiltinRuntime.SIN`
 
 ```python
-def SIN(self, value: Any) -> float
+def SIN(self, value: Any) -> Any
 ```
 
 Performs sin behavior in `CalculationBuiltinRuntime`.
 
-Defined at line 285.
+Defined at line 295.
 
 ##### `CalculationBuiltinRuntime.COS`
 
 ```python
-def COS(self, value: Any) -> float
+def COS(self, value: Any) -> Any
 ```
 
 Performs cos behavior in `CalculationBuiltinRuntime`.
 
-Defined at line 288.
+Defined at line 300.
 
 ##### `CalculationBuiltinRuntime.TAN`
 
 ```python
-def TAN(self, value: Any) -> float
+def TAN(self, value: Any) -> Any
 ```
 
 Performs tan behavior in `CalculationBuiltinRuntime`.
 
-Defined at line 291.
+Defined at line 305.
 
 ##### `CalculationBuiltinRuntime.REAL`
 
@@ -5439,7 +5743,7 @@ def REAL(self, value: Any) -> Any
 
 Performs real behavior in `CalculationBuiltinRuntime`.
 
-Defined at line 294.
+Defined at line 310.
 
 ##### `CalculationBuiltinRuntime.IMAG`
 
@@ -5449,17 +5753,17 @@ def IMAG(self, value: Any) -> Any
 
 Performs imag behavior in `CalculationBuiltinRuntime`.
 
-Defined at line 297.
+Defined at line 313.
 
 ##### `CalculationBuiltinRuntime.CONJG`
 
 ```python
-def CONJG(self, value: Any) -> complex
+def CONJG(self, value: Any) -> ComplexValue
 ```
 
 Performs conjg behavior in `CalculationBuiltinRuntime`.
 
-Defined at line 300.
+Defined at line 316.
 
 ##### `CalculationBuiltinRuntime.LENGTH`
 
@@ -5469,7 +5773,7 @@ def LENGTH(self, value: Any) -> int
 
 Performs length behavior in `CalculationBuiltinRuntime`.
 
-Defined at line 303.
+Defined at line 319.
 
 ##### `CalculationBuiltinRuntime.SUBSTR`
 
@@ -5479,7 +5783,7 @@ def SUBSTR(self, value: Any, start: Any, count: Any | None = None) -> str
 
 Performs substr behavior in `CalculationBuiltinRuntime`.
 
-Defined at line 310.
+Defined at line 326.
 
 ##### `CalculationBuiltinRuntime.INDEX`
 
@@ -5489,7 +5793,7 @@ def INDEX(self, value: Any, needle: Any) -> int
 
 Performs index behavior in `CalculationBuiltinRuntime`.
 
-Defined at line 315.
+Defined at line 331.
 
 ##### `CalculationBuiltinRuntime.FIXED_DECIMAL`
 
@@ -5499,7 +5803,7 @@ def FIXED_DECIMAL(self, value: Any, precision: Any, scale: Any = 0) -> FixedDeci
 
 Performs fixed decimal behavior in `CalculationBuiltinRuntime`.
 
-Defined at line 321.
+Defined at line 337.
 
 ##### `CalculationBuiltinRuntime.DECIMAL_TO_PACKED`
 
@@ -5509,7 +5813,7 @@ def DECIMAL_TO_PACKED(self, value: Any, precision: Any, scale: Any = 0) -> bytes
 
 Performs decimal to packed behavior in `CalculationBuiltinRuntime`.
 
-Defined at line 324.
+Defined at line 340.
 
 ##### `CalculationBuiltinRuntime.DECIMAL_FROM_PACKED`
 
@@ -5519,7 +5823,7 @@ def DECIMAL_FROM_PACKED(self, value: Any, precision: Any, scale: Any = 0) -> Fix
 
 Performs decimal from packed behavior in `CalculationBuiltinRuntime`.
 
-Defined at line 328.
+Defined at line 344.
 
 ##### `CalculationBuiltinRuntime.DECIMAL_TO_ZONED`
 
@@ -5529,7 +5833,7 @@ def DECIMAL_TO_ZONED(self, value: Any, precision: Any, scale: Any = 0) -> str
 
 Performs decimal to zoned behavior in `CalculationBuiltinRuntime`.
 
-Defined at line 331.
+Defined at line 347.
 
 ##### `CalculationBuiltinRuntime.DECIMAL_FROM_ZONED`
 
@@ -5539,7 +5843,7 @@ def DECIMAL_FROM_ZONED(self, value: Any, precision: Any, scale: Any = 0) -> Fixe
 
 Performs decimal from zoned behavior in `CalculationBuiltinRuntime`.
 
-Defined at line 335.
+Defined at line 351.
 
 ### Functions
 
@@ -5551,7 +5855,7 @@ def to_decimal(value: Any) -> Decimal
 
 Performs to decimal behavior in `pl1compinpy.runtime.decimal`.
 
-Defined at line 215.
+Defined at line 216.
 
 #### `to_python_float`
 
@@ -5561,7 +5865,7 @@ def to_python_float(value: Any) -> float
 
 Performs to python float behavior in `pl1compinpy.runtime.decimal`.
 
-Defined at line 231.
+Defined at line 234.
 
 ## `pl1compinpy.runtime.dynload`
 
@@ -7639,7 +7943,7 @@ class PliTypeParser
 
 Class implementing pli type parser behavior in the PL/I compiler.
 
-Defined at line 65.
+Defined at line 70.
 
 Methods:
 
@@ -7651,7 +7955,7 @@ def parse(self, text: str | list[str] | tuple[str, ...] | None) -> PliType | Non
 
 Parses lexer tokens into the compiler's AST representation.
 
-Defined at line 66.
+Defined at line 71.
 
 ##### `PliTypeParser.mapping_for`
 
@@ -7661,7 +7965,7 @@ def mapping_for(self, pli_type: PliType | str | None) -> TypeMapping | None
 
 Performs mapping for behavior in `PliTypeParser`.
 
-Defined at line 97.
+Defined at line 111.
 
 ##### `PliTypeParser._normalize`
 
@@ -7671,7 +7975,7 @@ def _normalize(self, text: str) -> str
 
 Internal helper in `PliTypeParser` for normalize.
 
-Defined at line 103.
+Defined at line 117.
 
 ##### `PliTypeParser._attributes`
 
@@ -7681,7 +7985,7 @@ def _attributes(self, normalized: str) -> tuple[str, ...]
 
 Internal helper in `PliTypeParser` for attributes.
 
-Defined at line 106.
+Defined at line 120.
 
 ##### `PliTypeParser._first_int_paren`
 
@@ -7691,7 +7995,7 @@ def _first_int_paren(self, text: str) -> int | None
 
 Internal helper in `PliTypeParser` for first int paren.
 
-Defined at line 109.
+Defined at line 123.
 
 ##### `PliTypeParser._precision`
 
@@ -7701,7 +8005,7 @@ def _precision(self, text: str) -> tuple[int, int | None] | None
 
 Internal helper in `PliTypeParser` for precision.
 
-Defined at line 113.
+Defined at line 127.
 
 ##### `PliTypeParser._picture`
 
@@ -7711,7 +8015,7 @@ def _picture(self, text: str) -> str | None
 
 Internal helper in `PliTypeParser` for picture.
 
-Defined at line 119.
+Defined at line 133.
 
 ### Functions
 
@@ -7723,7 +8027,7 @@ def parse_pli_type(text: str | list[str] | tuple[str, ...] | None) -> PliType | 
 
 Parses lexer tokens into the compiler's AST representation.
 
-Defined at line 124.
+Defined at line 138.
 
 ## `pl1compinpy.runtime.visitor`
 
@@ -7741,7 +8045,7 @@ class RuntimeVisitorError(ValueError)
 
 Exception type raised for runtime visitor errors.
 
-Defined at line 35.
+Defined at line 36.
 
 #### `RuntimeExecutionVisitor`
 
@@ -7751,7 +8055,7 @@ class RuntimeExecutionVisitor(AstVisitor)
 
 Class implementing runtime execution visitor behavior in the PL/I compiler.
 
-Defined at line 39.
+Defined at line 40.
 
 Methods:
 
@@ -7763,7 +8067,7 @@ def __init__(self, variables: dict[str, PL1Value | object] | None = None, max_lo
 
 Initializes an instance of `RuntimeExecutionVisitor`.
 
-Defined at line 40.
+Defined at line 41.
 
 ##### `RuntimeExecutionVisitor.visit_Program`
 
@@ -7773,7 +8077,7 @@ def visit_Program(self, node: Program) -> Any
 
 Performs visit program behavior in `RuntimeExecutionVisitor`.
 
-Defined at line 53.
+Defined at line 54.
 
 ##### `RuntimeExecutionVisitor.visit_Declaration`
 
@@ -7783,7 +8087,7 @@ def visit_Declaration(self, node: Declaration) -> None
 
 Performs visit declaration behavior in `RuntimeExecutionVisitor`.
 
-Defined at line 67.
+Defined at line 68.
 
 ##### `RuntimeExecutionVisitor.visit_Assignment`
 
@@ -7793,7 +8097,7 @@ def visit_Assignment(self, node: Assignment) -> PL1Value
 
 Performs visit assignment behavior in `RuntimeExecutionVisitor`.
 
-Defined at line 98.
+Defined at line 101.
 
 ##### `RuntimeExecutionVisitor.visit_Call`
 
@@ -7803,7 +8107,7 @@ def visit_Call(self, node: Call) -> Any
 
 Performs visit call behavior in `RuntimeExecutionVisitor`.
 
-Defined at line 118.
+Defined at line 121.
 
 ##### `RuntimeExecutionVisitor.visit_DoGroup`
 
@@ -7813,7 +8117,7 @@ def visit_DoGroup(self, node: DoGroup) -> Any
 
 Performs visit do group behavior in `RuntimeExecutionVisitor`.
 
-Defined at line 126.
+Defined at line 129.
 
 ##### `RuntimeExecutionVisitor.visit_IfStatement`
 
@@ -7823,7 +8127,7 @@ def visit_IfStatement(self, node: IfStatement) -> Any
 
 Performs visit if statement behavior in `RuntimeExecutionVisitor`.
 
-Defined at line 142.
+Defined at line 145.
 
 ##### `RuntimeExecutionVisitor.visit_SelectStatement`
 
@@ -7833,7 +8137,7 @@ def visit_SelectStatement(self, node: SelectStatement) -> Any
 
 Performs visit select statement behavior in `RuntimeExecutionVisitor`.
 
-Defined at line 147.
+Defined at line 150.
 
 ##### `RuntimeExecutionVisitor.visit_LabelledStatement`
 
@@ -7843,7 +8147,7 @@ def visit_LabelledStatement(self, node: LabelledStatement) -> Any
 
 Performs visit labelled statement behavior in `RuntimeExecutionVisitor`.
 
-Defined at line 158.
+Defined at line 161.
 
 ##### `RuntimeExecutionVisitor.visit_GotoStatement`
 
@@ -7853,7 +8157,7 @@ def visit_GotoStatement(self, node: GotoStatement) -> Any
 
 Performs visit goto statement behavior in `RuntimeExecutionVisitor`.
 
-Defined at line 161.
+Defined at line 164.
 
 ##### `RuntimeExecutionVisitor.visit_PreprocessorStatement`
 
@@ -7863,7 +8167,7 @@ def visit_PreprocessorStatement(self, node: PreprocessorStatement) -> Any
 
 Performs visit preprocessor statement behavior in `RuntimeExecutionVisitor`.
 
-Defined at line 164.
+Defined at line 167.
 
 ##### `RuntimeExecutionVisitor.visit_RawStatement`
 
@@ -7873,7 +8177,7 @@ def visit_RawStatement(self, node: RawStatement) -> Any
 
 Performs visit raw statement behavior in `RuntimeExecutionVisitor`.
 
-Defined at line 167.
+Defined at line 170.
 
 ##### `RuntimeExecutionVisitor.evaluate`
 
@@ -7883,7 +8187,7 @@ def evaluate(self, expression: Expression) -> PL1Value
 
 Performs evaluate behavior in `RuntimeExecutionVisitor`.
 
-Defined at line 170.
+Defined at line 173.
 
 ##### `RuntimeExecutionVisitor._execute_block`
 
@@ -7893,7 +8197,7 @@ def _execute_block(self, statements: list[Statement]) -> Any
 
 Internal helper in `RuntimeExecutionVisitor` for execute block.
 
-Defined at line 191.
+Defined at line 194.
 
 ##### `RuntimeExecutionVisitor._dispatch_call`
 
@@ -7903,7 +8207,7 @@ def _dispatch_call(self, name: str, arguments: list[object]) -> Any
 
 Internal helper in `RuntimeExecutionVisitor` for dispatch call.
 
-Defined at line 197.
+Defined at line 200.
 
 ##### `RuntimeExecutionVisitor._plain`
 
@@ -7913,7 +8217,7 @@ def _plain(self, value: PL1Value | object) -> object
 
 Internal helper in `RuntimeExecutionVisitor` for plain.
 
-Defined at line 243.
+Defined at line 247.
 
 ##### `RuntimeExecutionVisitor._pointer_target`
 
@@ -7923,7 +8227,7 @@ def _pointer_target(self, target: str) -> tuple[str, str, list[str]]
 
 Internal helper in `RuntimeExecutionVisitor` for pointer target.
 
-Defined at line 246.
+Defined at line 250.
 
 ##### `RuntimeExecutionVisitor._is_based_structure`
 
@@ -7933,7 +8237,7 @@ def _is_based_structure(self, name: str) -> bool
 
 Internal helper in `RuntimeExecutionVisitor` for is based structure.
 
-Defined at line 251.
+Defined at line 255.
 
 ##### `RuntimeExecutionVisitor._pointer_value`
 
@@ -7943,7 +8247,7 @@ def _pointer_value(self, name: str) -> object
 
 Internal helper in `RuntimeExecutionVisitor` for pointer value.
 
-Defined at line 254.
+Defined at line 258.
 
 ##### `RuntimeExecutionVisitor._default_pointer`
 
@@ -7953,7 +8257,7 @@ def _default_pointer(self, structure_name: str) -> object
 
 Internal helper in `RuntimeExecutionVisitor` for default pointer.
 
-Defined at line 260.
+Defined at line 264.
 
 ## `pl1compinpy.vsam`
 

@@ -30,7 +30,7 @@ class PliType:
 
     @property
     def arithmetic(self) -> bool:
-        return self.kind in {"FIXED BINARY", "FIXED DECIMAL", "FLOAT BINARY", "FLOAT DECIMAL"}
+        return self.kind in {"FIXED BINARY", "FIXED DECIMAL", "FLOAT BINARY", "FLOAT DECIMAL", "COMPLEX", "COMPLEX FIXED BINARY", "COMPLEX FIXED DECIMAL", "COMPLEX FLOAT BINARY", "COMPLEX FLOAT DECIMAL"}
 
     @property
     def locator(self) -> bool:
@@ -54,6 +54,11 @@ TYPE_MAPPINGS: dict[str, TypeMapping] = {
     "FIXED DECIMAL": TypeMapping("decimal.Decimal / FixedDecimal", "BigDecimal", "decimal / runtime", "packed/zoned decimal runtime", "packed/zoned decimal runtime", "Decimal arithmetic stays in runtime helpers, not CPU integer registers."),
     "FLOAT BINARY": TypeMapping("float", "float/double", "float/double", "xmm float/double", "sN/dN FP register", "BINARY FLOAT follows target floating-point support."),
     "FLOAT DECIMAL": TypeMapping("decimal.Decimal", "BigDecimal", "decimal", "decimal FP runtime", "decimal FP runtime", "Decimal float needs runtime or target decimal FP support."),
+    "COMPLEX": TypeMapping("ComplexValue", "complex runtime pair", "ComplexValue pair", "two-part runtime storage", "two-part runtime storage", "COMPLEX is an arithmetic mode; store real and imaginary components with the selected base/scale."),
+    "COMPLEX FIXED BINARY": TypeMapping("ComplexValue[int,int]", "complex integer pair", "complex integer pair", "two integer fields", "two integer fields", "Fixed binary complex stores two fixed-binary parts."),
+    "COMPLEX FIXED DECIMAL": TypeMapping("ComplexValue[FixedDecimal,FixedDecimal]", "BigDecimal pair", "decimal pair", "decimal runtime pair", "decimal runtime pair", "Fixed decimal complex stores two scaled decimal parts."),
+    "COMPLEX FLOAT BINARY": TypeMapping("ComplexValue[float,float]", "double pair", "double pair", "two FP fields", "two FP fields", "Default practical complex representation for floating arithmetic."),
+    "COMPLEX FLOAT DECIMAL": TypeMapping("ComplexValue[Decimal,Decimal]", "BigDecimal pair", "decimal pair", "decimal FP runtime pair", "decimal FP runtime pair", "Decimal floating complex needs runtime support."),
     "PICTURE": TypeMapping("str + decimal codec", "String + BigDecimal codec", "string + decimal codec", "zoned/packed buffer", "zoned/packed buffer", "PICTURE is both storage/display format and conversion policy."),
     "POINTER": TypeMapping("PointerValue", "handle/reference", "IntPtr / managed handle", "uint64 pointer", "uint64 pointer", "Safe targets should use runtime handles rather than raw host addresses."),
     "OFFSET": TypeMapping("int offset", "int offset", "int offset", "relative offset", "relative offset", "OFFSET is relative to an AREA or locator base."),
@@ -70,6 +75,15 @@ class PliTypeParser:
         normalized = self._normalize(source)
         if not normalized:
             return None
+        if "COMPLEX" in normalized or re.search(r"\bCPLX\b", normalized):
+            kind = "COMPLEX FLOAT BINARY"
+            if "FIXED" in normalized and ("DECIMAL" in normalized or re.search(r"\bDEC\b", normalized)):
+                kind = "COMPLEX FIXED DECIMAL"
+            elif "FIXED" in normalized or "BINARY" in normalized or re.search(r"\bBIN\b", normalized):
+                kind = "COMPLEX FIXED BINARY"
+            elif "FLOAT" in normalized and ("DECIMAL" in normalized or re.search(r"\bDEC\b", normalized)):
+                kind = "COMPLEX FLOAT DECIMAL"
+            return PliType(kind, precision=self._precision(source), attributes=self._attributes(normalized))
         if "ENTRY" in normalized:
             return PliType("ENTRY", attributes=self._attributes(normalized))
         if "POINTER" in normalized or re.search(r"\bPTR\b", normalized):
