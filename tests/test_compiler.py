@@ -37,6 +37,7 @@ from pl1compinpy.ast import (
     StructureField,
     main_procedure_name,
 )
+from pl1compinpy.frontend import operator_precedence_table
 from pl1compinpy.frontend.include import IncludeError, IncludeExpander
 from pl1compinpy.frontend.preprocessor import IBMStylePreprocessor, preprocess_source
 from pl1compinpy.frontend.lexer import Lexer, TokenType
@@ -64,6 +65,11 @@ from pl1compinpy.runtime import (
     StdioRuntime,
     StringRuntime,
     StructureRuntime,
+    PliTypeParser,
+    TYPE_MAPPINGS,
+    SymbolKind,
+    StorageClass,
+    build_symbol_table,
     ZonedDecimalCodec,
     PL1Type,
     PL1Value,
@@ -461,16 +467,47 @@ class CompilerTests(unittest.TestCase):
         self.assertEqual(visitor.variables["X"].value, 3)
 
     def test_expression_parser_uses_pl1_operator_precedence(self):
-        expression = Parser(Lexer("RESULT = A | B & C = D || E + F * G ** H;").tokenize()).parse().statements[0].expression
+        expression = Parser(Lexer("RESULT = A OR B AND C = D || E + F * G ** H;").tokenize()).parse().statements[0].expression
+        table = {info.symbol: info.precedence for info in operator_precedence_table() if info.category != "prefix"}
 
+        self.assertLess(table["OR"], table["AND"])
+        self.assertLess(table["AND"], table["="])
+        self.assertLess(table["="], table["||"])
+        self.assertLess(table["||"], table["+"])
+        self.assertLess(table["+"], table["*"])
+        self.assertLess(table["*"], table["**"])
         self.assertIsInstance(expression, BinaryExpression)
-        self.assertEqual(expression.operator, "|")
-        self.assertEqual(expression.right.operator, "&")
+        self.assertEqual(expression.operator, "OR")
+        self.assertEqual(expression.right.operator, "AND")
         self.assertEqual(expression.right.right.operator, "=")
         self.assertEqual(expression.right.right.right.operator, "||")
         self.assertEqual(expression.right.right.right.right.operator, "+")
         self.assertEqual(expression.right.right.right.right.right.operator, "*")
         self.assertEqual(expression.right.right.right.right.right.right.operator, "**")
+
+    def test_pli_type_parser_and_symbol_table_prepare_debugger_records(self):
+        parser = PliTypeParser()
+        fixed = parser.parse("FIXED DECIMAL(31,2)")
+        character = parser.parse("CHAR(80) VARYING")
+        pointer = parser.parse("POINTER")
+        program = Parser(
+            Lexer(
+                "DCL P POINTER; DCL 1 REC BASED(P), 2 ID FIXED BIN(31), 2 NAME CHAR(80) VARYING; "
+                "MAIN: PROC OPTIONS(MAIN); DCL TOTAL FIXED DECIMAL(31,2); END MAIN;"
+            ).tokenize()
+        ).parse()
+        symbols = build_symbol_table(program)
+
+        self.assertEqual(fixed.canonical(), "FIXED DECIMAL(31,2)")
+        self.assertEqual(character.canonical(), "CHARACTER(80) VARYING")
+        self.assertTrue(pointer.locator)
+        self.assertEqual(TYPE_MAPPINGS["FIXED DECIMAL"].python, "decimal.Decimal / FixedDecimal")
+        self.assertEqual(symbols.lookup("P").pli_type.canonical(), "POINTER")
+        self.assertEqual(symbols.lookup("REC").storage, StorageClass.BASED)
+        self.assertEqual(symbols.lookup("REC.ID").kind, SymbolKind.FIELD)
+        self.assertEqual(symbols.lookup("TOTAL", "MAIN").pli_type.canonical(), "FIXED DECIMAL")
+        self.assertEqual(symbols.lookup("MAIN").kind, SymbolKind.PROCEDURE)
+        self.assertIn("scope", symbols.lookup("TOTAL", "MAIN").debugger_record())
 
     def test_emits_x586_windows_assignment_control_and_io(self):
         source = "DCL TOTAL FIXED BIN(31); TOTAL = 40 + 2; IF TOTAL = 42 THEN CALL DISPLAY(TOTAL);"
@@ -1104,7 +1141,7 @@ class CompilerTests(unittest.TestCase):
 
         float_value = engine.evaluate(Parser(Lexer("RESULT = X + 2;").tokenize()).parse().statements[0].expression)
         text_value = engine.evaluate(Parser(Lexer("RESULT = 'A' || 'B';").tokenize()).parse().statements[0].expression)
-        bit_value = engine.evaluate(Parser(Lexer("RESULT = ^FLAG | 0;").tokenize()).parse().statements[0].expression)
+        bit_value = engine.evaluate(Parser(Lexer("RESULT = ^FLAG OR 0;").tokenize()).parse().statements[0].expression)
 
         self.assertEqual(float_value.type, PL1Type.FLOAT)
         self.assertEqual(float_value.value, 3.5)

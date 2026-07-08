@@ -15,6 +15,8 @@ from .socket_io import SocketDescriptor, SocketFileDescriptor, SocketHandle, Soc
 from .strings import StringRuntime, StringRuntimeError, StringValue
 from .structures import BasedStructureRuntime, StructureFieldLayout, StructureRuntime, StructureRuntimeError, StructureValue, flattened_structure_fields
 from .visitor import RuntimeExecutionVisitor, RuntimeVisitorError
+from .types import PliType, PliTypeParser, TYPE_MAPPINGS, TypeMapping, parse_pli_type
+from .symbols import SourceLocation, StorageClass, Symbol, SymbolKind, SymbolTable, SymbolTableBuilder, SymbolTableError, build_symbol_table
 from .generics import GenericFunction, GenericRuntime, GenericRuntimeError, pl1_type
 from .function_table import (
     FunctionDescriptor,
@@ -69,6 +71,19 @@ __all__ = [
     "PL1Value",
     "ParameterDescriptor",
     "PackedDecimalCodec",
+    "PliType",
+    "PliTypeParser",
+    "TYPE_MAPPINGS",
+    "TypeMapping",
+    "parse_pli_type",
+    "SourceLocation",
+    "StorageClass",
+    "Symbol",
+    "SymbolKind",
+    "SymbolTable",
+    "SymbolTableBuilder",
+    "SymbolTableError",
+    "build_symbol_table",
     "PointerValue",
     "RUNTIME_FUNCTION_TABLE",
     "RuntimeError",

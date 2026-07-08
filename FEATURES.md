@@ -13,6 +13,7 @@
 - PL/1 lexer with contextual keyword metadata.
 - PL/1 parser producing an AST for assignments, declarations, calls, procedures, labels, `GOTO`/`GO TO`, `DO` groups, `IF/THEN/ELSE`, structures/records, field references, and preprocessor commands.
 - Parser support for function-call expressions and pointer-qualified based references such as `P->REC.ID`.
+- Central operator-precedence table with precedence-climbing expression parsing for arithmetic, concatenation, comparison, and logical operators including word-form `AND`/`OR`.
 - PL/I source inclusion with `%INCLUDE`, `%XINCLUDE`, `%INSCAN`, and `%XINSCAN`, including include directories and duplicate suppression for X-include forms.
 - IBM-style compile-time preprocessing for `%DECLARE`, compile-time assignment, `%ACTIVATE`, `%DEACTIVATE`, `%REPLACE`, `%NOTE`, simple `%IF/%ELSE/%END` selection, and a compile-time builtin table.
 - Multi-source compilation where all provided sources are parsed as one program and `PROC OPTIONS(MAIN)` selects the main module.
@@ -57,6 +58,11 @@
   - dynamic loading helpers for native DLL/shared libraries, Java class loading descriptors, and .NET assembly loading descriptors
   - static builtin function table entries for `SUBSTR`, `LENGTH`, `INDEX`, `POINTER`, `ABS`, `SIGN`, `MIN`, `MAX`, `MOD`, `ROUND`, `TRUNC`, `CEIL`, `FLOOR`, and starter math/complex helpers
   - call validation against function parameter and return descriptions
+- Semantic analysis and debugger preparation:
+  - canonical `PliType` parsing for arithmetic, string, bit, picture, pointer, offset, entry, file, and structure declarations
+  - backend type mapping notes for Python, JVM, .NET, x86_64, and Apple ARM64 targets
+  - target-neutral `SymbolTable` with debugger records for variables, parameters, procedures, labels, structures, fields, dimensions, storage class, and based-pointer metadata
+  - semantic source notes in `docs/SEMANTICS.md` from IBM PL/I documentation, LLVM symbol-table guidance, DWARF, and Microsoft symbol-file references
 - Runtime storage and I/O:
   - heap allocation blocks
   - heap-backed arrays
@@ -117,7 +123,7 @@
 - Pointer-qualified based structure access such as `P->REC.ID = 1001;`, including default pointer access for `BASED(P)` structures and multiple pointer views over one based structure definition.
 - Integer assignments.
 - Arithmetic with `+`, `-`, `*`, and `/`.
-- Power, concatenation, comparison, unary, and logical expression evaluation through the calculation engine.
+- Power, concatenation, comparison, unary, and logical expression evaluation through the central precedence table and calculation engine.
 - Procedure calls.
 - Function calls resolved and checked through runtime and dynamic function tables.
 - Multi-source translation using PL/I `%INCLUDE` text inclusion and separate module source files.

@@ -198,7 +198,9 @@ class PythonSourceEmitter:
             "=>": ">=",
             "||": "+",
             "&": "and",
+            "AND": "and",
             "|": "or",
+            "OR": "or",
             "**": "**",
         }.get(operator, operator)
 

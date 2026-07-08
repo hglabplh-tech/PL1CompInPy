@@ -6,6 +6,7 @@ These examples cover the compiler features currently implemented in PL1CompInPy.
 
 - `language/declarations.pl1`: declarations, assignment, and display calls
 - `language/calculation_engine.pl1`: operator precedence, numeric promotion, and logical expressions
+- `language/operator_precedence_words.pl1`: central precedence table with word-form `AND`/`OR` operators
 - `language/control_structures.pl1`: `IF/THEN/ELSE`
 - `language/do_while_until.pl1`: `DO WHILE` and post-test `DO ... UNTIL`
 - `language/select_when.pl1`: `SELECT` with `WHEN` and `OTHERWISE`
@@ -42,6 +43,7 @@ These examples cover the compiler features currently implemented in PL1CompInPy.
 - `runtime/pointer_builtin.py`: direct Python use of the `POINTER` builtin runtime helper
 - `runtime/based_structure_runtime.py`: direct Python use of based structure storage APIs
 - `runtime/runtime_visitor.py`: direct use of the AST `RuntimeExecutionVisitor`
+- `runtime/symbol_table_debug.py`: debugger-oriented symbol table and type mapping records
 - `runtime/socket_io.py`: primitive runtime TCP socket send/receive example
 - `runtime/socket_stream.py`: file-like socket payload records above primitive sockets
 - `runtime/socket_primitive_sender.pl1`: primitive `TCPIP_OPEN`, `TCPIP_SEND`, and `TCPIP_CLOSE` call usage

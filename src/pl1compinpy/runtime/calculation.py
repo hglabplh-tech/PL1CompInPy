@@ -169,10 +169,10 @@ class CalculationEngine:
         op = expression.operator.upper()
         if op == "||":
             return PL1Value(str(self.evaluate(expression.left).value) + str(self.evaluate(expression.right).value), PL1Type.CHARACTER)
-        if op in {"&", "|"}:
+        if op in {"&", "AND", "|", "OR"}:
             left = self.evaluate(expression.left).truthy
             right = self.evaluate(expression.right).truthy
-            return PL1Value(left and right if op == "&" else left or right, PL1Type.BIT)
+            return PL1Value(left and right if op in {"&", "AND"} else left or right, PL1Type.BIT)
         left = self.evaluate(expression.left)
         right = self.evaluate(expression.right)
         if op in {"=", "^=", "¬=", "~=", "<>", "<", "<=", ">", ">=", "=>"}:

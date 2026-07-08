@@ -139,7 +139,7 @@ Currently supported compiler features:
 - level-numbered structures/records with nested scalar fields and dotted field references such as `CUSTOMER.ADDRESS.ZIP`
 - pointer-qualified based structure references such as `P->REC.ID`, plus default `BASED(P)` access through `REC.ID`
 - example coverage for default based access, explicit pointer-qualified access, and multiple pointer views over one based structure
-- PL/I-style expression precedence for `**`, unary operators, `*`/`/`, `+`/`-`, `||`, comparisons, `&`, and `|`
+- PL/I-style expression precedence for `**`, unary operators, `*`/`/`, `+`/`-`, `||`, comparisons, `&`/`AND`, and `|`/`OR`, driven by a central precedence table
 - `IF/THEN/ELSE` comparisons with `=`, `^=`, `<>`, `<`, `<=`, `>`, and `>=`
 - `DO WHILE` pre-test loops and post-test `DO ... UNTIL` loops
 - `SELECT`/`WHEN`/`OTHERWISE` conditional groups
@@ -211,12 +211,13 @@ The executable pipeline includes a first runtime calling convention:
 - .NET IL links the runtime through the `PL1CompInPy.Runtime` managed assembly
 - dynamic-load runtime services include `DYNLOAD`/`DYNSYM` for native libraries plus Java class-load and .NET assembly-load descriptors
 - AST nodes support a visitor pattern through `accept`, and runtime execution has a `RuntimeExecutionVisitor` for future compiler passes and runtime checks; see `examples/runtime/runtime_visitor.py`
+- semantic analysis includes canonical `PliType` parsing, backend type mappings, and a debugger-oriented `SymbolTable` with scope, storage, dimensions, based-pointer, procedure, parameter, and field records
 - Python source output passes `" ".join(sys.argv[1:])` to the first `OPTIONS(MAIN)` procedure parameter; native/JVM/.NET backends now identify the same main entry and reserve argument slots for parameterized mains
 - backend control-flow lowering treats simple `DO` as a block, `DO WHILE` as a pre-test loop, `DO ... UNTIL` as a post-test loop, `IF/THEN/ELSE` as decisions, and `SELECT/WHEN/OTHERWISE` as branches
 - GOTO statements are parsed as AST nodes and lowered to unconditional branches for the native mnemonic/assembly backends, while Python, JVM text, and .NET IL outputs preserve the branch intent in their target form
 - PL/I preprocessor statements are parsed into `PreprocessorStatement` AST nodes when they are not consumed by the compile-time preprocessor, so future macro expansion can still use the visitor pipeline; current backends preserve remaining commands as target comments
 
-The examples include an imported PL/I quicksort library at `examples/language/quicksort_imported.pli`; it is kept unchanged as a larger reference source while the current compiler subset grows toward it.
+The examples include an imported PL/I quicksort library at `examples/language/quicksort_imported.pli`; it is kept unchanged as a larger reference source while the current compiler subset grows toward it. Semantic notes for operator precedence, PL/I type modeling, and debugger symbol tables live in `docs/SEMANTICS.md`.
 
 The runtime also includes starter storage and I/O services:
 

@@ -34,6 +34,7 @@ def _add(word: str, category: str, meaning: str, *aliases: str) -> None:
 
 
 _add("ALLOCATE", "storage statement", "Allocates controlled or based storage.", "ALLOC")
+_add("AND", "logical operator", "Conjoins two bit or truth values.")
 _add("BEGIN", "structural statement", "Starts a begin block with its own scope.")
 _add("CALL", "control statement", "Invokes a procedure and ignores any returned value.")
 _add("CLOSE", "I/O statement", "Closes a file.")
@@ -53,6 +54,7 @@ _add("IF", "control statement", "Conditionally executes a statement or group.")
 _add("LOCATE", "record I/O statement", "Positions output for record creation.")
 _add("ON", "condition statement", "Establishes a condition handler.")
 _add("OPEN", "I/O statement", "Opens a file.")
+_add("OR", "logical operator", "Disjoins two bit or truth values.")
 _add("PROCEDURE", "structural statement", "Starts a procedure.", "PROC")
 _add("PUT", "stream I/O statement", "Writes stream output.")
 _add("READ", "record I/O statement", "Reads a record.")
