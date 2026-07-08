@@ -38,6 +38,7 @@ from pl1compinpy.ast import (
     main_procedure_name,
 )
 from pl1compinpy.frontend.include import IncludeError, IncludeExpander
+from pl1compinpy.frontend.preprocessor import IBMStylePreprocessor, preprocess_source
 from pl1compinpy.frontend.lexer import Lexer, TokenType
 from pl1compinpy.frontend.parser import Parser
 from pl1compinpy.runtime import (
@@ -167,6 +168,48 @@ class CompilerTests(unittest.TestCase):
                 expander.expand("%INCLUDE 'missing';", base_dir=root)
             with self.assertRaises(IncludeError):
                 expander.expand_file(root / "a.inc")
+
+    def test_ibm_style_preprocessor_replaces_and_selects_active_branch(self):
+        source = (
+            "%DECLARE FEATURE FIXED;\n"
+            "%FEATURE = 1;\n"
+            "%REPLACE RESULT BY PREPROCESSED_RESULT;\n"
+            "%IF FEATURE %THEN;\n"
+            "DCL RESULT FIXED BIN(31);\n"
+            "RESULT = 42;\n"
+            "%ELSE;\n"
+            "DCL RESULT FIXED BIN(31);\n"
+            "RESULT = 0;\n"
+            "%END;\n"
+        )
+
+        preprocessed = preprocess_source(source)
+        output = compile_source(source)
+
+        self.assertIn("DCL PREPROCESSED_RESULT FIXED BIN(31);", preprocessed)
+        self.assertIn("PREPROCESSED_RESULT = 42;", preprocessed)
+        self.assertNotIn("RESULT = 0;", preprocessed)
+        self.assertIn("PREPROCESSED_RESULT = 42", output)
+
+    def test_ibm_style_preprocessor_builtins_notes_and_tables(self):
+        preprocessor = IBMStylePreprocessor(sysp_arm="DEBUG TRACE")
+        preprocessed = preprocessor.preprocess(
+            "%DECLARE FLAG FIXED;\n"
+            "%FLAG = PARMSET('DEBUG');\n"
+            "%NOTE UPPERCASE('preprocessor active');\n"
+            "%IF FLAG %THEN;\n"
+            "ACTIVE = 1;\n"
+            "%ELSE;\n"
+            "ACTIVE = 0;\n"
+            "%END;\n"
+        )
+        tables = preprocessor.compile_time_tables()
+
+        self.assertEqual(preprocessed.strip(), "ACTIVE = 1;")
+        self.assertIn("PARMSET", tables["builtins"])
+        self.assertIn("ACTIVATE", tables["directives"])
+        self.assertEqual(tables["symbols"]["FLAG"]["value"], True)
+        self.assertEqual(tables["notes"], ["PREPROCESSOR ACTIVE"])
 
     def test_skips_comments(self):
         tokens = Lexer("A = 1; /* comment */ B = 2;").tokenize()

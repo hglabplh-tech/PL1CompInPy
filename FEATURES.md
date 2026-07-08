@@ -14,10 +14,11 @@
 - PL/1 parser producing an AST for assignments, declarations, calls, procedures, labels, `GOTO`/`GO TO`, `DO` groups, `IF/THEN/ELSE`, structures/records, field references, and preprocessor commands.
 - Parser support for function-call expressions and pointer-qualified based references such as `P->REC.ID`.
 - PL/I source inclusion with `%INCLUDE`, `%XINCLUDE`, `%INSCAN`, and `%XINSCAN`, including include directories and duplicate suppression for X-include forms.
+- IBM-style compile-time preprocessing for `%DECLARE`, compile-time assignment, `%ACTIVATE`, `%DEACTIVATE`, `%REPLACE`, `%NOTE`, simple `%IF/%ELSE/%END` selection, and a compile-time builtin table.
 - Multi-source compilation where all provided sources are parsed as one program and `PROC OPTIONS(MAIN)` selects the main module.
 - Visitor-enabled AST nodes and runtime execution visitor support for future compiler passes.
 - Parser support for `DO WHILE`, post-test `DO ... UNTIL`, and `SELECT`/`WHEN`/`OTHERWISE`.
-- Parser support for `%` preprocessor statements including declaration, include, replacement, conditional, loop, macro procedure, branch, and listing commands as preserved AST nodes.
+- Parser support for remaining `%` preprocessor statements including declaration, include, replacement, conditional, loop, macro procedure, branch, and listing commands as preserved AST nodes.
 - Backend lowering for `DO` blocks, `DO WHILE`, post-test `DO ... UNTIL`, `IF/THEN/ELSE`, `SELECT/WHEN/OTHERWISE` branch blocks, and `GOTO` unconditional branches.
 - Example coverage for visitor-based runtime execution and structured backend control blocks.
 - Example coverage for `%INCLUDE`, multi-source compilation, static/shared library artifacts, and native/managed dynamic loading descriptors.
@@ -100,7 +101,7 @@
 - Native runtime startup/shutdown symbol references plus embedded runtime link manifests.
 - Managed runtime references for JVM classpath and .NET assembly linkage.
 - Unit tests for lexer, parser, compiler output, assembly output, structures/records, runtime field access, pointer-qualified based access, declared pointer builtins, and binary signatures.
-- Unit tests for include expansion, strict include diagnostics, recursive include protection, multi-source main selection, CLI library output, library manifests, dynamic-load runtime dispatch, and generated API documentation.
+- Unit tests for include expansion, strict include diagnostics, recursive include protection, IBM-style preprocessing, multi-source main selection, CLI library output, library manifests, dynamic-load runtime dispatch, and generated API documentation.
 - Packaged PL/I builtin source inclusion with a first `SUBSTR` builtin.
 - Static PL/I builtin function table entries that require `DCL name BUILTIN;` before use.
 
@@ -140,7 +141,8 @@
 - `DO WHILE` and post-test `DO ... UNTIL` groups.
 - `SELECT` with `WHEN` and `OTHERWISE`.
 - Labels and `GOTO`/`GO TO`.
-- `%` preprocessor command parsing for forms such as `%DECLARE`, `%ACTIVATE`, `%DEACTIVATE`, `%REPLACE`, `%IF`, `%THEN`, `%ELSE`, `%DO`, `%END`, `%SELECT`, `%WHEN`, `%OTHERWISE`, `%INCLUDE`, `%XINCLUDE`, `%INSCAN`, `%XINSCAN`, `%PRINT`, `%NOPRINT`, `%PAGE`, `%SKIP`, `%PUSH`, `%POP`, `%GOTO`, `%LEAVE`, `%ITERATE`, `%PROCEDURE`, and `%RETURN`.
+- `%` preprocessor command parsing and preprocessing for forms such as `%DECLARE`, `%ACTIVATE`, `%DEACTIVATE`, `%REPLACE`, `%IF`, `%THEN`, `%ELSE`, `%DO`, `%END`, `%SELECT`, `%WHEN`, `%OTHERWISE`, `%INCLUDE`, `%XINCLUDE`, `%INSCAN`, `%XINSCAN`, `%PRINT`, `%NOPRINT`, `%PAGE`, `%SKIP`, `%PUSH`, `%POP`, `%GOTO`, `%LEAVE`, `%ITERATE`, `%PROCEDURE`, and `%RETURN`.
+- Imported PL/I quicksort source kept unchanged in `examples/language/quicksort_imported.pli` as a larger reference module for arrays, generics, text-file helpers, based structures, and recursive sorting procedures.
 - Runtime `DYNLOAD`, `DYNSYM`, `JAVA_LOAD_CLASS`, and `DOTNET_LOAD_ASSEMBLY` linkage helpers.
 - Labels and simple procedure bodies.
 - Simple `DO` groups.

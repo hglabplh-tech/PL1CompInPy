@@ -145,6 +145,7 @@ Currently supported compiler features:
 - `SELECT`/`WHEN`/`OTHERWISE` conditional groups
 - labels and `GOTO`/`GO TO` branch statements
 - parsed `%` preprocessor commands such as `%DECLARE`, `%IF`, `%DO`, `%INCLUDE`, `%REPLACE`, `%GOTO`, `%PROCEDURE`, `%RETURN`, and listing controls
+- IBM-style preprocessing before lexing for `%DECLARE`, compile-time assignment, `%ACTIVATE`, `%DEACTIVATE`, `%REPLACE`, `%NOTE`, simple `%IF/%ELSE/%END` selection, and compile-time builtins such as `PARMSET`, `SYSPARM`, `LENGTH`, `SUBSTR`, `UPPERCASE`, and `LOWERCASE`
 - `%INCLUDE`, `%XINCLUDE`, `%INSCAN`, and `%XINSCAN` source expansion before lexing, with include directories and recursive include protection
 - multi-source compilation where the module containing `PROC OPTIONS(MAIN)` is treated as the main module
 - labels and procedure bodies
@@ -213,7 +214,9 @@ The executable pipeline includes a first runtime calling convention:
 - Python source output passes `" ".join(sys.argv[1:])` to the first `OPTIONS(MAIN)` procedure parameter; native/JVM/.NET backends now identify the same main entry and reserve argument slots for parameterized mains
 - backend control-flow lowering treats simple `DO` as a block, `DO WHILE` as a pre-test loop, `DO ... UNTIL` as a post-test loop, `IF/THEN/ELSE` as decisions, and `SELECT/WHEN/OTHERWISE` as branches
 - GOTO statements are parsed as AST nodes and lowered to unconditional branches for the native mnemonic/assembly backends, while Python, JVM text, and .NET IL outputs preserve the branch intent in their target form
-- PL/I preprocessor statements are parsed into `PreprocessorStatement` AST nodes so future macro expansion can use the visitor pipeline; current backends preserve them as target comments
+- PL/I preprocessor statements are parsed into `PreprocessorStatement` AST nodes when they are not consumed by the compile-time preprocessor, so future macro expansion can still use the visitor pipeline; current backends preserve remaining commands as target comments
+
+The examples include an imported PL/I quicksort library at `examples/language/quicksort_imported.pli`; it is kept unchanged as a larger reference source while the current compiler subset grows toward it.
 
 The runtime also includes starter storage and I/O services:
 

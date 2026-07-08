@@ -1,0 +1,390 @@
+/* npl1_quicksort_library.pli
+   Lowercase PL/I/NPL1 style test source with modular procedures.
+   Contains: file environment, text iterator declarations, read/write helpers,
+   generic quicksort for fixed decimal(31,0) and character varying, and main proc.
+*/
+
+/* ========================================================== */
+/* declarations: file environment and text iterator            */
+/* ========================================================== */
+
+dcl 1 file_environment_declaration based,
+      2 filename char(256) varying,
+      2 mode fixed binary(31),              /* 1=input, 2=output */
+      2 eof bit(1),
+      2 line_no fixed binary(31);
+
+dcl 1 text_iterator based,
+      2 env pointer,
+      2 current_line char(1024) varying,
+      2 has_current bit(1),
+      2 closed bit(1),
+      2 f file variable;
+
+dcl file_environment_declaration_create entry(char(*) varying, fixed binary(31)) returns(pointer);
+dcl readfile  entry(pointer) returns(pointer);
+dcl writefile entry(pointer) returns(pointer);
+dcl textiterator_hasnext   entry(pointer) returns(bit(1));
+dcl textiterator_next      entry(pointer) returns(char(1024) varying);
+dcl textiterator_writeline entry(pointer, char(*) varying);
+dcl textiterator_close     entry(pointer);
+
+/* ========================================================== */
+/* procedure: create file environment                          */
+/* ========================================================== */
+
+file_environment_declaration_create:
+proc(filename, mode) returns(pointer);
+   dcl filename char(*) varying;
+   dcl mode fixed binary(31);
+   dcl p pointer;
+
+   allocate file_environment_declaration set(p);
+   p->file_environment_declaration.filename = filename;
+   p->file_environment_declaration.mode     = mode;
+   p->file_environment_declaration.eof      = '0'b;
+   p->file_environment_declaration.line_no  = 0;
+   return(p);
+end file_environment_declaration_create;
+
+/* ========================================================== */
+/* procedure: readfile                                         */
+/* ========================================================== */
+
+readfile:
+proc(env_ptr) returns(pointer);
+   dcl env_ptr pointer;
+   dcl it_ptr pointer;
+   dcl filename char(256) varying;
+
+   allocate text_iterator set(it_ptr);
+   it_ptr->text_iterator.env          = env_ptr;
+   it_ptr->text_iterator.current_line = '';
+   it_ptr->text_iterator.has_current  = '0'b;
+   it_ptr->text_iterator.closed       = '0'b;
+
+   filename = env_ptr->file_environment_declaration.filename;
+   open file(it_ptr->text_iterator.f) title(filename) stream input;
+   return(it_ptr);
+end readfile;
+
+/* ========================================================== */
+/* procedure: writefile                                        */
+/* ========================================================== */
+
+writefile:
+proc(env_ptr) returns(pointer);
+   dcl env_ptr pointer;
+   dcl it_ptr pointer;
+   dcl filename char(256) varying;
+
+   allocate text_iterator set(it_ptr);
+   it_ptr->text_iterator.env          = env_ptr;
+   it_ptr->text_iterator.current_line = '';
+   it_ptr->text_iterator.has_current  = '0'b;
+   it_ptr->text_iterator.closed       = '0'b;
+
+   filename = env_ptr->file_environment_declaration.filename;
+   open file(it_ptr->text_iterator.f) title(filename) stream output print;
+   return(it_ptr);
+end writefile;
+
+/* ========================================================== */
+/* procedure: textiterator_hasnext                             */
+/* ========================================================== */
+
+textiterator_hasnext:
+proc(it_ptr) returns(bit(1));
+   dcl it_ptr pointer;
+   dcl env_ptr pointer;
+   dcl line char(1024) varying;
+
+   env_ptr = it_ptr->text_iterator.env;
+
+   if it_ptr->text_iterator.closed then return('0'b);
+   if env_ptr->file_environment_declaration.eof then return('0'b);
+   if it_ptr->text_iterator.has_current then return('1'b);
+
+   on endfile(it_ptr->text_iterator.f) begin;
+      env_ptr->file_environment_declaration.eof = '1'b;
+      return('0'b);
+   end;
+
+   get file(it_ptr->text_iterator.f) edit(line) (a);
+   it_ptr->text_iterator.current_line = line;
+   it_ptr->text_iterator.has_current  = '1'b;
+   env_ptr->file_environment_declaration.line_no =
+      env_ptr->file_environment_declaration.line_no + 1;
+
+   return('1'b);
+end textiterator_hasnext;
+
+/* ========================================================== */
+/* procedure: textiterator_next                                */
+/* ========================================================== */
+
+textiterator_next:
+proc(it_ptr) returns(char(1024) varying);
+   dcl it_ptr pointer;
+   dcl line char(1024) varying;
+
+   if ^textiterator_hasnext(it_ptr) then return('');
+   line = it_ptr->text_iterator.current_line;
+   it_ptr->text_iterator.current_line = '';
+   it_ptr->text_iterator.has_current  = '0'b;
+   return(line);
+end textiterator_next;
+
+/* ========================================================== */
+/* procedure: textiterator_writeline                           */
+/* ========================================================== */
+
+textiterator_writeline:
+proc(it_ptr, line);
+   dcl it_ptr pointer;
+   dcl line char(*) varying;
+
+   if it_ptr->text_iterator.closed then return;
+   put file(it_ptr->text_iterator.f) edit(line) (a);
+   put file(it_ptr->text_iterator.f) skip;
+end textiterator_writeline;
+
+/* ========================================================== */
+/* procedure: textiterator_close                               */
+/* ========================================================== */
+
+textiterator_close:
+proc(it_ptr);
+   dcl it_ptr pointer;
+   if ^it_ptr->text_iterator.closed then do;
+      close file(it_ptr->text_iterator.f);
+      it_ptr->text_iterator.closed = '1'b;
+   end;
+end textiterator_close;
+
+/* ========================================================== */
+/* generic declaration                                         */
+/* ========================================================== */
+
+generic quicksort
+   when(fixed decimal(31,0)) quicksort_decimal,
+   when(character varying)   quicksort_string;
+
+/* ========================================================== */
+/* procedure: quicksort fixed decimal(31,0)                    */
+/* ========================================================== */
+
+quicksort_decimal:
+proc(a, left, right);
+   dcl a(*) fixed decimal(31,0);
+   dcl left fixed binary(31);
+   dcl right fixed binary(31);
+   dcl i fixed binary(31);
+   dcl j fixed binary(31);
+   dcl pivot fixed decimal(31,0);
+   dcl temp fixed decimal(31,0);
+
+   i = left;
+   j = right;
+   pivot = a((left + right) / 2);
+
+   do while i <= j;
+      do while a(i) < pivot;
+         i = i + 1;
+      end;
+      do while a(j) > pivot;
+         j = j - 1;
+      end;
+      if i <= j do;
+         temp = a(i);
+         a(i) = a(j);
+         a(j) = temp;
+         i = i + 1;
+         j = j - 1;
+      end;
+   end;
+
+   if left < j do;
+      call quicksort_decimal(a, left, j);
+   end;
+   if i < right do;
+      call quicksort_decimal(a, i, right);
+   end;
+end quicksort_decimal;
+
+/* ========================================================== */
+/* procedure: quicksort character varying                      */
+/* ========================================================== */
+
+quicksort_string:
+proc(a, left, right);
+   dcl a(*) char(256) varying;
+   dcl left fixed binary(31);
+   dcl right fixed binary(31);
+   dcl i fixed binary(31);
+   dcl j fixed binary(31);
+   dcl pivot char(256) varying;
+   dcl temp char(256) varying;
+
+   i = left;
+   j = right;
+   pivot = a((left + right) / 2);
+
+   do while i <= j;
+      do while a(i) < pivot;
+         i = i + 1;
+      end;
+      do while a(j) > pivot;
+         j = j - 1;
+      end;
+      if i <= j do;
+         temp = a(i);
+         a(i) = a(j);
+         a(j) = temp;
+         i = i + 1;
+         j = j - 1;
+      end;
+   end;
+
+   if left < j do;
+      call quicksort_string(a, left, j);
+   end;
+   if i < right do;
+      call quicksort_string(a, i, right);
+   end;
+end quicksort_string;
+
+/* ========================================================== */
+/* procedure: read numbers                                     */
+/* ========================================================== */
+
+read_numbers:
+proc(filename, values, count);
+   dcl filename char(128) varying;
+   dcl values(*) fixed decimal(31,0);
+   dcl count fixed binary(31);
+   dcl env pointer;
+   dcl reader pointer;
+   dcl line char(1024) varying;
+
+   count = 0;
+   env = file_environment_declaration_create(filename, 1);
+   reader = readfile(env);
+
+   do while(textiterator_hasnext(reader));
+      line = textiterator_next(reader);
+      if length(line) > 0 do;
+         count = count + 1;
+         values(count) = decimal(line, 31, 0);
+      end;
+   end;
+
+   call textiterator_close(reader);
+end read_numbers;
+
+/* ========================================================== */
+/* procedure: read strings                                     */
+/* ========================================================== */
+
+read_strings:
+proc(filename, values, count);
+   dcl filename char(128) varying;
+   dcl values(*) char(256) varying;
+   dcl count fixed binary(31);
+   dcl env pointer;
+   dcl reader pointer;
+   dcl line char(1024) varying;
+
+   count = 0;
+   env = file_environment_declaration_create(filename, 1);
+   reader = readfile(env);
+
+   do while(textiterator_hasnext(reader));
+      line = textiterator_next(reader);
+      if length(line) > 0 do;
+         count = count + 1;
+         values(count) = line;
+      end;
+   end;
+
+   call textiterator_close(reader);
+end read_strings;
+
+/* ========================================================== */
+/* procedure: write numbers                                    */
+/* ========================================================== */
+
+write_numbers:
+proc(filename, values, count);
+   dcl filename char(128) varying;
+   dcl values(*) fixed decimal(31,0);
+   dcl count fixed binary(31);
+   dcl env pointer;
+   dcl writer pointer;
+   dcl i fixed binary(31);
+
+   env = file_environment_declaration_create(filename, 2);
+   writer = writefile(env);
+
+   put skip list('sorted fixed decimal(31,0):');
+   call textiterator_writeline(writer, 'sorted fixed decimal(31,0):');
+
+   do i = 1 to count;
+      put skip list(values(i));
+      call textiterator_writeline(writer, char(values(i)));
+   end;
+
+   call textiterator_close(writer);
+end write_numbers;
+
+/* ========================================================== */
+/* procedure: write strings                                    */
+/* ========================================================== */
+
+write_strings:
+proc(filename, values, count);
+   dcl filename char(128) varying;
+   dcl values(*) char(256) varying;
+   dcl count fixed binary(31);
+   dcl env pointer;
+   dcl writer pointer;
+   dcl i fixed binary(31);
+
+   env = file_environment_declaration_create(filename, 2);
+   writer = writefile(env);
+
+   put skip list('sorted character varying:');
+   call textiterator_writeline(writer, 'sorted character varying:');
+
+   do i = 1 to count;
+      put skip list(values(i));
+      call textiterator_writeline(writer, values(i));
+   end;
+
+   call textiterator_close(writer);
+end write_strings;
+
+/* ========================================================== */
+/* main procedure                                              */
+/* ========================================================== */
+
+quicksort_demo:
+proc options(main);
+   dcl numbers(1000) fixed decimal(31,0);
+   dcl strings(1000) char(256) varying;
+   dcl num_count fixed binary(31);
+   dcl str_count fixed binary(31);
+   dcl num_input char(128) varying init('numbers.dat');
+   dcl str_input char(128) varying init('strings.dat');
+   dcl num_output char(128) varying init('numbers_sorted.dat');
+   dcl str_output char(128) varying init('strings_sorted.dat');
+
+   call read_numbers(num_input, numbers, num_count);
+   call read_strings(str_input, strings, str_count);
+
+   call quicksort(numbers, 1, num_count);
+   call quicksort(strings, 1, str_count);
+
+   call write_numbers(num_output, numbers, num_count);
+   call write_strings(str_output, strings, str_count);
+end quicksort_demo;

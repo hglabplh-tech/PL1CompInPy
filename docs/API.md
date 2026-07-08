@@ -4,9 +4,9 @@ This file is generated from the Python source tree. Regenerate it with `python s
 
 ## Summary
 
-- Modules: 49
-- Classes: 136
-- Functions and methods: 571
+- Modules: 50
+- Classes: 141
+- Functions and methods: 594
 
 ## `pl1compinpy`
 
@@ -4039,6 +4039,305 @@ def _error(self, token: Token, message: str) -> ParserError
 Internal helper in `Parser` for error.
 
 Defined at line 812.
+
+## `pl1compinpy.frontend.preprocessor`
+
+Source: `pl1compinpy/frontend/preprocessor.py`
+
+Module containing preprocessor support for the PL/I compiler.
+
+### Classes
+
+#### `PreprocessorError`
+
+```python
+class PreprocessorError(ValueError)
+```
+
+Exception type raised for preprocessor errors.
+
+Defined at line 74.
+
+#### `CompileTimeSymbol`
+
+```python
+class CompileTimeSymbol
+```
+
+Data container describing compile time symbol values used by the compiler.
+
+Defined at line 79.
+
+#### `PreprocessorState`
+
+```python
+class PreprocessorState
+```
+
+Data container describing preprocessor state values used by the compiler.
+
+Defined at line 88.
+
+Methods:
+
+##### `PreprocessorState.ensure_symbol`
+
+```python
+def ensure_symbol(self, name: str, datatype: str = 'CHARACTER') -> CompileTimeSymbol
+```
+
+Performs ensure symbol behavior in `PreprocessorState`.
+
+Defined at line 97.
+
+#### `_ConditionalFrame`
+
+```python
+class _ConditionalFrame
+```
+
+Data container describing conditional frame values used by the compiler.
+
+Defined at line 105.
+
+#### `IBMStylePreprocessor`
+
+```python
+class IBMStylePreprocessor
+```
+
+Small IBM PL/I-style compile-time layer used before lexing.
+
+The class intentionally keeps macro procedures hook-oriented, but it evaluates
+the common source-shaping directives that fit PL1CompInPy today: include
+expansion, compile-time declarations and assignments, activation flags,
+replacements, notes, and simple conditional blocks.
+
+Defined at line 111.
+
+Methods:
+
+##### `IBMStylePreprocessor.__init__`
+
+```python
+def __init__(self, include_dirs: list[str | Path] | None = None, *, strict: bool = False, sysp_arm: str = '', suffixes: tuple[str, ...] = ('', '.pl1', '.pli', '.inc')) -> None
+```
+
+Initializes an instance of `IBMStylePreprocessor`.
+
+Defined at line 120.
+
+##### `IBMStylePreprocessor.preprocess`
+
+```python
+def preprocess(self, source: str, *, base_dir: str | Path | None = None) -> str
+```
+
+Performs preprocess behavior in `IBMStylePreprocessor`.
+
+Defined at line 134.
+
+##### `IBMStylePreprocessor.preprocess_file`
+
+```python
+def preprocess_file(self, path: str | Path) -> str
+```
+
+Performs preprocess file behavior in `IBMStylePreprocessor`.
+
+Defined at line 138.
+
+##### `IBMStylePreprocessor.compile_time_tables`
+
+```python
+def compile_time_tables(self) -> dict[str, Any]
+```
+
+Compiles PL/I input into time tables output.
+
+Defined at line 143.
+
+##### `IBMStylePreprocessor.register_builtin`
+
+```python
+def register_builtin(self, name: str, handler: Callable[..., Any]) -> None
+```
+
+Performs register builtin behavior in `IBMStylePreprocessor`.
+
+Defined at line 152.
+
+##### `IBMStylePreprocessor.apply_source_replacements`
+
+```python
+def apply_source_replacements(self, text: str) -> str
+```
+
+Performs apply source replacements behavior in `IBMStylePreprocessor`.
+
+Defined at line 159.
+
+##### `IBMStylePreprocessor._init_builtins`
+
+```python
+def _init_builtins(self) -> None
+```
+
+Internal helper in `IBMStylePreprocessor` for init builtins.
+
+Defined at line 162.
+
+##### `IBMStylePreprocessor._process_lines`
+
+```python
+def _process_lines(self, lines: list[str]) -> str
+```
+
+Internal helper in `IBMStylePreprocessor` for process lines.
+
+Defined at line 190.
+
+##### `IBMStylePreprocessor._directive`
+
+```python
+def _directive(self, line: str) -> tuple[str, str] | None
+```
+
+Internal helper in `IBMStylePreprocessor` for directive.
+
+Defined at line 256.
+
+##### `IBMStylePreprocessor._condition_payload`
+
+```python
+def _condition_payload(self, payload: str) -> str
+```
+
+Internal helper in `IBMStylePreprocessor` for condition payload.
+
+Defined at line 262.
+
+##### `IBMStylePreprocessor._declare`
+
+```python
+def _declare(self, payload: str) -> None
+```
+
+Internal helper in `IBMStylePreprocessor` for declare.
+
+Defined at line 265.
+
+##### `IBMStylePreprocessor._activate`
+
+```python
+def _activate(self, payload: str, active: bool) -> None
+```
+
+Internal helper in `IBMStylePreprocessor` for activate.
+
+Defined at line 275.
+
+##### `IBMStylePreprocessor._replace`
+
+```python
+def _replace(self, payload: str) -> None
+```
+
+Internal helper in `IBMStylePreprocessor` for replace.
+
+Defined at line 280.
+
+##### `IBMStylePreprocessor._assignment`
+
+```python
+def _assignment(self, command: str, payload: str) -> bool
+```
+
+Internal helper in `IBMStylePreprocessor` for assignment.
+
+Defined at line 292.
+
+##### `IBMStylePreprocessor._eval_expr`
+
+```python
+def _eval_expr(self, expr: str) -> Any
+```
+
+Internal helper in `IBMStylePreprocessor` for eval expr.
+
+Defined at line 300.
+
+##### `IBMStylePreprocessor._counter`
+
+```python
+def _counter(self) -> int
+```
+
+Internal helper in `IBMStylePreprocessor` for counter.
+
+Defined at line 340.
+
+##### `IBMStylePreprocessor._translate`
+
+```python
+def _translate(self, value: Any, to: Any, from_: Any | None = None) -> str
+```
+
+Internal helper in `IBMStylePreprocessor` for translate.
+
+Defined at line 344.
+
+### Functions
+
+#### `preprocess_source`
+
+```python
+def preprocess_source(source: str, include_dirs: list[str | Path] | None = None, *, base_dir: str | Path | None = None, strict: bool = False, sysp_arm: str = '') -> str
+```
+
+Performs preprocess source behavior in `pl1compinpy.frontend.preprocessor`.
+
+Defined at line 352.
+
+#### `rewrite_identifiers_outside_literals`
+
+```python
+def rewrite_identifiers_outside_literals(text: str, mapping: dict[str, str]) -> str
+```
+
+Performs rewrite identifiers outside literals behavior in `pl1compinpy.frontend.preprocessor`.
+
+Defined at line 363.
+
+#### `split_top_level_commas`
+
+```python
+def split_top_level_commas(text: str) -> list[str]
+```
+
+Performs split top level commas behavior in `pl1compinpy.frontend.preprocessor`.
+
+Defined at line 398.
+
+#### `is_quoted_literal`
+
+```python
+def is_quoted_literal(text: str) -> bool
+```
+
+Performs is quoted literal behavior in `pl1compinpy.frontend.preprocessor`.
+
+Defined at line 428.
+
+#### `unquote_pli`
+
+```python
+def unquote_pli(text: str) -> str
+```
+
+Performs unquote pli behavior in `pl1compinpy.frontend.preprocessor`.
+
+Defined at line 433.
 
 ## `pl1compinpy.runtime`
 

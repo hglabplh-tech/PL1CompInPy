@@ -4,7 +4,7 @@ from pathlib import Path
 
 from ..builtins import include_builtins
 from ..codegen import BINARY_FORMATS, LIBRARY_FORMATS, TARGETS, emit_binary, emit_code, emit_dotnet_executable, emit_jvm_classes, emit_library
-from ..frontend import IncludeExpander, Lexer, Parser
+from ..frontend import IBMStylePreprocessor, Lexer, Parser
 from ..runtime import normalize_calls
 
 
@@ -22,14 +22,14 @@ class Compiler:
         return emit_code(program, target)
 
     def program_from_sources(self, sources: list[str], builtins: list[str] | None = None, include_dirs: list[str | Path] | None = None, base_dir: str | Path | None = None):
-        expander = IncludeExpander([Path(path) for path in include_dirs or []], strict=bool(include_dirs or base_dir))
-        expanded = "\n".join(expander.expand(source, base_dir=Path(base_dir) if base_dir else None) for source in sources)
+        preprocessor = IBMStylePreprocessor([Path(path) for path in include_dirs or []], strict=bool(include_dirs or base_dir))
+        expanded = "\n".join(preprocessor.preprocess(source, base_dir=Path(base_dir) if base_dir else None) for source in sources)
         expanded = include_builtins(expanded, builtins)
         return normalize_calls(Parser(Lexer(expanded).tokenize()).parse())
 
     def program_from_paths(self, paths: list[str | Path], builtins: list[str] | None = None, include_dirs: list[str | Path] | None = None):
-        expander = IncludeExpander([Path(path) for path in include_dirs or []], strict=True)
-        expanded = "\n".join(expander.expand_file(Path(path)) for path in paths)
+        preprocessor = IBMStylePreprocessor([Path(path) for path in include_dirs or []], strict=True)
+        expanded = "\n".join(preprocessor.preprocess_file(Path(path)) for path in paths)
         expanded = include_builtins(expanded, builtins)
         return normalize_calls(Parser(Lexer(expanded).tokenize()).parse())
 

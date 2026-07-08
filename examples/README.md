@@ -12,6 +12,8 @@ These examples cover the compiler features currently implemented in PL1CompInPy.
 - `language/visitor_control_blocks.pl1`: visitor/backend control blocks with `DO`, `DO WHILE`, `DO ... UNTIL`, `IF`, `SELECT`, and condition aliases
 - `language/goto_labels.pl1`: labels plus `GOTO` and `GO TO`
 - `language/preprocessor_commands.pl1`: parsed `%` preprocessor command forms
+- `language/preprocessor_conditionals.pl1`: `%DECLARE`, compile-time assignment, `%REPLACE`, and `%IF/%ELSE/%END` preprocessing
+- `language/quicksort_imported.pli`: imported PL/I quicksort library source kept unchanged as a larger reference example
 - `language/include_main.pl1` and `language/include_common.pli`: `%INCLUDE` source expansion
 - `language/multi_source_main.pl1` and `language/module_helper.pl1`: separate source modules compiled together
 - `language/procedure_main.pl1`: `PROC OPTIONS(MAIN)` and `RETURNS`

@@ -143,7 +143,7 @@ class ExampleTests(unittest.TestCase):
         self.assertTrue(any(isinstance(statement, GotoStatement) for statement in goto_program.statements))
         self.assertTrue(any(isinstance(statement, PreprocessorStatement) for statement in preprocessor_program.statements))
         self.assertIn("# goto SKIP_INITIAL_ASSIGNMENT", compile_source(self.example_source("language/goto_labels.pl1"), target="python-source"))
-        self.assertIn("# preprocessor DECLARE FEATURE FIXED", compile_source(self.example_source("language/preprocessor_commands.pl1"), target="python-source"))
+        self.assertIn("# preprocessor PROCEDURE MAC", compile_source(self.example_source("language/preprocessor_commands.pl1"), target="python-source"))
 
     def test_include_and_multi_source_examples_compile(self):
         include_output = compile_paths([EXAMPLES / "language/include_main.pl1"], target="python-source", include_dirs=[EXAMPLES / "language"])
@@ -152,6 +152,13 @@ class ExampleTests(unittest.TestCase):
         self.assertIn("INCLUDED_TOTAL = 0", include_output)
         self.assertIn("def MAIN():", multi_output)
         self.assertIn("def HELPER():", multi_output)
+
+    def test_preprocessor_conditionals_example_compiles_through_preprocessor(self):
+        output = compile_source(self.example_source("language/preprocessor_conditionals.pl1"), target="python-source")
+
+        self.assertIn("PREPROCESSED_RESULT = 0", output)
+        self.assertIn("PREPROCESSED_RESULT = 42", output)
+        self.assertNotIn("RESULT = 0", output.splitlines())
 
     def test_numeric_string_builtins_example_uses_static_builtin_table(self):
         program = normalize_calls(self.parse_example("builtins/numeric_string_builtins.pl1"))
