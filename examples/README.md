@@ -14,6 +14,7 @@ These examples cover the compiler features currently implemented in PL1CompInPy.
 - `language/goto_labels.pl1`: labels plus `GOTO` and `GO TO`
 - `language/preprocessor_commands.pl1`: parsed `%` preprocessor command forms
 - `language/preprocessor_conditionals.pl1`: `%DECLARE`, compile-time assignment, `%REPLACE`, and `%IF/%ELSE/%END` preprocessing
+- `language/comment_sections.pl1`: PL/I `/* ... */` comment sections preserved by the optional lexer comment mode
 - `language/quicksort_imported.pli`: imported PL/I quicksort library source kept unchanged as a larger reference example
 - `language/include_main.pl1` and `language/include_common.pli`: `%INCLUDE` source expansion
 - `language/multi_source_main.pl1` and `language/module_helper.pl1`: separate source modules compiled together
@@ -62,6 +63,7 @@ These examples cover the compiler features currently implemented in PL1CompInPy.
 - `builtins/declared_substr.pl1`: `DCL SUBSTR BUILTIN;` enables a static PL/I builtin call
 - `builtins/numeric_string_builtins.pl1`: declared static numeric and string builtins through the function table
 - `builtins/complex_math_builtins.pl1`: declared static `COMPLEX`, `REAL`, `IMAG`, `CONJG`, and complex-capable math builtins
+- `builtins/internal_runtime_allocation.pl1`: declared internal runtime allocation builtins for compiler-in-PL/I support
 - `builtins/pointer.pl1`: declared static `POINTER` builtin for pointer value normalization
 - `builtins/pointer_offsets.pl1`: null, numeric handle/offset, and existing-pointer `POINTER` calls
 

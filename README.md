@@ -15,6 +15,7 @@ The initial implementation provides a small compiler pipeline:
 
 - lexical analysis for a useful subset of PL/1-like syntax
 - parsing of assignments, declarations, calls, labels, `GOTO`/`GO TO`, control blocks, I/O statements, and preprocessor commands
+- optional preservation of PL/I `/* ... */` comment sections for source-to-source and compiler-in-PL/I passes
 - contextual keyword recognition for PL/1 statement, attribute, condition, I/O, and preprocessor words
 - a visitor-enabled AST intermediate representation
 - readable Python-like/Python-source output plus starter native, JVM, and .NET backends
@@ -229,6 +230,7 @@ The executable pipeline includes a first runtime calling convention:
 - backend control-flow lowering treats simple `DO` as a block, `DO WHILE` as a pre-test loop, `DO ... UNTIL` as a post-test loop, `IF/THEN/ELSE` as decisions, and `SELECT/WHEN/OTHERWISE` as branches
 - GOTO statements are parsed as AST nodes and lowered to unconditional branches for the native mnemonic/assembly backends, while Python, JVM text, and .NET IL outputs preserve the branch intent in their target form
 - PL/I preprocessor statements are parsed into `PreprocessorStatement` AST nodes when they are not consumed by the compile-time preprocessor, so future macro expansion can still use the visitor pipeline; current backends preserve remaining commands as target comments
+- PL/I comments use `/* ... */`; the default lexer treats them as whitespace, while `Lexer(..., preserve_comments=True)` records them as `CommentSection` metadata on `Program.comments`
 
 The examples include an imported PL/I quicksort library at `examples/language/quicksort_imported.pli`; it is kept unchanged as a larger reference source while the current compiler subset grows toward it. Semantic notes for operator precedence, PL/I type modeling, and debugger symbol tables live in `docs/SEMANTICS.md`.
 
@@ -245,6 +247,7 @@ The runtime also includes starter storage and I/O services:
 - exported `FixedDecimal`, `PackedDecimalCodec`, `ZonedDecimalCodec`, `DecimalRuntime`, and `CalculationBuiltinRuntime` APIs for runtime callers
 - `POINTER` locator variables and `BASED(pointer)` record storage bound to heap blocks through pointer values
 - declared `POINTER` builtin support for normalizing null pointers, existing pointer values, and numeric handle/offset pairs into runtime `PointerValue` objects
+- declared internal runtime builtins `PL1RT_ALLOC`, `PL1RT_FREE`, `PL1RT_REALLOC`, `PL1RT_SIZE`, `PL1RT_PEEK`, `PL1RT_POKE`, and `PL1RT_FILL` expose controlled access to runtime heap storage without using normal PL/I `ALLOCATE`/`FREE` statements
 - pointer-qualified based structure member access with explicit `P->REC.FIELD` references and default-pointer `REC.FIELD` references
 - based structure examples cover default pointer access, explicit pointer-qualified access, and multiple pointer locators sharing one structure definition
 - string storage as two bytes of big-endian length followed by sequential payload bytes, with runtime `LENGTH`, `SUBSTR`, and `INDEX` helpers over the stored payload

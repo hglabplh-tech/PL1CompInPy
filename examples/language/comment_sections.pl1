@@ -1,0 +1,11 @@
+/* Compiler phase: scanner metadata.
+   PL/I comments may appear anywhere a blank is permitted.
+*/
+COMMENT_SECTIONS: PROC OPTIONS(MAIN);
+    DCL TOTAL FIXED BIN(31);
+
+    TOTAL = 40; /* preserved when the lexer is run with comment preservation */
+    TOTAL = TOTAL + 2;
+
+    CALL DISPLAY(TOTAL);
+END COMMENT_SECTIONS;

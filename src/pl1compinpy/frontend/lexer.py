@@ -7,6 +7,7 @@ from .keywords import KeywordInfo, keyword_info
 
 
 class TokenType(str, Enum):
+    COMMENT = "COMMENT"
     IDENTIFIER = "IDENTIFIER"
     NUMBER = "NUMBER"
     STRING = "STRING"
@@ -55,8 +56,9 @@ class LexerError(ValueError):
 
 
 class Lexer:
-    def __init__(self, source: str) -> None:
+    def __init__(self, source: str, preserve_comments: bool = False) -> None:
         self.source = source
+        self.preserve_comments = preserve_comments
         self.index = 0
         self.line = 1
         self.column = 1
@@ -70,7 +72,9 @@ class Lexer:
             elif char == "\n":
                 self._advance_line()
             elif char == "/" and self._peek_next() == "*":
-                self._comment()
+                comment = self._comment()
+                if self.preserve_comments:
+                    tokens.append(comment)
             elif char.isalpha() or char == "_":
                 tokens.append(self._identifier())
             elif char.isdigit():
@@ -143,21 +147,25 @@ class Lexer:
         self._advance()
         return Token(TokenType.STRING, value, line, column)
 
-    def _comment(self) -> None:
+    def _comment(self) -> Token:
         line = self.line
         column = self.column
+        start = self.index
         self._advance()
         self._advance()
+        content_start = self.index
         while not self._at_end:
             if self._peek() == "*" and self._peek_next() == "/":
+                text = self.source[content_start:self.index]
                 self._advance()
                 self._advance()
-                return
+                return Token(TokenType.COMMENT, text, line, column)
             if self._peek() == "\n":
                 self._advance_line()
             else:
                 self._advance()
-        raise LexerError(f"Unterminated comment at {line}:{column}")
+        raw = self.source[start:self.index]
+        raise LexerError(f"Unterminated comment at {line}:{column}: {raw!r}")
 
     def _symbol(self) -> Token:
         line = self.line

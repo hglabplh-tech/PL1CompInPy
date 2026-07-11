@@ -29,6 +29,8 @@ from .complex import ComplexValue
 from .decimal import CalculationBuiltinRuntime, FixedDecimal
 from .dynload import DynamicLoadRuntime
 from .function_table import RUNTIME_FUNCTION_TABLE, FunctionTable, FunctionTableError, build_dynamic_function_table, declare_program_builtins
+from .heap import HeapRuntime
+from .internal import InternalRuntimeBuiltins
 from .pointers import PointerBuiltinRuntime
 from .structures import BasedStructureRuntime, StructureRuntime
 
@@ -44,6 +46,8 @@ class RuntimeExecutionVisitor(AstVisitor):
         self.output: list[object] = []
         self.function_table: FunctionTable = RUNTIME_FUNCTION_TABLE
         self.builtins = CalculationBuiltinRuntime()
+        self.heap = HeapRuntime()
+        self.internal_runtime = InternalRuntimeBuiltins(self.heap)
         self.pointer_builtins = PointerBuiltinRuntime()
         self.command_line = CommandLineRuntime.from_argv(argv)
         self.dynamic_loader = DynamicLoadRuntime()
@@ -231,6 +235,13 @@ class RuntimeExecutionVisitor(AstVisitor):
             "DECIMAL_FROM_PACKED": self.builtins.DECIMAL_FROM_PACKED,
             "DECIMAL_TO_ZONED": self.builtins.DECIMAL_TO_ZONED,
             "DECIMAL_FROM_ZONED": self.builtins.DECIMAL_FROM_ZONED,
+            "PL1RT_ALLOC": self.internal_runtime.PL1RT_ALLOC,
+            "PL1RT_FREE": self.internal_runtime.PL1RT_FREE,
+            "PL1RT_REALLOC": self.internal_runtime.PL1RT_REALLOC,
+            "PL1RT_SIZE": self.internal_runtime.PL1RT_SIZE,
+            "PL1RT_PEEK": self.internal_runtime.PL1RT_PEEK,
+            "PL1RT_POKE": self.internal_runtime.PL1RT_POKE,
+            "PL1RT_FILL": self.internal_runtime.PL1RT_FILL,
             "COMMAND": self.command_line.command,
             "ARGC": self.command_line.argc,
             "ARGV": self.command_line.argv_value,

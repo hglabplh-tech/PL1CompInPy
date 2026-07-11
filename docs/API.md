@@ -4,9 +4,9 @@ This file is generated from the Python source tree. Regenerate it with `python s
 
 ## Summary
 
-- Modules: 54
-- Classes: 156
-- Functions and methods: 653
+- Modules: 55
+- Classes: 159
+- Functions and methods: 665
 
 ## `pl1compinpy`
 
@@ -2542,6 +2542,16 @@ Data container describing program values used by the compiler.
 
 Defined at line 46.
 
+#### `CommentSection`
+
+```python
+class CommentSection(AstNode)
+```
+
+Data container describing comment section values used by the compiler.
+
+Defined at line 52.
+
 #### `Statement`
 
 ```python
@@ -2550,7 +2560,7 @@ class Statement(AstNode)
 
 Class implementing statement behavior in the PL/I compiler.
 
-Defined at line 50.
+Defined at line 59.
 
 #### `Assignment`
 
@@ -2560,7 +2570,7 @@ class Assignment(Statement)
 
 Data container describing assignment values used by the compiler.
 
-Defined at line 55.
+Defined at line 64.
 
 #### `StructureField`
 
@@ -2570,7 +2580,7 @@ class StructureField(AstNode)
 
 Data container describing structure field values used by the compiler.
 
-Defined at line 61.
+Defined at line 70.
 
 #### `Declaration`
 
@@ -2580,7 +2590,7 @@ class Declaration(Statement)
 
 Data container describing declaration values used by the compiler.
 
-Defined at line 70.
+Defined at line 79.
 
 #### `GenericAlternative`
 
@@ -2590,7 +2600,7 @@ class GenericAlternative(AstNode)
 
 Data container describing generic alternative values used by the compiler.
 
-Defined at line 83.
+Defined at line 92.
 
 #### `Call`
 
@@ -2600,7 +2610,7 @@ class Call(Statement)
 
 Data container describing call values used by the compiler.
 
-Defined at line 89.
+Defined at line 98.
 
 #### `Procedure`
 
@@ -2610,7 +2620,7 @@ class Procedure(Statement)
 
 Data container describing procedure values used by the compiler.
 
-Defined at line 96.
+Defined at line 105.
 
 #### `DoGroup`
 
@@ -2620,7 +2630,7 @@ class DoGroup(Statement)
 
 Data container describing do group values used by the compiler.
 
-Defined at line 106.
+Defined at line 115.
 
 #### `IfStatement`
 
@@ -2630,7 +2640,7 @@ class IfStatement(Statement)
 
 Data container describing if statement values used by the compiler.
 
-Defined at line 114.
+Defined at line 123.
 
 #### `IOStatement`
 
@@ -2640,7 +2650,7 @@ class IOStatement(Statement)
 
 Data container describing iostatement values used by the compiler.
 
-Defined at line 121.
+Defined at line 130.
 
 #### `SelectStatement`
 
@@ -2650,7 +2660,7 @@ class SelectStatement(Statement)
 
 Data container describing select statement values used by the compiler.
 
-Defined at line 130.
+Defined at line 139.
 
 #### `WhenBranch`
 
@@ -2660,7 +2670,7 @@ class WhenBranch(AstNode)
 
 Data container describing when branch values used by the compiler.
 
-Defined at line 137.
+Defined at line 146.
 
 #### `LabelledStatement`
 
@@ -2670,7 +2680,7 @@ class LabelledStatement(Statement)
 
 Data container describing labelled statement values used by the compiler.
 
-Defined at line 143.
+Defined at line 152.
 
 #### `GotoStatement`
 
@@ -2680,7 +2690,7 @@ class GotoStatement(Statement)
 
 Data container describing goto statement values used by the compiler.
 
-Defined at line 149.
+Defined at line 158.
 
 #### `PreprocessorStatement`
 
@@ -2690,7 +2700,7 @@ class PreprocessorStatement(Statement)
 
 Data container describing preprocessor statement values used by the compiler.
 
-Defined at line 154.
+Defined at line 163.
 
 #### `RawStatement`
 
@@ -2700,7 +2710,7 @@ class RawStatement(Statement)
 
 Data container describing raw statement values used by the compiler.
 
-Defined at line 161.
+Defined at line 170.
 
 #### `Expression`
 
@@ -2710,7 +2720,7 @@ class Expression(AstNode)
 
 Class implementing expression behavior in the PL/I compiler.
 
-Defined at line 166.
+Defined at line 175.
 
 #### `Identifier`
 
@@ -2720,7 +2730,7 @@ class Identifier(Expression)
 
 Data container describing identifier values used by the compiler.
 
-Defined at line 171.
+Defined at line 180.
 
 #### `FieldReference`
 
@@ -2730,7 +2740,7 @@ class FieldReference(Expression)
 
 Data container describing field reference values used by the compiler.
 
-Defined at line 176.
+Defined at line 185.
 
 Methods:
 
@@ -2742,7 +2752,7 @@ def name(self) -> str
 
 Performs name behavior in `FieldReference`.
 
-Defined at line 181.
+Defined at line 190.
 
 #### `PointerReference`
 
@@ -2752,7 +2762,7 @@ class PointerReference(Expression)
 
 Data container describing pointer reference values used by the compiler.
 
-Defined at line 186.
+Defined at line 195.
 
 Methods:
 
@@ -2764,7 +2774,7 @@ def name(self) -> str
 
 Performs name behavior in `PointerReference`.
 
-Defined at line 192.
+Defined at line 201.
 
 #### `FunctionCall`
 
@@ -2774,7 +2784,7 @@ class FunctionCall(Expression)
 
 Data container describing function call values used by the compiler.
 
-Defined at line 198.
+Defined at line 207.
 
 #### `NumberLiteral`
 
@@ -2784,7 +2794,7 @@ class NumberLiteral(Expression)
 
 Data container describing number literal values used by the compiler.
 
-Defined at line 204.
+Defined at line 213.
 
 #### `StringLiteral`
 
@@ -2794,7 +2804,7 @@ class StringLiteral(Expression)
 
 Data container describing string literal values used by the compiler.
 
-Defined at line 209.
+Defined at line 218.
 
 #### `BinaryExpression`
 
@@ -2804,7 +2814,7 @@ class BinaryExpression(Expression)
 
 Data container describing binary expression values used by the compiler.
 
-Defined at line 214.
+Defined at line 223.
 
 #### `UnaryExpression`
 
@@ -2814,7 +2824,7 @@ class UnaryExpression(Expression)
 
 Data container describing unary expression values used by the compiler.
 
-Defined at line 221.
+Defined at line 230.
 
 ### Functions
 
@@ -2826,7 +2836,7 @@ def is_main_procedure(procedure: Procedure) -> bool
 
 Performs is main procedure behavior in `pl1compinpy.core.ast`.
 
-Defined at line 226.
+Defined at line 235.
 
 #### `procedure_from_statement`
 
@@ -2836,7 +2846,7 @@ def procedure_from_statement(statement: Statement) -> Procedure | None
 
 Performs procedure from statement behavior in `pl1compinpy.core.ast`.
 
-Defined at line 230.
+Defined at line 239.
 
 #### `procedure_entry_name`
 
@@ -2846,7 +2856,7 @@ def procedure_entry_name(statement: Statement, default: str | None = None) -> st
 
 Performs procedure entry name behavior in `pl1compinpy.core.ast`.
 
-Defined at line 238.
+Defined at line 247.
 
 #### `main_procedure_entry`
 
@@ -2856,7 +2866,7 @@ def main_procedure_entry(program: Program) -> tuple[str, Procedure] | None
 
 Performs main procedure entry behavior in `pl1compinpy.core.ast`.
 
-Defined at line 250.
+Defined at line 259.
 
 #### `main_procedure_name`
 
@@ -2866,7 +2876,7 @@ def main_procedure_name(program: Program) -> str | None
 
 Performs main procedure name behavior in `pl1compinpy.core.ast`.
 
-Defined at line 259.
+Defined at line 268.
 
 ## `pl1compinpy.core.compiler`
 
@@ -3214,7 +3224,7 @@ class Token
 
 Data container describing token values used by the compiler.
 
-Defined at line 41.
+Defined at line 42.
 
 Methods:
 
@@ -3226,7 +3236,7 @@ def is_keyword(self) -> bool
 
 Performs is keyword behavior in `Token`.
 
-Defined at line 49.
+Defined at line 50.
 
 #### `LexerError`
 
@@ -3236,7 +3246,7 @@ class LexerError(ValueError)
 
 Exception type raised for lexer errors.
 
-Defined at line 53.
+Defined at line 54.
 
 #### `Lexer`
 
@@ -3246,19 +3256,19 @@ class Lexer
 
 Class implementing lexer behavior in the PL/I compiler.
 
-Defined at line 57.
+Defined at line 58.
 
 Methods:
 
 ##### `Lexer.__init__`
 
 ```python
-def __init__(self, source: str) -> None
+def __init__(self, source: str, preserve_comments: bool = False) -> None
 ```
 
 Initializes an instance of `Lexer`.
 
-Defined at line 58.
+Defined at line 59.
 
 ##### `Lexer.tokenize`
 
@@ -3268,7 +3278,7 @@ def tokenize(self) -> list[Token]
 
 Tokenizes PL/I source text for the parser.
 
-Defined at line 64.
+Defined at line 66.
 
 ##### `Lexer._at_end`
 
@@ -3278,7 +3288,7 @@ def _at_end(self) -> bool
 
 Internal helper in `Lexer` for at end.
 
-Defined at line 87.
+Defined at line 91.
 
 ##### `Lexer._peek`
 
@@ -3288,7 +3298,7 @@ def _peek(self) -> str
 
 Internal helper in `Lexer` for peek.
 
-Defined at line 90.
+Defined at line 94.
 
 ##### `Lexer._peek_next`
 
@@ -3298,7 +3308,7 @@ def _peek_next(self) -> str
 
 Internal helper in `Lexer` for peek next.
 
-Defined at line 93.
+Defined at line 97.
 
 ##### `Lexer._advance`
 
@@ -3308,7 +3318,7 @@ def _advance(self) -> str
 
 Internal helper in `Lexer` for advance.
 
-Defined at line 99.
+Defined at line 103.
 
 ##### `Lexer._advance_line`
 
@@ -3318,7 +3328,7 @@ def _advance_line(self) -> None
 
 Internal helper in `Lexer` for advance line.
 
-Defined at line 105.
+Defined at line 109.
 
 ##### `Lexer._identifier`
 
@@ -3328,7 +3338,7 @@ def _identifier(self) -> Token
 
 Internal helper in `Lexer` for identifier.
 
-Defined at line 110.
+Defined at line 114.
 
 ##### `Lexer._number`
 
@@ -3338,7 +3348,7 @@ def _number(self) -> Token
 
 Internal helper in `Lexer` for number.
 
-Defined at line 119.
+Defined at line 123.
 
 ##### `Lexer._string`
 
@@ -3348,17 +3358,17 @@ def _string(self) -> Token
 
 Internal helper in `Lexer` for string.
 
-Defined at line 131.
+Defined at line 135.
 
 ##### `Lexer._comment`
 
 ```python
-def _comment(self) -> None
+def _comment(self) -> Token
 ```
 
 Internal helper in `Lexer` for comment.
 
-Defined at line 146.
+Defined at line 150.
 
 ##### `Lexer._symbol`
 
@@ -3368,7 +3378,7 @@ def _symbol(self) -> Token
 
 Internal helper in `Lexer` for symbol.
 
-Defined at line 162.
+Defined at line 170.
 
 ## `pl1compinpy.frontend.parser`
 
@@ -3386,7 +3396,7 @@ class ParserError(ValueError)
 
 Exception type raised for parser errors.
 
-Defined at line 35.
+Defined at line 36.
 
 #### `Parser`
 
@@ -3396,7 +3406,7 @@ class Parser
 
 Class implementing parser behavior in the PL/I compiler.
 
-Defined at line 39.
+Defined at line 40.
 
 Methods:
 
@@ -3408,7 +3418,7 @@ def __init__(self, tokens: list[Token]) -> None
 
 Initializes an instance of `Parser`.
 
-Defined at line 40.
+Defined at line 41.
 
 ##### `Parser.parse`
 
@@ -3418,7 +3428,7 @@ def parse(self) -> Program
 
 Parses lexer tokens into the compiler's AST representation.
 
-Defined at line 44.
+Defined at line 50.
 
 ##### `Parser._statement`
 
@@ -3428,7 +3438,7 @@ def _statement(self) -> Statement
 
 Internal helper in `Parser` for statement.
 
-Defined at line 52.
+Defined at line 58.
 
 ##### `Parser._declaration`
 
@@ -3438,7 +3448,7 @@ def _declaration(self) -> Declaration
 
 Internal helper in `Parser` for declaration.
 
-Defined at line 98.
+Defined at line 104.
 
 ##### `Parser._dimensions_from_tokens`
 
@@ -3448,7 +3458,7 @@ def _dimensions_from_tokens(self, tokens: list[Token], index: int) -> tuple[list
 
 Internal helper in `Parser` for dimensions from tokens.
 
-Defined at line 174.
+Defined at line 180.
 
 ##### `Parser._file_options_from_tokens`
 
@@ -3458,7 +3468,7 @@ def _file_options_from_tokens(self, tokens: list[Token]) -> dict[str, str]
 
 Internal helper in `Parser` for file options from tokens.
 
-Defined at line 182.
+Defined at line 188.
 
 ##### `Parser._generic_options_from_tokens`
 
@@ -3468,7 +3478,7 @@ def _generic_options_from_tokens(self, names: list[str], tokens: list[Token]) ->
 
 Internal helper in `Parser` for generic options from tokens.
 
-Defined at line 201.
+Defined at line 207.
 
 ##### `Parser._picture_options_from_tokens`
 
@@ -3478,7 +3488,7 @@ def _picture_options_from_tokens(self, names: list[str], tokens: list[Token]) ->
 
 Internal helper in `Parser` for picture options from tokens.
 
-Defined at line 220.
+Defined at line 226.
 
 ##### `Parser._picture_pattern_from_tokens`
 
@@ -3488,7 +3498,7 @@ def _picture_pattern_from_tokens(self, tokens: list[Token], index: int) -> tuple
 
 Internal helper in `Parser` for picture pattern from tokens.
 
-Defined at line 232.
+Defined at line 238.
 
 ##### `Parser._based_options_from_tokens`
 
@@ -3498,7 +3508,7 @@ def _based_options_from_tokens(self, names: list[str], tokens: list[Token]) -> d
 
 Internal helper in `Parser` for based options from tokens.
 
-Defined at line 262.
+Defined at line 268.
 
 ##### `Parser._pointer_names_from_tokens`
 
@@ -3508,7 +3518,7 @@ def _pointer_names_from_tokens(self, names: list[str], tokens: list[Token]) -> l
 
 Internal helper in `Parser` for pointer names from tokens.
 
-Defined at line 275.
+Defined at line 281.
 
 ##### `Parser._builtin_names_from_tokens`
 
@@ -3518,7 +3528,7 @@ def _builtin_names_from_tokens(self, tokens: list[Token]) -> list[str]
 
 Internal helper in `Parser` for builtin names from tokens.
 
-Defined at line 284.
+Defined at line 290.
 
 ##### `Parser._structures_from_tokens`
 
@@ -3528,7 +3538,7 @@ def _structures_from_tokens(self, tokens: list[Token]) -> dict[str, StructureFie
 
 Internal helper in `Parser` for structures from tokens.
 
-Defined at line 295.
+Defined at line 301.
 
 ##### `Parser._declaration_segments`
 
@@ -3538,7 +3548,7 @@ def _declaration_segments(self, tokens: list[Token]) -> list[list[Token]]
 
 Internal helper in `Parser` for declaration segments.
 
-Defined at line 320.
+Defined at line 326.
 
 ##### `Parser._procedure`
 
@@ -3548,7 +3558,7 @@ def _procedure(self, name: str | None) -> Procedure
 
 Internal helper in `Parser` for procedure.
 
-Defined at line 339.
+Defined at line 345.
 
 ##### `Parser._collect_until_balanced_rparen`
 
@@ -3558,7 +3568,7 @@ def _collect_until_balanced_rparen(self) -> list[Token]
 
 Internal helper in `Parser` for collect until balanced rparen.
 
-Defined at line 373.
+Defined at line 379.
 
 ##### `Parser._do_group`
 
@@ -3568,7 +3578,7 @@ def _do_group(self) -> DoGroup
 
 Internal helper in `Parser` for do group.
 
-Defined at line 390.
+Defined at line 396.
 
 ##### `Parser._do_control_condition`
 
@@ -3578,7 +3588,7 @@ def _do_control_condition(self, tokens: list[Token], keyword: str) -> Expression
 
 Internal helper in `Parser` for do control condition.
 
-Defined at line 410.
+Defined at line 416.
 
 ##### `Parser._if_statement`
 
@@ -3588,7 +3598,7 @@ def _if_statement(self) -> IfStatement
 
 Internal helper in `Parser` for if statement.
 
-Defined at line 419.
+Defined at line 425.
 
 ##### `Parser._call_statement`
 
@@ -3598,7 +3608,7 @@ def _call_statement(self) -> Call
 
 Internal helper in `Parser` for call statement.
 
-Defined at line 426.
+Defined at line 432.
 
 ##### `Parser._io_statement`
 
@@ -3608,7 +3618,7 @@ def _io_statement(self) -> IOStatement
 
 Internal helper in `Parser` for io statement.
 
-Defined at line 445.
+Defined at line 451.
 
 ##### `Parser._select_statement`
 
@@ -3618,7 +3628,7 @@ def _select_statement(self) -> SelectStatement
 
 Internal helper in `Parser` for select statement.
 
-Defined at line 455.
+Defined at line 461.
 
 ##### `Parser._assignment`
 
@@ -3628,7 +3638,7 @@ def _assignment(self) -> Assignment
 
 Internal helper in `Parser` for assignment.
 
-Defined at line 482.
+Defined at line 488.
 
 ##### `Parser._raw_statement`
 
@@ -3638,7 +3648,7 @@ def _raw_statement(self) -> RawStatement
 
 Internal helper in `Parser` for raw statement.
 
-Defined at line 487.
+Defined at line 493.
 
 ##### `Parser._goto_statement`
 
@@ -3648,7 +3658,7 @@ def _goto_statement(self) -> GotoStatement
 
 Internal helper in `Parser` for goto statement.
 
-Defined at line 492.
+Defined at line 498.
 
 ##### `Parser._preprocessor_statement`
 
@@ -3658,7 +3668,7 @@ def _preprocessor_statement(self) -> PreprocessorStatement
 
 Internal helper in `Parser` for preprocessor statement.
 
-Defined at line 497.
+Defined at line 503.
 
 ##### `Parser._expression`
 
@@ -3668,7 +3678,7 @@ def _expression(self) -> Expression
 
 Internal helper in `Parser` for expression.
 
-Defined at line 512.
+Defined at line 518.
 
 ##### `Parser._parse_precedence`
 
@@ -3678,7 +3688,7 @@ def _parse_precedence(self, minimum: int) -> Expression
 
 Internal helper in `Parser` for parse precedence.
 
-Defined at line 515.
+Defined at line 521.
 
 ##### `Parser._primary`
 
@@ -3688,7 +3698,7 @@ def _primary(self) -> Expression
 
 Internal helper in `Parser` for primary.
 
-Defined at line 534.
+Defined at line 540.
 
 ##### `Parser._expression_from_tokens`
 
@@ -3698,7 +3708,7 @@ def _expression_from_tokens(self, tokens: list[Token]) -> Expression
 
 Internal helper in `Parser` for expression from tokens.
 
-Defined at line 564.
+Defined at line 570.
 
 ##### `Parser._expressions_until_rparen`
 
@@ -3708,7 +3718,7 @@ def _expressions_until_rparen(self) -> list[Expression]
 
 Internal helper in `Parser` for expressions until rparen.
 
-Defined at line 568.
+Defined at line 574.
 
 ##### `Parser._option_value`
 
@@ -3718,7 +3728,7 @@ def _option_value(self, tokens: list[Token], keyword: str) -> str | None
 
 Internal helper in `Parser` for option value.
 
-Defined at line 579.
+Defined at line 585.
 
 ##### `Parser._option_tokens`
 
@@ -3728,7 +3738,7 @@ def _option_tokens(self, tokens: list[Token], keyword: str) -> list[Token]
 
 Internal helper in `Parser` for option tokens.
 
-Defined at line 585.
+Defined at line 591.
 
 ##### `Parser._io_options_from_tokens`
 
@@ -3738,7 +3748,7 @@ def _io_options_from_tokens(self, tokens: list[Token]) -> dict[str, Expression]
 
 Internal helper in `Parser` for io options from tokens.
 
-Defined at line 610.
+Defined at line 616.
 
 ##### `Parser._identifier_list_until`
 
@@ -3748,7 +3758,7 @@ def _identifier_list_until(self, end: TokenType) -> list[str]
 
 Internal helper in `Parser` for identifier list until.
 
-Defined at line 621.
+Defined at line 627.
 
 ##### `Parser._type_text`
 
@@ -3758,7 +3768,7 @@ def _type_text(self, tokens: list[Token]) -> str
 
 Internal helper in `Parser` for type text.
 
-Defined at line 631.
+Defined at line 637.
 
 ##### `Parser._collect_until_semicolon`
 
@@ -3768,7 +3778,7 @@ def _collect_until_semicolon(self) -> list[Token]
 
 Internal helper in `Parser` for collect until semicolon.
 
-Defined at line 634.
+Defined at line 640.
 
 ##### `Parser._collect_until_keyword`
 
@@ -3778,7 +3788,7 @@ def _collect_until_keyword(self, *keywords: str) -> list[Token]
 
 Internal helper in `Parser` for collect until keyword.
 
-Defined at line 648.
+Defined at line 654.
 
 ##### `Parser._looks_like_label`
 
@@ -3788,7 +3798,7 @@ def _looks_like_label(self) -> bool
 
 Internal helper in `Parser` for looks like label.
 
-Defined at line 662.
+Defined at line 668.
 
 ##### `Parser._looks_like_assignment_target`
 
@@ -3798,7 +3808,7 @@ def _looks_like_assignment_target(self) -> bool
 
 Internal helper in `Parser` for looks like assignment target.
 
-Defined at line 665.
+Defined at line 671.
 
 ##### `Parser._assignment_target`
 
@@ -3808,7 +3818,7 @@ def _assignment_target(self) -> str
 
 Internal helper in `Parser` for assignment target.
 
-Defined at line 675.
+Defined at line 681.
 
 ##### `Parser._field_suffix`
 
@@ -3818,7 +3828,7 @@ def _field_suffix(self) -> list[str]
 
 Internal helper in `Parser` for field suffix.
 
-Defined at line 685.
+Defined at line 691.
 
 ##### `Parser._starts_raw_statement`
 
@@ -3828,7 +3838,7 @@ def _starts_raw_statement(self) -> bool
 
 Internal helper in `Parser` for starts raw statement.
 
-Defined at line 691.
+Defined at line 697.
 
 ##### `Parser._match`
 
@@ -3838,7 +3848,7 @@ def _match(self, *types: TokenType) -> bool
 
 Internal helper in `Parser` for match.
 
-Defined at line 717.
+Defined at line 723.
 
 ##### `Parser._match_semicolon`
 
@@ -3848,7 +3858,7 @@ def _match_semicolon(self) -> bool
 
 Internal helper in `Parser` for match semicolon.
 
-Defined at line 723.
+Defined at line 729.
 
 ##### `Parser._match_keyword`
 
@@ -3858,7 +3868,7 @@ def _match_keyword(self, *keywords: str) -> bool
 
 Internal helper in `Parser` for match keyword.
 
-Defined at line 726.
+Defined at line 732.
 
 ##### `Parser._previous_keyword`
 
@@ -3868,7 +3878,7 @@ def _previous_keyword(self, keyword: str) -> bool
 
 Internal helper in `Parser` for previous keyword.
 
-Defined at line 732.
+Defined at line 738.
 
 ##### `Parser._check`
 
@@ -3878,7 +3888,7 @@ def _check(self, token_type: TokenType) -> bool
 
 Internal helper in `Parser` for check.
 
-Defined at line 735.
+Defined at line 741.
 
 ##### `Parser._check_next`
 
@@ -3888,7 +3898,7 @@ def _check_next(self, token_type: TokenType) -> bool
 
 Internal helper in `Parser` for check next.
 
-Defined at line 738.
+Defined at line 744.
 
 ##### `Parser._check_keyword`
 
@@ -3898,7 +3908,7 @@ def _check_keyword(self, *keywords: str) -> bool
 
 Internal helper in `Parser` for check keyword.
 
-Defined at line 743.
+Defined at line 749.
 
 ##### `Parser._check_next_keyword`
 
@@ -3908,7 +3918,7 @@ def _check_next_keyword(self, *keywords: str) -> bool
 
 Internal helper in `Parser` for check next keyword.
 
-Defined at line 747.
+Defined at line 753.
 
 ##### `Parser._consume`
 
@@ -3918,7 +3928,7 @@ def _consume(self, token_type: TokenType, message: str) -> Token
 
 Internal helper in `Parser` for consume.
 
-Defined at line 753.
+Defined at line 759.
 
 ##### `Parser._consume_identifier`
 
@@ -3928,7 +3938,7 @@ def _consume_identifier(self, message: str) -> Token
 
 Internal helper in `Parser` for consume identifier.
 
-Defined at line 758.
+Defined at line 764.
 
 ##### `Parser._advance`
 
@@ -3938,7 +3948,7 @@ def _advance(self) -> Token
 
 Internal helper in `Parser` for advance.
 
-Defined at line 763.
+Defined at line 769.
 
 ##### `Parser._peek`
 
@@ -3948,7 +3958,7 @@ def _peek(self) -> Token
 
 Internal helper in `Parser` for peek.
 
-Defined at line 768.
+Defined at line 774.
 
 ##### `Parser._previous`
 
@@ -3958,7 +3968,7 @@ def _previous(self) -> Token
 
 Internal helper in `Parser` for previous.
 
-Defined at line 771.
+Defined at line 777.
 
 ##### `Parser._error`
 
@@ -3968,7 +3978,7 @@ def _error(self, token: Token, message: str) -> ParserError
 
 Internal helper in `Parser` for error.
 
-Defined at line 774.
+Defined at line 780.
 
 ## `pl1compinpy.frontend.precedence`
 
@@ -6417,6 +6427,156 @@ Performs block behavior in `HeapRuntime`.
 
 Defined at line 38.
 
+## `pl1compinpy.runtime.internal`
+
+Source: `pl1compinpy/runtime/internal.py`
+
+Module containing internal support for the PL/I compiler.
+
+### Classes
+
+#### `InternalRuntimeError`
+
+```python
+class InternalRuntimeError(ValueError)
+```
+
+Exception type raised for internal runtime errors.
+
+Defined at line 12.
+
+#### `InternalRuntimeBuiltins`
+
+```python
+class InternalRuntimeBuiltins
+```
+
+Class implementing internal runtime builtins behavior in the PL/I compiler.
+
+Defined at line 16.
+
+Methods:
+
+##### `InternalRuntimeBuiltins.__init__`
+
+```python
+def __init__(self, heap: HeapRuntime | None = None) -> None
+```
+
+Initializes an instance of `InternalRuntimeBuiltins`.
+
+Defined at line 17.
+
+##### `InternalRuntimeBuiltins.PL1RT_ALLOC`
+
+```python
+def PL1RT_ALLOC(self, size: Any) -> PointerValue
+```
+
+Performs pl1 rt alloc behavior in `InternalRuntimeBuiltins`.
+
+Defined at line 20.
+
+##### `InternalRuntimeBuiltins.PL1RT_FREE`
+
+```python
+def PL1RT_FREE(self, pointer: Any) -> None
+```
+
+Performs pl1 rt free behavior in `InternalRuntimeBuiltins`.
+
+Defined at line 23.
+
+##### `InternalRuntimeBuiltins.PL1RT_REALLOC`
+
+```python
+def PL1RT_REALLOC(self, pointer: Any, size: Any) -> PointerValue
+```
+
+Performs pl1 rt realloc behavior in `InternalRuntimeBuiltins`.
+
+Defined at line 29.
+
+##### `InternalRuntimeBuiltins.PL1RT_SIZE`
+
+```python
+def PL1RT_SIZE(self, pointer: Any) -> int
+```
+
+Performs pl1 rt size behavior in `InternalRuntimeBuiltins`.
+
+Defined at line 41.
+
+##### `InternalRuntimeBuiltins.PL1RT_PEEK`
+
+```python
+def PL1RT_PEEK(self, pointer: Any, size: Any = 1, offset: Any = 0) -> bytes
+```
+
+Performs pl1 rt peek behavior in `InternalRuntimeBuiltins`.
+
+Defined at line 48.
+
+##### `InternalRuntimeBuiltins.PL1RT_POKE`
+
+```python
+def PL1RT_POKE(self, pointer: Any, data: Any, offset: Any = 0) -> int
+```
+
+Performs pl1 rt poke behavior in `InternalRuntimeBuiltins`.
+
+Defined at line 53.
+
+##### `InternalRuntimeBuiltins.PL1RT_FILL`
+
+```python
+def PL1RT_FILL(self, pointer: Any, byte_value: Any, size: Any, offset: Any = 0) -> int
+```
+
+Performs pl1 rt fill behavior in `InternalRuntimeBuiltins`.
+
+Defined at line 60.
+
+##### `InternalRuntimeBuiltins._block_slice`
+
+```python
+def _block_slice(self, pointer: PointerValue, extra_offset: int, size: int)
+```
+
+Internal helper in `InternalRuntimeBuiltins` for block slice.
+
+Defined at line 68.
+
+##### `InternalRuntimeBuiltins._pointer`
+
+```python
+def _pointer(self, value: Any) -> PointerValue
+```
+
+Internal helper in `InternalRuntimeBuiltins` for pointer.
+
+Defined at line 83.
+
+##### `InternalRuntimeBuiltins._bytes`
+
+```python
+def _bytes(self, value: Any) -> bytes
+```
+
+Internal helper in `InternalRuntimeBuiltins` for bytes.
+
+Defined at line 92.
+
+##### `InternalRuntimeBuiltins._integer`
+
+```python
+def _integer(self, value: Any) -> int
+```
+
+Internal helper in `InternalRuntimeBuiltins` for integer.
+
+Defined at line 105.
+
 ## `pl1compinpy.runtime.io`
 
 Source: `pl1compinpy/runtime/io.py`
@@ -8165,7 +8325,7 @@ class RuntimeVisitorError(ValueError)
 
 Exception type raised for runtime visitor errors.
 
-Defined at line 36.
+Defined at line 38.
 
 #### `RuntimeExecutionVisitor`
 
@@ -8175,7 +8335,7 @@ class RuntimeExecutionVisitor(AstVisitor)
 
 Class implementing runtime execution visitor behavior in the PL/I compiler.
 
-Defined at line 40.
+Defined at line 42.
 
 Methods:
 
@@ -8187,7 +8347,7 @@ def __init__(self, variables: dict[str, PL1Value | object] | None = None, max_lo
 
 Initializes an instance of `RuntimeExecutionVisitor`.
 
-Defined at line 41.
+Defined at line 43.
 
 ##### `RuntimeExecutionVisitor.visit_Program`
 
@@ -8197,7 +8357,7 @@ def visit_Program(self, node: Program) -> Any
 
 Performs visit program behavior in `RuntimeExecutionVisitor`.
 
-Defined at line 54.
+Defined at line 58.
 
 ##### `RuntimeExecutionVisitor.visit_Declaration`
 
@@ -8207,7 +8367,7 @@ def visit_Declaration(self, node: Declaration) -> None
 
 Performs visit declaration behavior in `RuntimeExecutionVisitor`.
 
-Defined at line 68.
+Defined at line 72.
 
 ##### `RuntimeExecutionVisitor.visit_Assignment`
 
@@ -8217,7 +8377,7 @@ def visit_Assignment(self, node: Assignment) -> PL1Value
 
 Performs visit assignment behavior in `RuntimeExecutionVisitor`.
 
-Defined at line 101.
+Defined at line 105.
 
 ##### `RuntimeExecutionVisitor.visit_Call`
 
@@ -8227,7 +8387,7 @@ def visit_Call(self, node: Call) -> Any
 
 Performs visit call behavior in `RuntimeExecutionVisitor`.
 
-Defined at line 121.
+Defined at line 125.
 
 ##### `RuntimeExecutionVisitor.visit_DoGroup`
 
@@ -8237,7 +8397,7 @@ def visit_DoGroup(self, node: DoGroup) -> Any
 
 Performs visit do group behavior in `RuntimeExecutionVisitor`.
 
-Defined at line 129.
+Defined at line 133.
 
 ##### `RuntimeExecutionVisitor.visit_IfStatement`
 
@@ -8247,7 +8407,7 @@ def visit_IfStatement(self, node: IfStatement) -> Any
 
 Performs visit if statement behavior in `RuntimeExecutionVisitor`.
 
-Defined at line 145.
+Defined at line 149.
 
 ##### `RuntimeExecutionVisitor.visit_SelectStatement`
 
@@ -8257,7 +8417,7 @@ def visit_SelectStatement(self, node: SelectStatement) -> Any
 
 Performs visit select statement behavior in `RuntimeExecutionVisitor`.
 
-Defined at line 150.
+Defined at line 154.
 
 ##### `RuntimeExecutionVisitor.visit_LabelledStatement`
 
@@ -8267,7 +8427,7 @@ def visit_LabelledStatement(self, node: LabelledStatement) -> Any
 
 Performs visit labelled statement behavior in `RuntimeExecutionVisitor`.
 
-Defined at line 161.
+Defined at line 165.
 
 ##### `RuntimeExecutionVisitor.visit_GotoStatement`
 
@@ -8277,7 +8437,7 @@ def visit_GotoStatement(self, node: GotoStatement) -> Any
 
 Performs visit goto statement behavior in `RuntimeExecutionVisitor`.
 
-Defined at line 164.
+Defined at line 168.
 
 ##### `RuntimeExecutionVisitor.visit_PreprocessorStatement`
 
@@ -8287,7 +8447,7 @@ def visit_PreprocessorStatement(self, node: PreprocessorStatement) -> Any
 
 Performs visit preprocessor statement behavior in `RuntimeExecutionVisitor`.
 
-Defined at line 167.
+Defined at line 171.
 
 ##### `RuntimeExecutionVisitor.visit_RawStatement`
 
@@ -8297,7 +8457,7 @@ def visit_RawStatement(self, node: RawStatement) -> Any
 
 Performs visit raw statement behavior in `RuntimeExecutionVisitor`.
 
-Defined at line 170.
+Defined at line 174.
 
 ##### `RuntimeExecutionVisitor.evaluate`
 
@@ -8307,7 +8467,7 @@ def evaluate(self, expression: Expression) -> PL1Value
 
 Performs evaluate behavior in `RuntimeExecutionVisitor`.
 
-Defined at line 173.
+Defined at line 177.
 
 ##### `RuntimeExecutionVisitor._execute_block`
 
@@ -8317,7 +8477,7 @@ def _execute_block(self, statements: list[Statement]) -> Any
 
 Internal helper in `RuntimeExecutionVisitor` for execute block.
 
-Defined at line 194.
+Defined at line 198.
 
 ##### `RuntimeExecutionVisitor._dispatch_call`
 
@@ -8327,7 +8487,7 @@ def _dispatch_call(self, name: str, arguments: list[object]) -> Any
 
 Internal helper in `RuntimeExecutionVisitor` for dispatch call.
 
-Defined at line 200.
+Defined at line 204.
 
 ##### `RuntimeExecutionVisitor._plain`
 
@@ -8337,7 +8497,7 @@ def _plain(self, value: PL1Value | object) -> object
 
 Internal helper in `RuntimeExecutionVisitor` for plain.
 
-Defined at line 247.
+Defined at line 258.
 
 ##### `RuntimeExecutionVisitor._pointer_target`
 
@@ -8347,7 +8507,7 @@ def _pointer_target(self, target: str) -> tuple[str, str, list[str]]
 
 Internal helper in `RuntimeExecutionVisitor` for pointer target.
 
-Defined at line 250.
+Defined at line 261.
 
 ##### `RuntimeExecutionVisitor._is_based_structure`
 
@@ -8357,7 +8517,7 @@ def _is_based_structure(self, name: str) -> bool
 
 Internal helper in `RuntimeExecutionVisitor` for is based structure.
 
-Defined at line 255.
+Defined at line 266.
 
 ##### `RuntimeExecutionVisitor._pointer_value`
 
@@ -8367,7 +8527,7 @@ def _pointer_value(self, name: str) -> object
 
 Internal helper in `RuntimeExecutionVisitor` for pointer value.
 
-Defined at line 258.
+Defined at line 269.
 
 ##### `RuntimeExecutionVisitor._default_pointer`
 
@@ -8377,7 +8537,7 @@ def _default_pointer(self, structure_name: str) -> object
 
 Internal helper in `RuntimeExecutionVisitor` for default pointer.
 
-Defined at line 264.
+Defined at line 275.
 
 ## `pl1compinpy.vsam`
 

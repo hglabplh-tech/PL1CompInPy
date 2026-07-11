@@ -56,6 +56,7 @@ from pl1compinpy.runtime import (
     ComplexValue,
     DecimalRuntime,
     DynamicLoadRuntime,
+    InternalRuntimeBuiltins,
     PictureRuntime,
     CalculationEngine,
     FixedDecimal,
@@ -223,6 +224,15 @@ class CompilerTests(unittest.TestCase):
         tokens = Lexer("A = 1; /* comment */ B = 2;").tokenize()
 
         self.assertEqual([token.lexeme for token in tokens[:-1]], ["A", "=", "1", ";", "B", "=", "2", ";"])
+
+    def test_preserves_comment_sections_when_requested(self):
+        tokens = Lexer("/* compiler phase */ A = 1; /* after assign */", preserve_comments=True).tokenize()
+        program = Parser(tokens).parse()
+
+        self.assertEqual([token.type for token in tokens if token.type == TokenType.COMMENT], [TokenType.COMMENT, TokenType.COMMENT])
+        self.assertEqual([comment.text.strip() for comment in program.comments], ["compiler phase", "after assign"])
+        self.assertEqual(program.comments[0].line, 1)
+        self.assertEqual(compile_source("/* ignored by normal pipeline */ A = 1;"), "A = 1\n")
 
     def test_parses_declaration(self):
         program = Parser(Lexer("DCL TOTAL FIXED BIN(31);").tokenize()).parse()
@@ -699,6 +709,11 @@ class CompilerTests(unittest.TestCase):
         self.assertEqual(pointer.returns, "POINTER")
         self.assertEqual([parameter.name for parameter in pointer.parameters], ["VALUE", "OFFSET"])
         self.assertTrue(all(parameter.optional for parameter in pointer.parameters))
+
+        internal_alloc = RUNTIME_FUNCTION_TABLE.get("PL1RT_ALLOC")
+        self.assertEqual(internal_alloc.source, "builtin")
+        self.assertTrue(internal_alloc.requires_declaration)
+        self.assertEqual(internal_alloc.returns, "POINTER")
 
     def test_builtin_declaration_enables_static_builtin_call(self):
         source = "DCL SUBSTR BUILTIN; CALL SUBSTR(S, START, COUNT);"
@@ -1222,11 +1237,43 @@ class CompilerTests(unittest.TestCase):
         self.assertEqual(builtins.POINTER(PointerValue(42, 4), 8), PointerValue(42, 12))
         self.assertEqual(builtins.POINTER(None), PointerValue(None, 0))
 
+    def test_internal_runtime_builtins_manage_heap_storage(self):
+        builtins = InternalRuntimeBuiltins()
+        pointer = builtins.PL1RT_ALLOC(8)
+
+        self.assertEqual(builtins.PL1RT_SIZE(pointer), 8)
+        self.assertEqual(builtins.PL1RT_POKE(pointer, b"ABC", 2), 3)
+        self.assertEqual(builtins.PL1RT_PEEK(pointer, 5), b"\0\0ABC")
+        self.assertEqual(builtins.PL1RT_FILL(pointer, 88, 2, 5), 2)
+        self.assertEqual(builtins.PL1RT_PEEK(pointer, 7), b"\0\0ABCXX")
+
+        moved = builtins.PL1RT_REALLOC(pointer, 12)
+        self.assertEqual(builtins.PL1RT_SIZE(moved), 12)
+        self.assertEqual(builtins.PL1RT_PEEK(moved, 7), b"\0\0ABCXX")
+        builtins.PL1RT_FREE(moved)
+
     def test_runtime_visitor_dispatches_pointer_builtin(self):
         program = normalize_calls(Parser(Lexer("DCL POINTER BUILTIN; CALL POINTER(); CALL POINTER(42, 8);").tokenize()).parse())
         result = RuntimeExecutionVisitor().visit(program)
 
         self.assertEqual(result, PointerValue(42, 8))
+
+    def test_runtime_visitor_dispatches_internal_runtime_builtins(self):
+        source = (
+            "DCL (PL1RT_ALLOC, PL1RT_POKE, PL1RT_PEEK, PL1RT_SIZE, PL1RT_FREE) BUILTIN; "
+            "DCL P POINTER; DCL COUNT FIXED BIN(31); "
+            "P = PL1RT_ALLOC(6); "
+            "COUNT = PL1RT_POKE(P, 'PL1', 1); "
+            "CALL DISPLAY(PL1RT_SIZE(P)); "
+            "CALL DISPLAY(PL1RT_PEEK(P, 4)); "
+            "CALL PL1RT_FREE(P);"
+        )
+        visitor = RuntimeExecutionVisitor()
+
+        visitor.visit(normalize_calls(Parser(Lexer(source).tokenize()).parse()))
+
+        self.assertEqual(visitor.variables["COUNT"], 3)
+        self.assertEqual(visitor.output, [6, b"\0PL1"])
 
     def test_runtime_function_table_exposes_decimal_conversion_builtins(self):
         for name in ("FIXED_DECIMAL", "DECIMAL_TO_PACKED", "DECIMAL_FROM_PACKED", "DECIMAL_TO_ZONED", "DECIMAL_FROM_ZONED"):

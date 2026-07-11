@@ -292,6 +292,13 @@ def runtime_function_table() -> FunctionTable:
     table.add_builtin("DECIMAL_FROM_PACKED", "builtins.decimal_from_packed", [ParameterDescriptor("VALUE", "ANY"), ParameterDescriptor("PRECISION", "FIXED BIN"), ParameterDescriptor("SCALE", "FIXED BIN", optional=True)], returns="FIXED DEC")
     table.add_builtin("DECIMAL_TO_ZONED", "builtins.decimal_to_zoned", [ParameterDescriptor("VALUE", "ANY"), ParameterDescriptor("PRECISION", "FIXED BIN"), ParameterDescriptor("SCALE", "FIXED BIN", optional=True)], returns="CHARACTER")
     table.add_builtin("DECIMAL_FROM_ZONED", "builtins.decimal_from_zoned", [ParameterDescriptor("VALUE", "ANY"), ParameterDescriptor("PRECISION", "FIXED BIN"), ParameterDescriptor("SCALE", "FIXED BIN", optional=True)], returns="FIXED DEC")
+    table.add_builtin("PL1RT_ALLOC", "runtime.internal.alloc", [ParameterDescriptor("SIZE", "FIXED BIN", "value")], returns="POINTER")
+    table.add_builtin("PL1RT_FREE", "runtime.internal.free", [ParameterDescriptor("POINTER", "POINTER")])
+    table.add_builtin("PL1RT_REALLOC", "runtime.internal.realloc", [ParameterDescriptor("POINTER", "POINTER"), ParameterDescriptor("SIZE", "FIXED BIN", "value")], returns="POINTER")
+    table.add_builtin("PL1RT_SIZE", "runtime.internal.size", [ParameterDescriptor("POINTER", "POINTER")], returns="FIXED BIN")
+    table.add_builtin("PL1RT_PEEK", "runtime.internal.peek", [ParameterDescriptor("POINTER", "POINTER"), ParameterDescriptor("SIZE", "FIXED BIN", "value", optional=True), ParameterDescriptor("OFFSET", "FIXED BIN", "value", optional=True)], returns="CHARACTER")
+    table.add_builtin("PL1RT_POKE", "runtime.internal.poke", [ParameterDescriptor("POINTER", "POINTER"), ParameterDescriptor("DATA", "ANY", "value"), ParameterDescriptor("OFFSET", "FIXED BIN", "value", optional=True)], returns="FIXED BIN")
+    table.add_builtin("PL1RT_FILL", "runtime.internal.fill", [ParameterDescriptor("POINTER", "POINTER"), ParameterDescriptor("BYTE", "FIXED BIN", "value"), ParameterDescriptor("SIZE", "FIXED BIN", "value"), ParameterDescriptor("OFFSET", "FIXED BIN", "value", optional=True)], returns="FIXED BIN")
 
     for name in ("ALLOCATE", "ALLOC"):
         table.add_runtime(name, "runtime.heap.allocate", [ParameterDescriptor("SIZE", "FIXED BIN")], returns="POINTER")

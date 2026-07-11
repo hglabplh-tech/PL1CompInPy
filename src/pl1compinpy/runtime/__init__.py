@@ -9,6 +9,7 @@ from .complex import ComplexRuntime, ComplexRuntimeError, ComplexValue
 from .decimal import CalculationBuiltinRuntime, DecimalRuntime, FixedDecimal, PackedDecimalCodec, ZonedDecimalCodec
 from .dynload import DotNetAssemblyLoadRequest, DynamicLibraryHandle, DynamicLoadError, DynamicLoadRuntime, JavaClassLoadRequest
 from .heap import HeapBlock, HeapRuntime, HeapRuntimeError
+from .internal import InternalRuntimeBuiltins, InternalRuntimeError
 from .io import FileDescriptor, FileRuntimeError, StdioRuntime
 from .picture import PictureRuntime, PictureRuntimeError, PictureSpec
 from .pointers import PointerBuiltinRuntime, PointerBuiltinRuntimeError
@@ -58,6 +59,8 @@ __all__ = [
     "HeapBlock",
     "HeapRuntime",
     "HeapRuntimeError",
+    "InternalRuntimeBuiltins",
+    "InternalRuntimeError",
     "JavaClassLoadRequest",
     "GenericFunction",
     "GenericRuntime",

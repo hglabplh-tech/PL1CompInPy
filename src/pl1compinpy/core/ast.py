@@ -45,6 +45,15 @@ class AstVisitor:
 @dataclass(frozen=True)
 class Program(AstNode):
     statements: list["Statement"]
+    comments: list["CommentSection"] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
+class CommentSection(AstNode):
+    text: str
+    line: int
+    column: int
+    raw: str = ""
 
 
 class Statement(AstNode):

@@ -4,6 +4,7 @@ from ..core.ast import (
     Assignment,
     BinaryExpression,
     Call,
+    CommentSection,
     Declaration,
     DoGroup,
     Expression,
@@ -38,7 +39,12 @@ class ParserError(ValueError):
 
 class Parser:
     def __init__(self, tokens: list[Token]) -> None:
-        self.tokens = tokens
+        self.comments = [
+            CommentSection(token.lexeme, token.line, token.column, f"/*{token.lexeme}*/")
+            for token in tokens
+            if token.type == TokenType.COMMENT
+        ]
+        self.tokens = [token for token in tokens if token.type != TokenType.COMMENT]
         self.current = 0
 
     def parse(self) -> Program:
@@ -47,7 +53,7 @@ class Parser:
             if self._match_semicolon():
                 continue
             statements.append(self._statement())
-        return Program(statements)
+        return Program(statements, self.comments)
 
     def _statement(self) -> Statement:
         if self._match(TokenType.PERCENT):

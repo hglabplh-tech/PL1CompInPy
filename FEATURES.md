@@ -12,6 +12,7 @@
   - `runtime` for calling-convention normalization
   - `codegen` for assembly text, executable lowering, and binary containers
 - PL/1 lexer with contextual keyword metadata.
+- Optional lexer preservation of PL/I `/* ... */` comment sections as `CommentSection` metadata on the AST program.
 - PL/1 parser producing an AST for assignments, declarations, calls, procedures, labels, `GOTO`/`GO TO`, `DO` groups, `IF/THEN/ELSE`, structures/records, field references, and preprocessor commands.
 - Parser support for function-call expressions, grouped `DCL (... ) BUILTIN` declarations, and pointer-qualified based references such as `P->REC.ID`.
 - Central operator-precedence table with precedence-climbing expression parsing for arithmetic, concatenation, comparison, and logical operators including word-form `AND`/`OR`.
@@ -21,6 +22,7 @@
 - Visitor-enabled AST nodes and runtime execution visitor support for future compiler passes.
 - Parser support for `DO WHILE`, post-test `DO ... UNTIL`, and `SELECT`/`WHEN`/`OTHERWISE`.
 - Parser support for remaining `%` preprocessor statements including declaration, include, replacement, conditional, loop, macro procedure, branch, and listing commands as preserved AST nodes.
+- Comment-section support keeps comments available for future source-to-source tooling and compiler-in-PL/I passes while retaining whitespace-compatible default lexing.
 - Backend lowering for `DO` blocks, `DO WHILE`, post-test `DO ... UNTIL`, `IF/THEN/ELSE`, `SELECT/WHEN/OTHERWISE` branch blocks, and `GOTO` unconditional branches.
 - Example coverage for visitor-based runtime execution and structured backend control blocks.
 - Example coverage for `%INCLUDE`, multi-source compilation, static/shared library artifacts, and native/managed dynamic loading descriptors.
@@ -75,6 +77,7 @@
   - exported decimal conversion APIs for fixed decimal, fixed binary, float, string, packed, and zoned forms
   - `POINTER` variables
   - declared `POINTER` builtin support for pointer normalization from nulls, existing pointers, and numeric handle/offset pairs
+  - declared internal runtime allocation builtins `PL1RT_ALLOC`, `PL1RT_FREE`, `PL1RT_REALLOC`, `PL1RT_SIZE`, `PL1RT_PEEK`, `PL1RT_POKE`, and `PL1RT_FILL`
   - `BASED(pointer)` record storage bound to dedicated pointer locators
   - pointer-qualified based structure member access using `P->REC.FIELD`, with default `BASED(P)` member access through `REC.FIELD`
   - calculation engine with a typed numeric tower, casts, expression evaluation, and shared runtime implementations for numeric builtins
@@ -141,6 +144,7 @@
 - VSAM I/O statements using `OPEN FILE(...)`, `WRITE FILE(...) FROM(...)`, `READ FILE(...) KEY(...) INTO(...)`, ESDS `RBA(...)`, RRDS `RRN(...)`, LDS `RBA(...) LENGTH(...)`, and `CLOSE FILE(...)`.
 - Runtime `SUBSTR` behavior using one-based positions over two-byte-length string payloads, enabled in source with `DCL SUBSTR BUILTIN;`.
 - Runtime `POINTER` builtin behavior enabled in source with `DCL POINTER BUILTIN;`.
+- Internal runtime allocation builtin behavior enabled in source with grouped forms such as `DCL (PL1RT_ALLOC, PL1RT_FREE, PL1RT_PEEK, PL1RT_POKE) BUILTIN;`.
 - Declared static builtins for string, pointer, numeric, and complex helpers such as `LENGTH`, `INDEX`, `POINTER`, `COMPLEX`, `REAL`, `IMAG`, `CONJG`, `ABS`, `SIGN`, `MIN`, `MAX`, `MOD`, `ROUND`, `TRUNC`, `CEIL`, `FLOOR`, `SQRT`, `EXP`, `LOG`, `SIN`, `COS`, and `TAN`.
 - Declared static conversion builtins for `FIXED_DECIMAL`, `DECIMAL_TO_PACKED`, `DECIMAL_FROM_PACKED`, `DECIMAL_TO_ZONED`, and `DECIMAL_FROM_ZONED`.
 - `PROC OPTIONS(MAIN)` program entry point, including unnamed main procedures and first-parameter command-line binding.
