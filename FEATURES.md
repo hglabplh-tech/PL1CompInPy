@@ -80,8 +80,9 @@
   - complex-number compute engine using two-part `ComplexValue` storage, arithmetic promotion, power/division checks, conjugation, real/imaginary projection, magnitude, and trigonometric/exponential/logarithmic math helpers
   - strings stored as two-byte length plus payload, with runtime `LENGTH`, one-based `SUBSTR`, and one-based `INDEX`
   - PL/I-style file declarations
-  - PL/I-style `OPEN`, `READ`, `WRITE`, and `CLOSE` file statements
+  - PL/I-style `OPEN`, `READ`, `WRITE`, `REWRITE`, `LOCATE`, `DELETE`, and `CLOSE` file statements
   - Unix-style stream files
+  - binary stream chunk reads/writes, text stream line reads/writes, append/update modes, `SIZE`/`COUNT`/`LENGTH` reads, and positioned `OFFSET`/`POSITION`/`RBA` file access
   - fixed-length `RECFM(F)` records
   - variable-length `RECFM(V)` records with a two-byte length prefix
   - text and binary record payloads
@@ -129,11 +130,11 @@
 - Function calls resolved and checked through runtime and dynamic function tables.
 - Multi-source translation using PL/I `%INCLUDE` text inclusion and separate module source files.
 - Basic output through `CALL DISPLAY(...)`, `CALL PRINT(...)`, and basic `PUT LIST(...)`.
-- Record I/O statements using forms such as `OPEN FILE(F);`, `READ FILE(F) INTO(BUF);`, `WRITE FILE(F) FROM(BUF);`, and `CLOSE FILE(F);`.
+- Record and stream I/O statements using forms such as `OPEN FILE(F);`, `READ FILE(F) INTO(BUF);`, `READ FILE(F) SIZE(80) OFFSET(POS) INTO(BUF);`, `WRITE FILE(F) FROM(BUF);`, `REWRITE FILE(F) FROM(BUF);`, `LOCATE FILE(F) SET(POS);`, `DELETE FILE(F);`, and `CLOSE FILE(F);`.
 - Primitive runtime socket I/O for plain TCP, SSL, and TLS sockets.
 - File-like socket payload I/O with Unix-style, `RECFM(F)`, and `RECFM(V)` framing.
 - Procedure calls with by-reference and by-name normalization.
-- File declarations using `FILE`, `RECORD`, `INPUT`, `OUTPUT`, `ENVIRONMENT(RECFM(...), LRECL(...), PATH(...))`, `TEXT`, and `BINARY`.
+- File declarations using `FILE`, `RECORD`, `STREAM`, `INPUT`, `OUTPUT`, `UPDATE`, `APPEND`, `ENVIRONMENT(RECFM(...), LRECL(...), PATH(...))`, `TEXT`, and `BINARY`.
 - Generic declarations using `GENERIC(... WHEN(...))`.
 - VSAM declarations using `ENVIRONMENT(VSAM(...), KEYOFFSET(...), KEYLENGTH(...))`.
 - VSAM I/O statements using `OPEN FILE(...)`, `WRITE FILE(...) FROM(...)`, `READ FILE(...) KEY(...) INTO(...)`, ESDS `RBA(...)`, RRDS `RRN(...)`, LDS `RBA(...) LENGTH(...)`, and `CLOSE FILE(...)`.

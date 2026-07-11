@@ -6,7 +6,7 @@ This file is generated from the Python source tree. Regenerate it with `python s
 
 - Modules: 54
 - Classes: 156
-- Functions and methods: 641
+- Functions and methods: 653
 
 ## `pl1compinpy`
 
@@ -2210,7 +2210,7 @@ def _select_statement(self, statement: SelectStatement, indent: int) -> list[str
 
 Internal helper in `PythonSourceEmitter` for select statement.
 
-Defined at line 125.
+Defined at line 133.
 
 ##### `PythonSourceEmitter._select_condition`
 
@@ -2220,7 +2220,7 @@ def _select_condition(self, statement: SelectStatement, expressions: list[Expres
 
 Internal helper in `PythonSourceEmitter` for select condition.
 
-Defined at line 138.
+Defined at line 146.
 
 ##### `PythonSourceEmitter._procedure`
 
@@ -2230,7 +2230,7 @@ def _procedure(self, procedure: Procedure, indent: int) -> list[str]
 
 Internal helper in `PythonSourceEmitter` for procedure.
 
-Defined at line 146.
+Defined at line 154.
 
 ##### `PythonSourceEmitter._procedure_named`
 
@@ -2240,7 +2240,7 @@ def _procedure_named(self, name: str, procedure: Procedure, indent: int) -> list
 
 Internal helper in `PythonSourceEmitter` for procedure named.
 
-Defined at line 151.
+Defined at line 159.
 
 ##### `PythonSourceEmitter._body`
 
@@ -2250,7 +2250,7 @@ def _body(self, statements: list[object], indent: int) -> list[str]
 
 Internal helper in `PythonSourceEmitter` for body.
 
-Defined at line 160.
+Defined at line 168.
 
 ##### `PythonSourceEmitter._expression`
 
@@ -2260,7 +2260,7 @@ def _expression(self, expression: Expression) -> str
 
 Internal helper in `PythonSourceEmitter` for expression.
 
-Defined at line 168.
+Defined at line 176.
 
 ##### `PythonSourceEmitter._operator`
 
@@ -2270,7 +2270,7 @@ def _operator(self, operator: str) -> str
 
 Internal helper in `PythonSourceEmitter` for operator.
 
-Defined at line 191.
+Defined at line 199.
 
 ##### `PythonSourceEmitter._declaration_initial_value`
 
@@ -2280,7 +2280,7 @@ def _declaration_initial_value(self, declaration: Declaration, name: str) -> str
 
 Internal helper in `PythonSourceEmitter` for declaration initial value.
 
-Defined at line 207.
+Defined at line 215.
 
 ##### `PythonSourceEmitter._target`
 
@@ -2290,7 +2290,7 @@ def _target(self, name: str) -> str
 
 Internal helper in `PythonSourceEmitter` for target.
 
-Defined at line 221.
+Defined at line 229.
 
 ##### `PythonSourceEmitter._pointer_target`
 
@@ -2300,7 +2300,7 @@ def _pointer_target(self, name: str) -> tuple[str, str, list[str]]
 
 Internal helper in `PythonSourceEmitter` for pointer target.
 
-Defined at line 227.
+Defined at line 235.
 
 ##### `PythonSourceEmitter._structure_literal`
 
@@ -2310,7 +2310,7 @@ def _structure_literal(self, field: object) -> str
 
 Internal helper in `PythonSourceEmitter` for structure literal.
 
-Defined at line 232.
+Defined at line 240.
 
 ##### `PythonSourceEmitter._main_arguments`
 
@@ -2320,7 +2320,7 @@ def _main_arguments(self, procedure: Procedure) -> str
 
 Internal helper in `PythonSourceEmitter` for main arguments.
 
-Defined at line 246.
+Defined at line 254.
 
 ### Functions
 
@@ -2332,7 +2332,7 @@ def emit_python_source(program: Program) -> str
 
 Emits python source output for the compiler.
 
-Defined at line 259.
+Defined at line 267.
 
 ## `pl1compinpy.codegen.runtime_link`
 
@@ -3748,7 +3748,7 @@ def _identifier_list_until(self, end: TokenType) -> list[str]
 
 Internal helper in `Parser` for identifier list until.
 
-Defined at line 618.
+Defined at line 621.
 
 ##### `Parser._type_text`
 
@@ -3758,7 +3758,7 @@ def _type_text(self, tokens: list[Token]) -> str
 
 Internal helper in `Parser` for type text.
 
-Defined at line 628.
+Defined at line 631.
 
 ##### `Parser._collect_until_semicolon`
 
@@ -3768,7 +3768,7 @@ def _collect_until_semicolon(self) -> list[Token]
 
 Internal helper in `Parser` for collect until semicolon.
 
-Defined at line 631.
+Defined at line 634.
 
 ##### `Parser._collect_until_keyword`
 
@@ -3778,7 +3778,7 @@ def _collect_until_keyword(self, *keywords: str) -> list[Token]
 
 Internal helper in `Parser` for collect until keyword.
 
-Defined at line 645.
+Defined at line 648.
 
 ##### `Parser._looks_like_label`
 
@@ -3788,7 +3788,7 @@ def _looks_like_label(self) -> bool
 
 Internal helper in `Parser` for looks like label.
 
-Defined at line 659.
+Defined at line 662.
 
 ##### `Parser._looks_like_assignment_target`
 
@@ -3798,7 +3798,7 @@ def _looks_like_assignment_target(self) -> bool
 
 Internal helper in `Parser` for looks like assignment target.
 
-Defined at line 662.
+Defined at line 665.
 
 ##### `Parser._assignment_target`
 
@@ -3808,7 +3808,7 @@ def _assignment_target(self) -> str
 
 Internal helper in `Parser` for assignment target.
 
-Defined at line 672.
+Defined at line 675.
 
 ##### `Parser._field_suffix`
 
@@ -3818,7 +3818,7 @@ def _field_suffix(self) -> list[str]
 
 Internal helper in `Parser` for field suffix.
 
-Defined at line 682.
+Defined at line 685.
 
 ##### `Parser._starts_raw_statement`
 
@@ -3828,7 +3828,7 @@ def _starts_raw_statement(self) -> bool
 
 Internal helper in `Parser` for starts raw statement.
 
-Defined at line 688.
+Defined at line 691.
 
 ##### `Parser._match`
 
@@ -3838,7 +3838,7 @@ def _match(self, *types: TokenType) -> bool
 
 Internal helper in `Parser` for match.
 
-Defined at line 714.
+Defined at line 717.
 
 ##### `Parser._match_semicolon`
 
@@ -3848,7 +3848,7 @@ def _match_semicolon(self) -> bool
 
 Internal helper in `Parser` for match semicolon.
 
-Defined at line 720.
+Defined at line 723.
 
 ##### `Parser._match_keyword`
 
@@ -3858,7 +3858,7 @@ def _match_keyword(self, *keywords: str) -> bool
 
 Internal helper in `Parser` for match keyword.
 
-Defined at line 723.
+Defined at line 726.
 
 ##### `Parser._previous_keyword`
 
@@ -3868,7 +3868,7 @@ def _previous_keyword(self, keyword: str) -> bool
 
 Internal helper in `Parser` for previous keyword.
 
-Defined at line 729.
+Defined at line 732.
 
 ##### `Parser._check`
 
@@ -3878,7 +3878,7 @@ def _check(self, token_type: TokenType) -> bool
 
 Internal helper in `Parser` for check.
 
-Defined at line 732.
+Defined at line 735.
 
 ##### `Parser._check_next`
 
@@ -3888,7 +3888,7 @@ def _check_next(self, token_type: TokenType) -> bool
 
 Internal helper in `Parser` for check next.
 
-Defined at line 735.
+Defined at line 738.
 
 ##### `Parser._check_keyword`
 
@@ -3898,7 +3898,7 @@ def _check_keyword(self, *keywords: str) -> bool
 
 Internal helper in `Parser` for check keyword.
 
-Defined at line 740.
+Defined at line 743.
 
 ##### `Parser._check_next_keyword`
 
@@ -3908,7 +3908,7 @@ def _check_next_keyword(self, *keywords: str) -> bool
 
 Internal helper in `Parser` for check next keyword.
 
-Defined at line 744.
+Defined at line 747.
 
 ##### `Parser._consume`
 
@@ -3918,7 +3918,7 @@ def _consume(self, token_type: TokenType, message: str) -> Token
 
 Internal helper in `Parser` for consume.
 
-Defined at line 750.
+Defined at line 753.
 
 ##### `Parser._consume_identifier`
 
@@ -3928,7 +3928,7 @@ def _consume_identifier(self, message: str) -> Token
 
 Internal helper in `Parser` for consume identifier.
 
-Defined at line 755.
+Defined at line 758.
 
 ##### `Parser._advance`
 
@@ -3938,7 +3938,7 @@ def _advance(self) -> Token
 
 Internal helper in `Parser` for advance.
 
-Defined at line 760.
+Defined at line 763.
 
 ##### `Parser._peek`
 
@@ -3948,7 +3948,7 @@ def _peek(self) -> Token
 
 Internal helper in `Parser` for peek.
 
-Defined at line 765.
+Defined at line 768.
 
 ##### `Parser._previous`
 
@@ -3958,7 +3958,7 @@ def _previous(self) -> Token
 
 Internal helper in `Parser` for previous.
 
-Defined at line 768.
+Defined at line 771.
 
 ##### `Parser._error`
 
@@ -3968,7 +3968,7 @@ def _error(self, token: Token, message: str) -> ParserError
 
 Internal helper in `Parser` for error.
 
-Defined at line 771.
+Defined at line 774.
 
 ## `pl1compinpy.frontend.precedence`
 
@@ -6455,7 +6455,7 @@ def from_declaration(cls, declaration: Declaration, base_path: Path | None = Non
 
 Performs from declaration behavior in `FileDescriptor`.
 
-Defined at line 25.
+Defined at line 26.
 
 #### `StdioRuntime`
 
@@ -6465,7 +6465,7 @@ class StdioRuntime
 
 Class implementing stdio runtime behavior in the PL/I compiler.
 
-Defined at line 46.
+Defined at line 47.
 
 Methods:
 
@@ -6477,7 +6477,7 @@ def __init__(self) -> None
 
 Initializes an instance of `StdioRuntime`.
 
-Defined at line 47.
+Defined at line 48.
 
 ##### `StdioRuntime.open`
 
@@ -6487,7 +6487,7 @@ def open(self, descriptor: FileDescriptor) -> None
 
 Performs open behavior in `StdioRuntime`.
 
-Defined at line 50.
+Defined at line 52.
 
 ##### `StdioRuntime.close`
 
@@ -6497,17 +6497,107 @@ def close(self, descriptor: FileDescriptor) -> None
 
 Performs close behavior in `StdioRuntime`.
 
-Defined at line 54.
+Defined at line 66.
+
+##### `StdioRuntime.flush`
+
+```python
+def flush(self, descriptor: FileDescriptor) -> None
+```
+
+Performs flush behavior in `StdioRuntime`.
+
+Defined at line 72.
+
+##### `StdioRuntime.tell`
+
+```python
+def tell(self, descriptor: FileDescriptor) -> int
+```
+
+Performs tell behavior in `StdioRuntime`.
+
+Defined at line 75.
+
+##### `StdioRuntime.seek`
+
+```python
+def seek(self, descriptor: FileDescriptor, offset: int, whence: int = 0) -> int
+```
+
+Performs seek behavior in `StdioRuntime`.
+
+Defined at line 78.
+
+##### `StdioRuntime.delete`
+
+```python
+def delete(self, descriptor: FileDescriptor) -> None
+```
+
+Performs delete behavior in `StdioRuntime`.
+
+Defined at line 82.
+
+##### `StdioRuntime.write`
+
+```python
+def write(self, descriptor: FileDescriptor, data: bytes | str | int | float, *, offset: int | None = None) -> None
+```
+
+Performs write behavior in `StdioRuntime`.
+
+Defined at line 87.
+
+##### `StdioRuntime.read`
+
+```python
+def read(self, descriptor: FileDescriptor, *, size: int | None = None, offset: int | None = None, line: bool = False) -> bytes | str
+```
+
+Performs read behavior in `StdioRuntime`.
+
+Defined at line 93.
+
+##### `StdioRuntime.write_stream`
+
+```python
+def write_stream(self, descriptor: FileDescriptor, data: bytes | str | int | float, *, offset: int | None = None) -> None
+```
+
+Performs write stream behavior in `StdioRuntime`.
+
+Defined at line 105.
+
+##### `StdioRuntime.read_stream`
+
+```python
+def read_stream(self, descriptor: FileDescriptor, *, size: int | None = None, offset: int | None = None, line: bool = False) -> bytes | str
+```
+
+Performs read stream behavior in `StdioRuntime`.
+
+Defined at line 114.
 
 ##### `StdioRuntime.write_record`
 
 ```python
-def write_record(self, descriptor: FileDescriptor, data: bytes | str) -> None
+def write_record(self, descriptor: FileDescriptor, data: bytes | str | int | float) -> None
 ```
 
 Performs write record behavior in `StdioRuntime`.
 
-Defined at line 59.
+Defined at line 133.
+
+##### `StdioRuntime.rewrite_record`
+
+```python
+def rewrite_record(self, descriptor: FileDescriptor, data: bytes | str | int | float, *, offset: int | None = None) -> None
+```
+
+Performs rewrite record behavior in `StdioRuntime`.
+
+Defined at line 153.
 
 ##### `StdioRuntime.read_record`
 
@@ -6517,7 +6607,7 @@ def read_record(self, descriptor: FileDescriptor) -> bytes | str
 
 Performs read record behavior in `StdioRuntime`.
 
-Defined at line 81.
+Defined at line 162.
 
 ##### `StdioRuntime.execute`
 
@@ -6527,17 +6617,47 @@ def execute(self, statement: IOStatement, descriptors: dict[str, FileDescriptor]
 
 Performs execute behavior in `StdioRuntime`.
 
-Defined at line 100.
+Defined at line 182.
 
 ##### `StdioRuntime._io_value`
 
 ```python
-def _io_value(self, statement: IOStatement, variables: dict[str, object]) -> bytes | str
+def _io_value(self, statement: IOStatement, variables: dict[str, object]) -> bytes | str | int | float
 ```
 
 Internal helper in `StdioRuntime` for io value.
 
-Defined at line 118.
+Defined at line 210.
+
+##### `StdioRuntime._optional_int`
+
+```python
+def _optional_int(self, statement: IOStatement, variables: dict[str, object], *names: str) -> int | None
+```
+
+Internal helper in `StdioRuntime` for optional int.
+
+Defined at line 221.
+
+##### `StdioRuntime._expression_value`
+
+```python
+def _expression_value(self, expression: object, variables: dict[str, object]) -> object
+```
+
+Internal helper in `StdioRuntime` for expression value.
+
+Defined at line 232.
+
+##### `StdioRuntime._payload`
+
+```python
+def _payload(self, descriptor: FileDescriptor, data: bytes | str | int | float) -> bytes
+```
+
+Internal helper in `StdioRuntime` for payload.
+
+Defined at line 241.
 
 ##### `StdioRuntime._handle`
 
@@ -6547,7 +6667,7 @@ def _handle(self, descriptor: FileDescriptor) -> BinaryIO
 
 Internal helper in `StdioRuntime` for handle.
 
-Defined at line 129.
+Defined at line 246.
 
 ## `pl1compinpy.runtime.picture`
 

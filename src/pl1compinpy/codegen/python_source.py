@@ -116,10 +116,18 @@ class PythonSourceEmitter:
             return [f"{prefix}runtime.close({file_name})"]
         if statement.operation == "READ":
             target = statement.target or "_"
-            return [f"{prefix}{target} = runtime.read_record({file_name})"]
+            return [f"{prefix}{target} = runtime.read({file_name})"]
         if statement.operation == "WRITE":
             source = self._expression(statement.source) if statement.source else "b''"
-            return [f"{prefix}runtime.write_record({file_name}, {source})"]
+            return [f"{prefix}runtime.write({file_name}, {source})"]
+        if statement.operation == "REWRITE":
+            source = self._expression(statement.source) if statement.source else "b''"
+            return [f"{prefix}runtime.rewrite_record({file_name}, {source})"]
+        if statement.operation == "LOCATE":
+            target = statement.target or "_"
+            return [f"{prefix}{target} = runtime.tell({file_name})"]
+        if statement.operation == "DELETE":
+            return [f"{prefix}runtime.delete({file_name})"]
         return [f"{prefix}# unsupported I/O operation {statement.operation}"]
 
     def _select_statement(self, statement: SelectStatement, indent: int) -> list[str]:

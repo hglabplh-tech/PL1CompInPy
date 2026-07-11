@@ -37,6 +37,8 @@ These examples cover the compiler features currently implemented in PL1CompInPy.
 - `runtime/file_record_v.pl1`: variable-record file declaration
 - `runtime/file_record_f.pl1`: fixed-record file declaration
 - `runtime/file_read_write.pl1`: `OPEN`, `READ`, `WRITE`, and `CLOSE` file statements
+- `runtime/file_binary_stream_io.pl1`: binary stream `WRITE`, positioned `READ SIZE(...) OFFSET(...)`, and `LOCATE`
+- `runtime/file_record_rewrite_delete.pl1`: fixed-record `WRITE`, `READ`, `REWRITE`, `LOCATE`, and `DELETE`
 - `runtime/function_table.py`: dynamic user function table and static runtime function table lookup
 - `runtime/fixed_decimal_packed_zoned.py`: fixed decimal, packed decimal, zoned decimal, and two-byte string runtime APIs
 - `runtime/complex_compute_engine.py`: direct Python use of the complex arithmetic runtime and calculation engine

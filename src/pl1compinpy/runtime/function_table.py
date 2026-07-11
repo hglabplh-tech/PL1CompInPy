@@ -304,6 +304,9 @@ def runtime_function_table() -> FunctionTable:
     table.add_runtime("REWRITE", "runtime.io.rewrite", [file_ref(), any_value("SOURCE")])
     table.add_runtime("LOCATE", "runtime.io.locate", [file_ref()], returns="POINTER")
     table.add_runtime("DELETE", "runtime.io.delete", [file_ref()])
+    table.add_runtime("SEEK", "runtime.io.seek", [file_ref(), ParameterDescriptor("OFFSET", "FIXED BIN", "value")], returns="FIXED BIN")
+    table.add_runtime("TELL", "runtime.io.tell", [file_ref()], returns="FIXED BIN")
+    table.add_runtime("FLUSH", "runtime.io.flush", [file_ref()])
 
     table.add_runtime("VSAM_OPEN", "runtime.vsam.open", [file_ref("VSAMFILE")])
     table.add_runtime("VSAM_CLOSE", "runtime.vsam.close", [file_ref("VSAMFILE")])

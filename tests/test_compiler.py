@@ -398,6 +398,21 @@ class CompilerTests(unittest.TestCase):
         self.assertEqual(program.statements[1].options["key"].name, "KEYVAR")
         self.assertEqual(program.statements[2].source.name, "BUF")
 
+    def test_parses_extended_file_io_options(self):
+        program = Parser(
+            Lexer(
+                "READ FILE(F) SIZE(4) OFFSET(POS) INTO(BUF); "
+                "REWRITE FILE(F) POSITION(POS) FROM(BUF); "
+                "LOCATE FILE(F) SET(POS); "
+                "DELETE FILE(F);"
+            ).tokenize()
+        ).parse()
+
+        self.assertEqual([statement.operation for statement in program.statements], ["READ", "REWRITE", "LOCATE", "DELETE"])
+        self.assertEqual(program.statements[0].options["size"].value, "4")
+        self.assertEqual(program.statements[0].options["offset"].name, "POS")
+        self.assertEqual(program.statements[2].target, "POS")
+
     def test_parses_do_while_and_do_until_groups(self):
         source = "DO WHILE TOTAL < 3; TOTAL = TOTAL + 1; END; DO; TOTAL = TOTAL + 1; UNTIL TOTAL = 5; END;"
         program = Parser(Lexer(source).tokenize()).parse()
@@ -874,8 +889,8 @@ class CompilerTests(unittest.TestCase):
         output = compile_source(source, target="python-source")
 
         self.assertIn("runtime.open(F)", output)
-        self.assertIn("BUF = runtime.read_record(F)", output)
-        self.assertIn("runtime.write_record(F, BUF)", output)
+        self.assertIn("BUF = runtime.read(F)", output)
+        self.assertIn("runtime.write(F, BUF)", output)
         self.assertIn("runtime.close(F)", output)
         self.assertIn("while (TOTAL < 3):", output)
         self.assertIn("if (TOTAL == 5):", output)
@@ -1010,6 +1025,78 @@ class CompilerTests(unittest.TestCase):
 
             self.assertEqual((Path(tmp) / "f.dat").read_bytes(), b"XY   ")
 
+    def test_runtime_reads_and_writes_binary_stream_chunks(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            output = FileDescriptor("BIN", Path(tmp) / "stream.bin", mode="OUTPUT", organization="STREAM")
+            runtime = StdioRuntime()
+            runtime.open(output)
+            runtime.write_stream(output, b"ABCDEFG")
+            runtime.close(output)
+
+            input_descriptor = FileDescriptor("BIN", Path(tmp) / "stream.bin", mode="INPUT", organization="STREAM")
+            runtime.open(input_descriptor)
+            self.assertEqual(runtime.read_stream(input_descriptor, size=3), b"ABC")
+            self.assertEqual(runtime.read_stream(input_descriptor, size=2), b"DE")
+            self.assertEqual(runtime.read_stream(input_descriptor, offset=5), b"FG")
+            runtime.close(input_descriptor)
+
+    def test_runtime_reads_and_writes_text_stream_lines(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            output = FileDescriptor("TXT", Path(tmp) / "stream.txt", mode="OUTPUT", organization="STREAM", text=True)
+            runtime = StdioRuntime()
+            runtime.open(output)
+            runtime.write_stream(output, "ALPHA")
+            runtime.write_stream(output, "BETA")
+            runtime.close(output)
+
+            input_descriptor = FileDescriptor("TXT", Path(tmp) / "stream.txt", mode="INPUT", organization="STREAM", text=True)
+            runtime.open(input_descriptor)
+            self.assertEqual(runtime.read_stream(input_descriptor, line=True), "ALPHA")
+            self.assertEqual(runtime.read_stream(input_descriptor, line=True), "BETA")
+            runtime.close(input_descriptor)
+
+    def test_runtime_rewrites_fixed_record_after_read(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            output = FileDescriptor("F", Path(tmp) / "rewrite.dat", mode="OUTPUT", recfm="F", lrecl=4)
+            runtime = StdioRuntime()
+            runtime.open(output)
+            runtime.write_record(output, b"ABCD")
+            runtime.write_record(output, b"EFGH")
+            runtime.close(output)
+
+            update = FileDescriptor("F", Path(tmp) / "rewrite.dat", mode="UPDATE", recfm="F", lrecl=4)
+            runtime.open(update)
+            self.assertEqual(runtime.read_record(update), b"ABCD")
+            runtime.rewrite_record(update, b"WXYZ")
+            runtime.close(update)
+
+            self.assertEqual((Path(tmp) / "rewrite.dat").read_bytes(), b"WXYZEFGH")
+
+    def test_runtime_executes_extended_file_io_statements(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            descriptor = FileDescriptor("F", Path(tmp) / "extended.bin", mode="OUTPUT", organization="STREAM")
+            runtime = StdioRuntime()
+            variables = {"BUF": b"PAYLOAD"}
+            program = Parser(Lexer("OPEN FILE(F); WRITE FILE(F) FROM(BUF); LOCATE FILE(F) SET(POS); CLOSE FILE(F);").tokenize()).parse()
+            for statement in program.statements:
+                runtime.execute(statement, {"F": descriptor}, variables)
+
+            self.assertEqual(variables["POS"], 7)
+
+            input_descriptor = FileDescriptor("F", Path(tmp) / "extended.bin", mode="INPUT", organization="STREAM")
+            read_program = Parser(Lexer("OPEN FILE(F); READ FILE(F) SIZE(3) OFFSET(2) INTO(PART); CLOSE FILE(F);").tokenize()).parse()
+            for statement in read_program.statements:
+                runtime.execute(statement, {"F": input_descriptor}, variables)
+
+            self.assertEqual(variables["PART"], b"YLO")
+
+            delete_descriptor = FileDescriptor("F", Path(tmp) / "extended.bin", mode="UPDATE", organization="STREAM")
+            delete_program = Parser(Lexer("OPEN FILE(F); DELETE FILE(F);").tokenize()).parse()
+            for statement in delete_program.statements:
+                runtime.execute(statement, {"F": delete_descriptor}, variables)
+
+            self.assertFalse((Path(tmp) / "extended.bin").exists())
+
     def test_runtime_executes_parsed_file_io_statements(self):
         with tempfile.TemporaryDirectory() as tmp:
             output = FileDescriptor("F", Path(tmp) / "io.dat", mode="OUTPUT", recfm="V")
@@ -1037,6 +1124,15 @@ class CompilerTests(unittest.TestCase):
         self.assertEqual(descriptor.mode, "INPUT")
         self.assertEqual(descriptor.recfm, "F")
         self.assertEqual(descriptor.lrecl, 12)
+        self.assertTrue(descriptor.text)
+
+    def test_file_descriptor_supports_append_mode_from_declaration(self):
+        source = "DCL LOG FILE STREAM APPEND ENVIRONMENT(PATH('log.txt')) TEXT;"
+        declaration = Parser(Lexer(source).tokenize()).parse().statements[0]
+        descriptor = FileDescriptor.from_declaration(declaration, Path("/tmp"))
+
+        self.assertEqual(descriptor.mode, "APPEND")
+        self.assertEqual(descriptor.organization, "STREAM")
         self.assertTrue(descriptor.text)
 
     def test_string_runtime_uses_two_byte_length_prefix(self):

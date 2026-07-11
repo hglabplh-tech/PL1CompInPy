@@ -74,7 +74,7 @@ class Parser:
             return self._do_group()
         if self._match_keyword("IF"):
             return self._if_statement()
-        if self._check_keyword("OPEN", "CLOSE", "READ", "WRITE"):
+        if self._check_keyword("OPEN", "CLOSE", "READ", "WRITE", "REWRITE", "LOCATE", "DELETE"):
             return self._io_statement()
         if self._match_keyword("SELECT"):
             return self._select_statement()
@@ -185,7 +185,7 @@ class Parser:
         while index < len(tokens):
             token = tokens[index]
             upper = token.lexeme.upper()
-            if upper in {"INPUT", "OUTPUT", "UPDATE"}:
+            if upper in {"INPUT", "OUTPUT", "UPDATE", "APPEND"}:
                 options["mode"] = upper
             elif upper in {"RECORD", "STREAM"}:
                 options["organization"] = upper
@@ -446,7 +446,7 @@ class Parser:
         operation = self._advance().lexeme.upper()
         tokens = self._collect_until_semicolon()
         file_name = self._option_value(tokens, "FILE")
-        target = self._option_value(tokens, "INTO")
+        target = self._option_value(tokens, "INTO") or self._option_value(tokens, "SET")
         source_tokens = self._option_tokens(tokens, "FROM")
         source = self._expression_from_tokens(source_tokens) if source_tokens else None
         options = self._io_options_from_tokens(tokens)
@@ -609,7 +609,10 @@ class Parser:
 
     def _io_options_from_tokens(self, tokens: list[Token]) -> dict[str, Expression]:
         options: dict[str, Expression] = {}
-        for keyword in ("KEY", "RRN", "RBA", "LENGTH", "COUNT"):
+        for keyword in ("KEY", "RRN", "RBA", "LENGTH", "COUNT", "SIZE", "OFFSET", "POSITION", "LINE"):
+            if keyword == "LINE" and any(token.lexeme.upper() == keyword for token in tokens):
+                options[keyword.lower()] = NumberLiteral(1)
+                continue
             option_tokens = self._option_tokens(tokens, keyword)
             if option_tokens:
                 options[keyword.lower()] = self._expression_from_tokens(option_tokens)

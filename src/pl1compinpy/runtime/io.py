@@ -20,6 +20,7 @@ class FileDescriptor:
     recfm: str = "UNIX"
     lrecl: int | None = None
     text: bool = False
+    encoding: str = "utf-8"
 
     @classmethod
     def from_declaration(cls, declaration: Declaration, base_path: Path | None = None) -> "FileDescriptor":
@@ -46,21 +47,92 @@ class FileDescriptor:
 class StdioRuntime:
     def __init__(self) -> None:
         self._open_files: dict[str, BinaryIO] = {}
+        self._last_record_start: dict[str, int] = {}
 
     def open(self, descriptor: FileDescriptor) -> None:
-        mode = "rb" if descriptor.mode == "INPUT" else "w+b" if descriptor.mode == "UPDATE" else "wb"
+        descriptor.path.parent.mkdir(parents=True, exist_ok=True)
+        if descriptor.mode == "INPUT":
+            mode = "rb"
+        elif descriptor.mode == "UPDATE":
+            mode = "r+b" if descriptor.path.exists() else "w+b"
+        elif descriptor.mode == "APPEND":
+            mode = "r+b" if descriptor.path.exists() else "w+b"
+        else:
+            mode = "wb"
         self._open_files[descriptor.name] = descriptor.path.open(mode)
+        if descriptor.mode == "APPEND":
+            self._open_files[descriptor.name].seek(0, 2)
 
     def close(self, descriptor: FileDescriptor) -> None:
         handle = self._open_files.pop(descriptor.name, None)
         if handle:
             handle.close()
+        self._last_record_start.pop(descriptor.name, None)
 
-    def write_record(self, descriptor: FileDescriptor, data: bytes | str) -> None:
+    def flush(self, descriptor: FileDescriptor) -> None:
+        self._handle(descriptor).flush()
+
+    def tell(self, descriptor: FileDescriptor) -> int:
+        return self._handle(descriptor).tell()
+
+    def seek(self, descriptor: FileDescriptor, offset: int, whence: int = 0) -> int:
         handle = self._handle(descriptor)
-        payload = data.encode("utf-8") if isinstance(data, str) else data
-        if descriptor.text and not isinstance(data, bytes):
-            payload = data.encode("utf-8")
+        return handle.seek(offset, whence)
+
+    def delete(self, descriptor: FileDescriptor) -> None:
+        self.close(descriptor)
+        if descriptor.path.exists():
+            descriptor.path.unlink()
+
+    def write(self, descriptor: FileDescriptor, data: bytes | str | int | float, *, offset: int | None = None) -> None:
+        if descriptor.organization == "STREAM" and descriptor.recfm not in {"F", "V"}:
+            self.write_stream(descriptor, data, offset=offset)
+        else:
+            self.write_record(descriptor, data)
+
+    def read(
+        self,
+        descriptor: FileDescriptor,
+        *,
+        size: int | None = None,
+        offset: int | None = None,
+        line: bool = False,
+    ) -> bytes | str:
+        if descriptor.organization == "STREAM" and descriptor.recfm not in {"F", "V"}:
+            return self.read_stream(descriptor, size=size, offset=offset, line=line)
+        return self.read_record(descriptor)
+
+    def write_stream(self, descriptor: FileDescriptor, data: bytes | str | int | float, *, offset: int | None = None) -> None:
+        handle = self._handle(descriptor)
+        if offset is not None:
+            handle.seek(offset)
+        payload = self._payload(descriptor, data)
+        handle.write(payload)
+        if descriptor.text and not payload.endswith(b"\n"):
+            handle.write(b"\n")
+
+    def read_stream(
+        self,
+        descriptor: FileDescriptor,
+        *,
+        size: int | None = None,
+        offset: int | None = None,
+        line: bool = False,
+    ) -> bytes | str:
+        handle = self._handle(descriptor)
+        if offset is not None:
+            handle.seek(offset)
+        if line or descriptor.text and size is None:
+            payload = handle.readline().rstrip(b"\n")
+        elif size is None:
+            payload = handle.read()
+        else:
+            payload = handle.read(size)
+        return payload.decode(descriptor.encoding) if descriptor.text else payload
+
+    def write_record(self, descriptor: FileDescriptor, data: bytes | str | int | float) -> None:
+        handle = self._handle(descriptor)
+        payload = self._payload(descriptor, data)
         if descriptor.recfm == "V":
             if len(payload) > 0xFFFF:
                 raise FileRuntimeError("V record exceeds two-byte length prefix")
@@ -78,8 +150,18 @@ class StdioRuntime:
             if descriptor.text:
                 handle.write(b"\n")
 
+    def rewrite_record(self, descriptor: FileDescriptor, data: bytes | str | int | float, *, offset: int | None = None) -> None:
+        handle = self._handle(descriptor)
+        if offset is None:
+            offset = self._last_record_start.get(descriptor.name)
+        if offset is None:
+            raise FileRuntimeError("REWRITE requires a prior READ or an explicit OFFSET/POSITION/RBA")
+        handle.seek(offset)
+        self.write_record(descriptor, data)
+
     def read_record(self, descriptor: FileDescriptor) -> bytes | str:
         handle = self._handle(descriptor)
+        self._last_record_start[descriptor.name] = handle.tell()
         if descriptor.recfm == "V":
             length_bytes = handle.read(2)
             if not length_bytes:
@@ -95,13 +177,14 @@ class StdioRuntime:
             payload = handle.readline() if descriptor.text else handle.read()
             if descriptor.text:
                 payload = payload.rstrip(b"\n")
-        return payload.decode("utf-8") if descriptor.text else payload
+        return payload.decode(descriptor.encoding) if descriptor.text else payload
 
     def execute(self, statement: IOStatement, descriptors: dict[str, FileDescriptor], variables: dict[str, object] | None = None) -> None:
         variables = variables if variables is not None else {}
         if statement.file_name is None:
             raise FileRuntimeError(f"{statement.operation} requires FILE(name)")
         descriptor = descriptors[statement.file_name]
+        offset = self._optional_int(statement, variables, "offset", "position", "rba")
         if statement.operation == "OPEN":
             self.open(descriptor)
         elif statement.operation == "CLOSE":
@@ -109,22 +192,56 @@ class StdioRuntime:
         elif statement.operation == "READ":
             if statement.target is None:
                 raise FileRuntimeError("READ requires INTO(name)")
-            variables[statement.target] = self.read_record(descriptor)
+            size = self._optional_int(statement, variables, "size", "length", "count")
+            variables[statement.target] = self.read(descriptor, size=size, offset=offset, line="line" in statement.options)
         elif statement.operation == "WRITE":
-            self.write_record(descriptor, self._io_value(statement, variables))
+            self.write(descriptor, self._io_value(statement, variables), offset=offset)
+        elif statement.operation == "REWRITE":
+            self.rewrite_record(descriptor, self._io_value(statement, variables), offset=offset)
+        elif statement.operation == "LOCATE":
+            target = statement.target
+            if target:
+                variables[target] = self.tell(descriptor)
+        elif statement.operation == "DELETE":
+            self.delete(descriptor)
         else:
             raise FileRuntimeError(f"Unsupported I/O operation: {statement.operation}")
 
-    def _io_value(self, statement: IOStatement, variables: dict[str, object]) -> bytes | str:
+    def _io_value(self, statement: IOStatement, variables: dict[str, object]) -> bytes | str | int | float:
         source = statement.source
         if isinstance(source, Identifier):
             value = variables.get(source.name, b"")
-            return value if isinstance(value, (bytes, str)) else str(value)
+            return value if isinstance(value, (bytes, str, int, float)) else str(value)
         if isinstance(source, StringLiteral):
             return source.value
         if isinstance(source, NumberLiteral):
             return source.value
         return b""
+
+    def _optional_int(self, statement: IOStatement, variables: dict[str, object], *names: str) -> int | None:
+        for name in names:
+            expression = statement.options.get(name)
+            if expression is None:
+                continue
+            value = self._expression_value(expression, variables)
+            if value is None:
+                return None
+            return int(value)
+        return None
+
+    def _expression_value(self, expression: object, variables: dict[str, object]) -> object:
+        if isinstance(expression, Identifier):
+            return variables.get(expression.name)
+        if isinstance(expression, StringLiteral):
+            return expression.value
+        if isinstance(expression, NumberLiteral):
+            return expression.value
+        return None
+
+    def _payload(self, descriptor: FileDescriptor, data: bytes | str | int | float) -> bytes:
+        if isinstance(data, bytes):
+            return data
+        return str(data).encode(descriptor.encoding)
 
     def _handle(self, descriptor: FileDescriptor) -> BinaryIO:
         try:

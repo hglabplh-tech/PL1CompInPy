@@ -241,8 +241,9 @@ The runtime also includes starter storage and I/O services:
 - static builtin call checking for `DCL SUBSTR BUILTIN;`
 - examples for declared numeric, string, and pointer builtins in `examples/builtins/numeric_string_builtins.pl1` and `examples/builtins/pointer.pl1`
 - PL/I-style file declarations such as `DCL F FILE RECORD OUTPUT ENVIRONMENT(RECFM(V), LRECL(80), PATH('out.dat')) BINARY;`
-- PL/I-style file statements: `OPEN FILE(F);`, `READ FILE(F) INTO(BUF);`, `WRITE FILE(F) FROM(BUF);`, and `CLOSE FILE(F);`
+- PL/I-style file statements: `OPEN FILE(F);`, `READ FILE(F) INTO(BUF);`, `WRITE FILE(F) FROM(BUF);`, `REWRITE FILE(F) FROM(BUF);`, `LOCATE FILE(F) SET(POS);`, `DELETE FILE(F);`, and `CLOSE FILE(F);`
 - normal Unix-style stream files
+- binary stream chunk I/O through `READ FILE(F) SIZE(n) INTO(BUF);`, positioned I/O through `OFFSET(...)`, `POSITION(...)`, and `RBA(...)`, text line reads through `LINE`, and append/update modes for ordinary files
 - fixed-record files using `RECFM(F)` and `LRECL(n)`
 - variable-record files using `RECFM(V)`, represented here with a two-byte big-endian length prefix followed by record data
 - binary and text record payloads
