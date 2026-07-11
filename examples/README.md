@@ -2,6 +2,8 @@
 
 These examples cover the compiler features currently implemented in PL1CompInPy.
 
+The project also contains PL/I bootstrap compiler sources under `../bootstrap/`.
+
 ## Language
 
 - `language/declarations.pl1`: declarations, assignment, and display calls

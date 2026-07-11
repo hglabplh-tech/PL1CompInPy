@@ -8,6 +8,7 @@ PL1CompInPy is a starter Python project for a PL/1 compiler.
 - [Generated API Reference](docs/API.md)
 - [Build And Delivery](docs/DELIVERY.md)
 - [Sponsorship](docs/SPONSORSHIP.md)
+- [PL/I Bootstrap Sources](bootstrap/README.md)
 - [Code of Conduct](CODE_OF_CONDUCT.md)
 - [MIT License](LICENSE)
 
@@ -233,6 +234,8 @@ The executable pipeline includes a first runtime calling convention:
 - PL/I comments use `/* ... */`; the default lexer treats them as whitespace, while `Lexer(..., preserve_comments=True)` records them as `CommentSection` metadata on `Program.comments`
 
 The examples include an imported PL/I quicksort library at `examples/language/quicksort_imported.pli`; it is kept unchanged as a larger reference source while the current compiler subset grows toward it. Semantic notes for operator precedence, PL/I type modeling, and debugger symbol tables live in `docs/SEMANTICS.md`.
+
+The `bootstrap/` directory starts the self-hosting path: it contains PL/I source modules for a bootstrap lexer, parser, runtime table, and compiler driver written in the current PL1CompInPy dialect. These sources are parsed by the current Python frontend and are intended to move compiler logic into PL/I incrementally.
 
 The runtime also includes starter storage and I/O services:
 

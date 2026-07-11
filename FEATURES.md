@@ -5,6 +5,7 @@
 - Python package structure using `pyproject.toml`.
 - Command-line compiler entry point via `python -m pl1compinpy`.
 - Project `Makefile` with compile, docs, test, binary-test, example, artifact-build, and delivery-package targets.
+- Bootstrap PL/I source modules for the lexer, parser, runtime table, and compiler driver in `bootstrap/`.
 - Generated API reference for all Python modules, classes, functions, and methods.
 - Layered package organization:
   - `core` for AST and compiler orchestration
@@ -116,6 +117,7 @@
 - Unit tests for include expansion, strict include diagnostics, recursive include protection, IBM-style preprocessing, multi-source main selection, CLI library output, library manifests, dynamic-load runtime dispatch, binary artifact compilation with runtime-result verification, and generated API documentation.
 - Packaged PL/I builtin source inclusion with a first `SUBSTR` builtin.
 - Static PL/I builtin function table entries that require `DCL name BUILTIN;` before use.
+- Bootstrap tests that parse the PL/I-written compiler seed modules and check the required lexer, parser, and runtime procedure families.
 
 ## Supported PL/1 Subset
 
