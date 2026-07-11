@@ -1,0 +1,8 @@
+# GitHub displays these links through the repository Sponsor button.
+# Keep this file in .github/FUNDING.yml.
+
+github:
+  - hglabplh
+
+custom:
+  - "https://github.com/hglabplh/PL1CompInPy"

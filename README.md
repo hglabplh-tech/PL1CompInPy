@@ -6,6 +6,7 @@ PL1CompInPy is a starter Python project for a PL/1 compiler.
 
 - [Features](FEATURES.md)
 - [Generated API Reference](docs/API.md)
+- [Sponsorship](docs/SPONSORSHIP.md)
 - [Code of Conduct](CODE_OF_CONDUCT.md)
 - [MIT License](LICENSE)
 
