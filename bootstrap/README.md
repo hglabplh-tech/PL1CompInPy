@@ -12,6 +12,7 @@ passes from Python into PL/I step by step.
 - `bootstrap_lexer.pl1`: token model and scanner procedures for the current dialect.
 - `bootstrap_parser.pl1`: recursive-descent parser shape for the currently supported PL/I subset.
 - `bootstrap_runtime.pl1`: PL/I declarations for the runtime services and internal heap builtins.
+- `bootstrap_backend_m3.pl1`: first bootstrap backend, emitting textual Apple M3/macOS ARM64 assembly.
 - `bootstrap_compiler.pl1`: bootstrap driver that wires lexer, parser, semantic/runtime tables, and backend selection.
 
 ## Contract

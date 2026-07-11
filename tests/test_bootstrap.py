@@ -62,7 +62,16 @@ class BootstrapSourceTests(unittest.TestCase):
     def test_bootstrap_runtime_registers_current_runtime_families(self):
         text = (BOOTSTRAP / "bootstrap_runtime.pl1").read_text(encoding="utf-8")
 
-        for marker in ("PL1RT_ALLOC", "PL1RT_PEEK", "OPEN", "VSAM_OPEN", "TCPIP_OPEN", "COMPLEX", "DECIMAL_TO_PACKED"):
+        for marker in ("PL1RT_ALLOC", "PL1RT_PEEK", "RT_LOOKUP", "RT_VALIDATE_BUILTIN", "OPEN", "VSAM_OPEN", "TCPIP_OPEN", "COMPLEX", "DECIMAL_TO_PACKED"):
+            self.assertIn(marker, text)
+
+    def test_bootstrap_m3_backend_declares_arm64_emitter(self):
+        names = self.procedure_names(self.parse_bootstrap("bootstrap_backend_m3.pl1"))
+        text = (BOOTSTRAP / "bootstrap_backend_m3.pl1").read_text(encoding="utf-8")
+
+        for name in {"BOOTSTRAP_BACKEND_M3", "M3_EMIT_PROLOGUE", "M3_EMIT_TEXT_SECTION", "M3_EMIT_MOV_IMMEDIATE", "M3_EMIT_STORE_W0"}:
+            self.assertIn(name, names)
+        for marker in (".globl _main", "bl _pl1rt_init", "macho64-arm64-macos", "str w0"):
             self.assertIn(marker, text)
 
 
