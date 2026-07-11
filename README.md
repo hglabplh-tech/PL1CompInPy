@@ -6,6 +6,7 @@ PL1CompInPy is a starter Python project for a PL/1 compiler.
 
 - [Features](FEATURES.md)
 - [Generated API Reference](docs/API.md)
+- [Build And Delivery](docs/DELIVERY.md)
 - [Sponsorship](docs/SPONSORSHIP.md)
 - [Code of Conduct](CODE_OF_CONDUCT.md)
 - [MIT License](LICENSE)
@@ -114,9 +115,19 @@ Run tests:
 
 ```bash
 python -m unittest discover -s tests
+make test
+make test-binary
 ```
 
-The test suite covers include expansion, strict include errors, recursive include protection, multi-source compilation, CLI library output, library manifests, dynamic-load runtime dispatch, and generated API documentation for the public compiler surface.
+The test suite covers include expansion, strict include errors, recursive include protection, multi-source compilation, CLI library output, library manifests, dynamic-load runtime dispatch, binary container emission with runtime-result verification, and generated API documentation for the public compiler surface.
+
+Build and package a local delivery:
+
+```bash
+make deliver
+```
+
+The delivery target runs syntax checks, regenerates API documentation, runs unit and binary pipeline tests, verifies examples, emits sample text/binary/library artifacts, and packages `dist/PL1CompInPy-delivery.tar.gz`.
 
 ## Assembly Back Ends
 
@@ -251,6 +262,7 @@ The runtime also includes starter storage and I/O services:
 - file-like socket stream layer for easier text/binary payload `READ`/`WRITE`, with Unix-style, fixed, and variable record framing
 - static runtime function descriptors for `ALLOC`, `FREE`, file I/O, VSAM I/O, TCP/IP, SSL, and TLS helpers
 - runtime link manifests embedded in generated native executable payloads, recording the target runtime libraries and used runtime calls
+- binary pipeline tests compile PL/I sources to PE, ELF, and Mach-O containers and validate the same source program through the runtime visitor result
 - generic function dispatch by argument type, using runtime lambda implementations
 - local VSAM-style datasets with a catalog file plus binary data file for KSDS, ESDS, RRDS, and LDS organizations
 - VSAM runtime descriptors and I/O dispatch for `OPEN`, `WRITE FROM`, KSDS keyed `READ`, ESDS RBA `READ`, RRDS RRN `READ`/`WRITE`, LDS RBA/LENGTH `READ`, and `CLOSE`

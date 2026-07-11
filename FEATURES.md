@@ -4,6 +4,7 @@
 
 - Python package structure using `pyproject.toml`.
 - Command-line compiler entry point via `python -m pl1compinpy`.
+- Project `Makefile` with compile, docs, test, binary-test, example, artifact-build, and delivery-package targets.
 - Generated API reference for all Python modules, classes, functions, and methods.
 - Layered package organization:
   - `core` for AST and compiler orchestration
@@ -109,7 +110,7 @@
 - Native runtime startup/shutdown symbol references plus embedded runtime link manifests.
 - Managed runtime references for JVM classpath and .NET assembly linkage.
 - Unit tests for lexer, parser, compiler output, assembly output, structures/records, runtime field access, pointer-qualified based access, declared pointer builtins, and binary signatures.
-- Unit tests for include expansion, strict include diagnostics, recursive include protection, IBM-style preprocessing, multi-source main selection, CLI library output, library manifests, dynamic-load runtime dispatch, and generated API documentation.
+- Unit tests for include expansion, strict include diagnostics, recursive include protection, IBM-style preprocessing, multi-source main selection, CLI library output, library manifests, dynamic-load runtime dispatch, binary artifact compilation with runtime-result verification, and generated API documentation.
 - Packaged PL/I builtin source inclusion with a first `SUBSTR` builtin.
 - Static PL/I builtin function table entries that require `DCL name BUILTIN;` before use.
 
@@ -151,6 +152,7 @@
 - Labels and `GOTO`/`GO TO`.
 - `%` preprocessor command parsing and preprocessing for forms such as `%DECLARE`, `%ACTIVATE`, `%DEACTIVATE`, `%REPLACE`, `%IF`, `%THEN`, `%ELSE`, `%DO`, `%END`, `%SELECT`, `%WHEN`, `%OTHERWISE`, `%INCLUDE`, `%XINCLUDE`, `%INSCAN`, `%XINSCAN`, `%PRINT`, `%NOPRINT`, `%PAGE`, `%SKIP`, `%PUSH`, `%POP`, `%GOTO`, `%LEAVE`, `%ITERATE`, `%PROCEDURE`, and `%RETURN`.
 - Imported PL/I quicksort source kept unchanged in `examples/language/quicksort_imported.pli` as a larger reference module for arrays, generics, text-file helpers, based structures, and recursive sorting procedures.
+- Full PL/I file-system examples with `PROC OPTIONS(MAIN)` for stream I/O, record I/O, update, append, locate, rewrite, positioned reads, and delete operations.
 - Runtime `DYNLOAD`, `DYNSYM`, `JAVA_LOAD_CLASS`, and `DOTNET_LOAD_ASSEMBLY` linkage helpers.
 - Labels and simple procedure bodies.
 - Simple `DO` groups.
