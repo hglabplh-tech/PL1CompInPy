@@ -4,5 +4,5 @@
 github:
   - hglabplh
 
-custom:
+custom: ['https://stripe.com'],
   - "https://github.com/hglabplh/PL1CompInPy"
